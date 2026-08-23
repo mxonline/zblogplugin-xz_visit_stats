@@ -181,29 +181,31 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         array('avg_ms', '平均响应时间', true, ' ms'),
     );
 ?>
-    <form class="xz-overview-filter xz-spider-filter" method="get" action="main.php">
+    <form class="xz-filter xz-filter-panel xz-spider-filter" method="get" action="main.php">
       <input type="hidden" name="view" value="spider" />
-      <label for="spider-range">时间范围</label>
-      <select id="spider-range" name="range">
-        <option value="today"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], 'today'); ?>>今天</option>
-        <option value="yesterday"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], 'yesterday'); ?>>昨天</option>
-        <option value="7d"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], '7d'); ?>>最近 7 天</option>
-        <option value="30d"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], '30d'); ?>>最近 30 天</option>
-        <option value="custom"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], 'custom'); ?>>自定义</option>
-      </select>
-      <label for="spider-start">开始时间</label>
-      <input id="spider-start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($spiderFilters['start']); ?>" />
-      <label for="spider-end">结束时间</label>
-      <input id="spider-end" type="datetime-local" name="end" value="<?php echo xz_visit_stats_admin_escape($spiderFilters['end']); ?>" />
-      <label for="spider-name">蜘蛛</label>
-      <select id="spider-name" name="spider"><option value="all"<?php echo xz_visit_stats_admin_selected($spiderFilters['spider'], 'all'); ?>>全部蜘蛛</option>
+      <div class="xz-filter-basic">
+        <div><label for="spider-range">时间范围</label><select id="spider-range" name="range">
+          <option value="today"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], 'today'); ?>>今天</option>
+          <option value="yesterday"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], 'yesterday'); ?>>昨天</option>
+          <option value="7d"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], '7d'); ?>>最近 7 天</option>
+          <option value="30d"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], '30d'); ?>>最近 30 天</option>
+          <option value="custom"<?php echo xz_visit_stats_admin_selected($spiderFilters['range'], 'custom'); ?>>自定义</option>
+        </select></div>
+        <div><label for="spider-name">蜘蛛类型</label><select id="spider-name" name="spider"><option value="all"<?php echo xz_visit_stats_admin_selected($spiderFilters['spider'], 'all'); ?>>全部蜘蛛</option>
 <?php foreach (array_merge(xz_visit_stats_spider_names(), array('Other Bot')) as $spiderName) { ?>
         <option value="<?php echo xz_visit_stats_admin_escape($spiderName); ?>"<?php echo xz_visit_stats_admin_selected($spiderFilters['spider'], $spiderName); ?>><?php echo xz_visit_stats_admin_escape($spiderName); ?></option>
 <?php } ?>
-      </select>
-      <label for="spider-page-size">URL 每页</label>
-      <select id="spider-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($spiderFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($spiderFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($spiderFilters['page_size'], 100); ?>>100</option></select>
-      <button type="submit" class="button">查询</button>
+        </select></div>
+        <div class="xz-filter-submit"><button type="submit" class="button">查询</button></div>
+        <div class="xz-filter-toggle-wrap"><button type="button" class="button xz-filter-toggle" aria-expanded="false" aria-controls="spider-advanced-filter">高级筛选</button></div>
+      </div>
+      <div id="spider-advanced-filter" class="xz-advanced-filter">
+        <div class="xz-filter-sections"><fieldset class="xz-filter-section"><legend>时间与分页</legend><div class="xz-filter-grid xz-filter-grid-time">
+          <div><label for="spider-start">开始时间</label><input id="spider-start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($spiderFilters['start']); ?>" /></div>
+          <div><label for="spider-end">结束时间</label><input id="spider-end" type="datetime-local" name="end" value="<?php echo xz_visit_stats_admin_escape($spiderFilters['end']); ?>" /></div>
+          <div><label for="spider-page-size">URL 每页</label><select id="spider-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($spiderFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($spiderFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($spiderFilters['page_size'], 100); ?>>100</option></select></div>
+        </div></fieldset></div>
+      </div>
     </form>
     <p class="xz-overview-note">当前范围：<?php echo xz_visit_stats_admin_escape($spiderData['range']['label']); ?>。蜘蛛名称来自 User-Agent 识别，尚未进行反向 DNS、正向 DNS 或官方 IP 段真实性验证。</p>
     <div class="xz-metric-grid xz-spider-metrics">
@@ -243,7 +245,10 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         array('not_found', '404 数量', false, ''), array('avg_ms', '平均耗时', true, ' ms'),
     );
 ?>
-    <form class="xz-overview-filter xz-seo-filter" method="get" action="main.php"><input type="hidden" name="view" value="seo" /><label for="seo-range">时间范围</label><select id="seo-range" name="range"><option value="today"<?php echo xz_visit_stats_admin_selected($seoFilters['range'], 'today'); ?>>今天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($seoFilters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($seoFilters['range'], '30d'); ?>>最近 30 天</option></select><label for="seo-page-size">排行每页</label><select id="seo-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($seoFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($seoFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($seoFilters['page_size'], 100); ?>>100</option></select><button type="submit" class="button">查询</button></form>
+    <form class="xz-filter xz-filter-panel xz-seo-filter" method="get" action="main.php"><input type="hidden" name="view" value="seo" />
+      <div class="xz-filter-basic"><div><label for="seo-range">时间范围</label><select id="seo-range" name="range"><option value="today"<?php echo xz_visit_stats_admin_selected($seoFilters['range'], 'today'); ?>>今天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($seoFilters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($seoFilters['range'], '30d'); ?>>最近 30 天</option></select></div><div class="xz-filter-submit"><button type="submit" class="button">查询</button></div><div class="xz-filter-toggle-wrap"><button type="button" class="button xz-filter-toggle" aria-expanded="false" aria-controls="seo-advanced-filter">高级筛选</button></div></div>
+      <div id="seo-advanced-filter" class="xz-advanced-filter"><div class="xz-filter-sections"><fieldset class="xz-filter-section"><legend>分页</legend><div class="xz-filter-grid"><div><label for="seo-page-size">排行每页</label><select id="seo-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($seoFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($seoFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($seoFilters['page_size'], 100); ?>>100</option></select></div></div></fieldset></div></div>
+    </form>
     <p class="xz-overview-note">当前范围：<?php echo xz_visit_stats_admin_escape($seoData['range']['label']); ?>。统计基于已识别的蜘蛛 User-Agent，不包含反向 DNS 或官方 IP 段真实性验证。</p>
     <div class="xz-metric-grid xz-seo-metrics"><?php foreach ($seoMetrics as $metric) { ?><section class="xz-metric-card"><h3><?php echo xz_visit_stats_admin_escape($metric[1]); ?></h3><strong><?php echo xz_visit_stats_admin_metric_value($seoSummary[$metric[0]], $metric[2]); ?><?php echo $metric[3]; ?></strong></section><?php } ?></div>
     <section class="xz-overview-section"><h2>蜘蛛分类</h2><div class="xz-table-wrap xz-seo-table-wrap"><table class="tableFull tableBorder tableBorder-thcenter table_hover xz-seo-engine-table"><thead><tr><th>蜘蛛</th><th>访问次数</th><th>占比</th><th>独立 IP</th><th>成功状态（2xx）</th><th>成功率</th><th>404 数量</th></tr></thead><tbody>
@@ -297,13 +302,11 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         array('avg_ms', '平均响应时间', true, ' ms'),
     );
 ?>
-    <form class="xz-overview-filter xz-source-filter" method="get" action="main.php"><input type="hidden" name="view" value="source" />
-      <div class="xz-source-filter-row xz-source-filter-time"><div><label for="source-range">时间范围</label><select id="source-range" name="range"><option value="today"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], 'today'); ?>>今天</option><option value="yesterday"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], 'yesterday'); ?>>昨天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], '30d'); ?>>最近 30 天</option><option value="custom"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], 'custom'); ?>>自定义</option></select></div>
-      <div><label for="source-start">开始时间</label><input id="source-start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['start']); ?>" /></div>
-      <div><label for="source-end">结束时间</label><input id="source-end" type="datetime-local" name="end" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['end']); ?>" /></div></div>
-      <div class="xz-source-filter-row xz-source-filter-source"><div><label for="source-type">来源类型</label><select id="source-type" name="source_type"><option value="all"<?php echo xz_visit_stats_admin_selected($sourceFilters['source_type'], 'all'); ?>>全部</option><?php foreach (xz_visit_stats_source_type_labels() as $typeKey => $typeLabel) { ?><option value="<?php echo $typeKey; ?>"<?php echo xz_visit_stats_admin_selected($sourceFilters['source_type'], $typeKey); ?>><?php echo xz_visit_stats_admin_escape($typeLabel); ?></option><?php } ?></select></div>
-      <div><label for="source-domain">来源域名</label><input id="source-domain" name="domain" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['domain']); ?>" placeholder="例如 partner.example" /></div><div><label for="source-referer">来路 URL</label><input id="source-referer" name="referer" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['referer']); ?>" placeholder="关键词" /></div><div><label for="source-ip">访问 IP</label><input id="source-ip" name="ip" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['ip']); ?>" placeholder="IPv4 / IPv6" /></div>
-      <div><label for="source-page-size">每页</label><select id="source-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($sourceFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($sourceFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($sourceFilters['page_size'], 100); ?>>100</option></select></div><div class="xz-source-filter-submit"><button type="submit" class="button">查询</button></div></div>
+    <form class="xz-filter xz-filter-panel xz-source-filter" method="get" action="main.php"><input type="hidden" name="view" value="source" />
+      <div class="xz-filter-basic"><div><label for="source-range">时间范围</label><select id="source-range" name="range"><option value="today"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], 'today'); ?>>今天</option><option value="yesterday"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], 'yesterday'); ?>>昨天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], '30d'); ?>>最近 30 天</option><option value="custom"<?php echo xz_visit_stats_admin_selected($sourceFilters['range'], 'custom'); ?>>自定义</option></select></div>
+      <div><label for="source-type">来源类型</label><select id="source-type" name="source_type"><option value="all"<?php echo xz_visit_stats_admin_selected($sourceFilters['source_type'], 'all'); ?>>全部</option><?php foreach (xz_visit_stats_source_type_labels() as $typeKey => $typeLabel) { ?><option value="<?php echo $typeKey; ?>"<?php echo xz_visit_stats_admin_selected($sourceFilters['source_type'], $typeKey); ?>><?php echo xz_visit_stats_admin_escape($typeLabel); ?></option><?php } ?></select></div>
+      <div class="xz-filter-submit"><button type="submit" class="button">查询</button></div><div class="xz-filter-toggle-wrap"><button type="button" class="button xz-filter-toggle" aria-expanded="false" aria-controls="source-advanced-filter">高级筛选</button></div></div>
+      <div id="source-advanced-filter" class="xz-advanced-filter"><div class="xz-filter-sections"><fieldset class="xz-filter-section"><legend>时间、来源与分页</legend><div class="xz-filter-grid"><div><label for="source-start">开始时间</label><input id="source-start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['start']); ?>" /></div><div><label for="source-end">结束时间</label><input id="source-end" type="datetime-local" name="end" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['end']); ?>" /></div><div><label for="source-domain">来源域名</label><input id="source-domain" name="domain" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['domain']); ?>" placeholder="例如 partner.example" /></div><div><label for="source-referer">来路 URL</label><input id="source-referer" name="referer" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['referer']); ?>" placeholder="关键词" /></div><div><label for="source-ip">访问 IP</label><input id="source-ip" name="ip" value="<?php echo xz_visit_stats_admin_escape($sourceFilters['ip']); ?>" placeholder="IPv4 / IPv6" /></div><div><label for="source-page-size">每页</label><select id="source-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($sourceFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($sourceFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($sourceFilters['page_size'], 100); ?>>100</option></select></div></div></fieldset></div></div>
     </form>
     <p class="xz-overview-note">当前范围：<?php echo xz_visit_stats_admin_escape($sourceData['range']['label']); ?>。来源分析仅统计普通访客，来源域名由 Referer URL 的 host 提取。</p>
     <div class="xz-metric-grid xz-source-metrics"><?php foreach ($sourceMetrics as $metric) { ?><section class="xz-metric-card"><h3><?php echo xz_visit_stats_admin_escape($metric[1]); ?></h3><strong><?php echo xz_visit_stats_admin_metric_value($sourceSummary[$metric[0]], $metric[2]); ?><?php echo $metric[3]; ?></strong></section><?php } ?></div>
@@ -313,8 +316,8 @@ require $blogpath . 'zb_system/admin/admin_top.php';
 <?php if (empty($sourceData['domains'])) { ?><tr><td colspan="6" class="tdCenter">暂无数据</td></tr><?php } ?>
 <?php foreach ($sourceData['domains'] as $domainRow) { ?><tr><td><a href="<?php echo xz_visit_stats_admin_escape(xz_visit_stats_admin_source_url($sourceFilters, 1, $domainRow['domain'])); ?>"><?php echo xz_visit_stats_admin_escape($domainRow['domain']); ?></a></td><td><?php echo xz_visit_stats_admin_escape($domainRow['type']); ?></td><td><?php echo $domainRow['visits']; ?></td><td><?php echo $domainRow['uv']; ?></td><td><?php echo $domainRow['last_visit'] > 0 ? xz_visit_stats_admin_escape(date('Y-m-d H:i:s', $domainRow['last_visit'])) : '-'; ?></td><td><?php echo number_format($domainRow['avg_ms'], 1); ?> ms</td></tr><?php } ?>
     </tbody></table></div><nav class="xz-pagination" aria-label="来源排行分页"><span class="xz-page-state">共 <?php echo $sourceData['domain_count']; ?> 个外链域名，当前 <?php echo $sourceData['page']; ?> / <?php echo $sourceData['page_all']; ?> 页</span><?php if ($sourceData['page'] > 1) { ?><a href="<?php echo xz_visit_stats_admin_escape(xz_visit_stats_admin_source_url($sourceFilters, $sourceData['page'] - 1)); ?>">上一页</a><?php } ?><?php if ($sourceData['page'] < $sourceData['page_all']) { ?><a href="<?php echo xz_visit_stats_admin_escape(xz_visit_stats_admin_source_url($sourceFilters, $sourceData['page'] + 1)); ?>">下一页</a><?php } ?></nav></section>
-    <section class="xz-overview-section"><h2>来源链接排行 TOP100</h2><div class="xz-table-wrap"><table class="tableFull tableBorder tableBorder-thcenter table_hover"><thead><tr><th>完整 Referer URL</th><th>访问次数</th><th>最近访问</th></tr></thead><tbody><?php if (empty($sourceData['links'])) { ?><tr><td colspan="3" class="tdCenter">暂无数据，有访问记录后将在这里展示。</td></tr><?php } ?><?php foreach ($sourceData['links'] as $linkRow) { ?><tr><td><span class="xz-cell-clip" title="<?php echo xz_visit_stats_admin_escape($linkRow['referer']); ?>"><?php echo xz_visit_stats_admin_escape($linkRow['referer']); ?></span></td><td><?php echo $linkRow['visits']; ?></td><td><?php echo $linkRow['last_visit'] ? xz_visit_stats_admin_escape(date('Y-m-d H:i:s', $linkRow['last_visit'])) : '-'; ?></td></tr><?php } ?></tbody></table></div></section>
-    <section class="xz-overview-section"><h2>来路链接明细</h2><div class="xz-table-wrap"><table class="tableFull tableBorder tableBorder-thcenter table_hover"><thead><tr><th>日志 ID</th><th>来路域名</th><th>完整 Referer URL</th><th>访问 IP</th><th>目标页面</th><th>访问时间</th></tr></thead><tbody><?php if (empty($sourceData['records'])) { ?><tr><td colspan="6" class="tdCenter">暂无数据，有访问记录后将在这里展示。</td></tr><?php } ?><?php foreach ($sourceData['records'] as $recordRow) { ?><tr><td><?php echo $recordRow['id']; ?></td><td><?php echo xz_visit_stats_admin_escape($recordRow['domain']); ?></td><td><span class="xz-cell-clip" title="<?php echo xz_visit_stats_admin_escape($recordRow['referer']); ?>"><?php echo xz_visit_stats_admin_escape($recordRow['referer']); ?></span></td><td><?php echo xz_visit_stats_admin_escape($recordRow['ip']); ?></td><td><span class="xz-cell-clip" title="<?php echo xz_visit_stats_admin_escape($recordRow['url']); ?>"><?php echo xz_visit_stats_admin_escape($recordRow['path']); ?></span></td><td><?php echo $recordRow['visited_at'] ? xz_visit_stats_admin_escape(date('Y-m-d H:i:s', $recordRow['visited_at'])) : '-'; ?></td></tr><?php } ?></tbody></table></div><nav class="xz-pagination" aria-label="来路链接明细分页"><span class="xz-page-state">共 <?php echo $sourceData['record_count']; ?> 条记录，当前 <?php echo $sourceData['page']; ?> / <?php echo $sourceData['page_all']; ?> 页</span></nav></section>
+    <section class="xz-overview-section"><h2>来源链接排行 TOP100</h2><div class="xz-table-wrap"><table class="tableFull tableBorder tableBorder-thcenter table_hover xz-source-link-table"><thead><tr><th>来源（悬停查看详情）</th><th>访问次数</th><th>最近访问</th></tr></thead><tbody><?php if (empty($sourceData['links'])) { ?><tr><td colspan="3" class="tdCenter">暂无数据，有访问记录后将在这里展示。</td></tr><?php } ?><?php foreach ($sourceData['links'] as $linkRow) { ?><tr><td><?php echo xz_visit_stats_source_referer_cell($linkRow['referer']); ?></td><td><?php echo $linkRow['visits']; ?></td><td><?php echo $linkRow['last_visit'] ? xz_visit_stats_admin_escape(date('Y-m-d H:i:s', $linkRow['last_visit'])) : '-'; ?></td></tr><?php } ?></tbody></table></div></section>
+    <section class="xz-overview-section"><h2>来路链接明细</h2><div class="xz-table-wrap"><table class="tableFull tableBorder tableBorder-thcenter table_hover xz-source-record-table"><thead><tr><th>日志 ID</th><th>来路域名</th><th>来源（悬停查看详情）</th><th>访问 IP</th><th>目标页面</th><th>访问时间</th></tr></thead><tbody><?php if (empty($sourceData['records'])) { ?><tr><td colspan="6" class="tdCenter">暂无数据，有访问记录后将在这里展示。</td></tr><?php } ?><?php foreach ($sourceData['records'] as $recordRow) { ?><tr><td><?php echo $recordRow['id']; ?></td><td><?php echo xz_visit_stats_admin_escape($recordRow['domain']); ?></td><td><?php echo xz_visit_stats_source_referer_cell($recordRow['referer']); ?></td><td><?php echo xz_visit_stats_admin_escape($recordRow['ip']); ?></td><td><span class="xz-cell-clip" title="<?php echo xz_visit_stats_admin_escape($recordRow['url']); ?>"><?php echo xz_visit_stats_admin_escape($recordRow['path']); ?></span></td><td><?php echo $recordRow['visited_at'] ? xz_visit_stats_admin_escape(date('Y-m-d H:i:s', $recordRow['visited_at'])) : '-'; ?></td></tr><?php } ?></tbody></table></div><nav class="xz-pagination" aria-label="来路链接明细分页"><span class="xz-page-state">共 <?php echo $sourceData['record_count']; ?> 条记录，当前 <?php echo $sourceData['page']; ?> / <?php echo $sourceData['page_all']; ?> 页</span></nav></section>
 <?php if ($sourceFilters['domain'] !== '') { ?><section class="xz-overview-section"><h2>来源详情：<?php echo xz_visit_stats_admin_escape($sourceFilters['domain']); ?></h2><p>当前筛选下访问 <?php echo $sourceSummary['visits']; ?> 次、UV <?php echo $sourceSummary['uv']; ?>、平均响应 <?php echo number_format($sourceSummary['avg_ms'], 1); ?> ms。</p></section><?php } ?>
     <script>window.XZVisitStatsSource=<?php echo json_encode(array('types' => $sourceData['types'], 'searches' => $sourceData['searches'], 'trend' => $sourceData['trend']), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;</script><script src="assets/source.js?v=0.1.0-b5"></script>
 <?php } elseif ($view === 'ip') {
@@ -327,12 +330,9 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         array('error_ips', '404 异常 IP 数量', false, ''),
     );
 ?>
-    <form class="xz-overview-filter xz-ip-filter" method="get" action="main.php"><input type="hidden" name="view" value="ip" />
-      <label for="ip-range">时间范围</label><select id="ip-range" name="range"><option value="today"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], 'today'); ?>>今天</option><option value="yesterday"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], 'yesterday'); ?>>昨天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], '30d'); ?>>最近 30 天</option><option value="custom"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], 'custom'); ?>>自定义</option></select>
-      <label for="ip-start">开始时间</label><input id="ip-start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($ipFilters['start']); ?>" />
-      <label for="ip-end">结束时间</label><input id="ip-end" type="datetime-local" name="end" value="<?php echo xz_visit_stats_admin_escape($ipFilters['end']); ?>" />
-      <label for="ip-address">IP 地址</label><input id="ip-address" name="ip" maxlength="45" value="<?php echo xz_visit_stats_admin_escape($ipFilters['ip']); ?>" placeholder="IPv4 或 IPv6" />
-      <label for="ip-page-size">每页</label><select id="ip-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($ipFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($ipFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($ipFilters['page_size'], 100); ?>>100</option></select><button type="submit" class="button">查询</button>
+    <form class="xz-filter xz-filter-panel xz-ip-filter" method="get" action="main.php"><input type="hidden" name="view" value="ip" />
+      <div class="xz-filter-basic"><div><label for="ip-range">时间范围</label><select id="ip-range" name="range"><option value="today"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], 'today'); ?>>今天</option><option value="yesterday"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], 'yesterday'); ?>>昨天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], '30d'); ?>>最近 30 天</option><option value="custom"<?php echo xz_visit_stats_admin_selected($ipFilters['range'], 'custom'); ?>>自定义</option></select></div><div class="xz-filter-submit"><button type="submit" class="button">查询</button></div><div class="xz-filter-toggle-wrap"><button type="button" class="button xz-filter-toggle" aria-expanded="false" aria-controls="ip-advanced-filter">高级筛选</button></div></div>
+      <div id="ip-advanced-filter" class="xz-advanced-filter"><div class="xz-filter-sections"><fieldset class="xz-filter-section"><legend>时间与 IP</legend><div class="xz-filter-grid xz-filter-grid-time"><div><label for="ip-start">开始时间</label><input id="ip-start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($ipFilters['start']); ?>" /></div><div><label for="ip-end">结束时间</label><input id="ip-end" type="datetime-local" name="end" value="<?php echo xz_visit_stats_admin_escape($ipFilters['end']); ?>" /></div><div><label for="ip-address">IP 地址</label><input id="ip-address" name="ip" maxlength="45" value="<?php echo xz_visit_stats_admin_escape($ipFilters['ip']); ?>" placeholder="IPv4 或 IPv6" /></div><div><label for="ip-page-size">每页</label><select id="ip-page-size" name="page_size"><option value="20"<?php echo xz_visit_stats_admin_selected($ipFilters['page_size'], 20); ?>>20</option><option value="50"<?php echo xz_visit_stats_admin_selected($ipFilters['page_size'], 50); ?>>50</option><option value="100"<?php echo xz_visit_stats_admin_selected($ipFilters['page_size'], 100); ?>>100</option></select></div></div></fieldset></div></div>
     </form>
     <p class="xz-overview-note">当前范围：<?php echo xz_visit_stats_admin_escape($ipData['range']['label']); ?>。异常项仅用于辅助识别，不会自动封禁或拉黑 IP。</p>
     <div class="xz-metric-grid xz-ip-metrics"><?php foreach ($ipMetrics as $metric) { ?><section class="xz-metric-card"><h3><?php echo xz_visit_stats_admin_escape($metric[1]); ?></h3><strong><?php echo xz_visit_stats_admin_metric_value($ipSummary[$metric[0]], $metric[2]); ?><?php echo $metric[3]; ?></strong></section><?php } ?></div>
@@ -372,44 +372,34 @@ require $blogpath . 'zb_system/admin/admin_top.php';
       <section class="xz-overview-section"><h2>基础设置</h2><label><input type="checkbox" name="enabled" value="1"<?php echo $settings['enabled'] ? ' checked="checked"' : ''; ?> /> 开启访问统计</label><label><input type="checkbox" name="exclude_admin" value="1"<?php echo $settings['exclude_admin'] ? ' checked="checked"' : ''; ?> /> 管理员访问不计入统计</label><p class="xz-overview-note">关闭统计后，新访问不会写入日志，已有记录不受影响。</p></section>
       <section class="xz-overview-section"><h2>数据采集设置</h2><label><input type="checkbox" name="record_bots" value="1"<?php echo $settings['record_bots'] ? ' checked="checked"' : ''; ?> /> 记录蜘蛛访问</label><div class="xz-settings-options"><label><input type="checkbox" name="record_baiduspider" value="1"<?php echo $settings['record_baiduspider'] ? ' checked="checked"' : ''; ?> /> Baiduspider</label><label><input type="checkbox" name="record_googlebot" value="1"<?php echo $settings['record_googlebot'] ? ' checked="checked"' : ''; ?> /> Googlebot</label><label><input type="checkbox" name="record_bingbot" value="1"<?php echo $settings['record_bingbot'] ? ' checked="checked"' : ''; ?> /> bingbot</label><label><input type="checkbox" name="record_other_bots" value="1"<?php echo $settings['record_other_bots'] ? ' checked="checked"' : ''; ?> /> 其他蜘蛛</label></div><label><input type="checkbox" name="record_referer" value="1"<?php echo $settings['record_referer'] ? ' checked="checked"' : ''; ?> /> 保存来源地址</label><label><input type="checkbox" name="record_user_agent" value="1"<?php echo $settings['record_user_agent'] ? ' checked="checked"' : ''; ?> /> 保存浏览器、系统和设备信息</label></section>
       <section class="xz-overview-section"><h2>日志管理</h2><label for="settings-retention">日志保存周期</label><select id="settings-retention" name="retention_days"><?php foreach (array(30, 90, 180, 365) as $days) { ?><option value="<?php echo $days; ?>"<?php echo xz_visit_stats_admin_selected($settings['retention_days'], $days); ?>><?php echo $days; ?> 天</option><?php } ?></select><label><input type="checkbox" name="auto_cleanup" value="1"<?php echo $settings['auto_cleanup'] ? ' checked="checked"' : ''; ?> /> 自动清理超过保存周期的日志</label><p class="xz-overview-note">自动清理每天最多执行一次。手动清理仍可在数据维护页面使用。</p></section>
-      <section class="xz-overview-section"><h2>隐私设置</h2><label><input type="radio" name="ip_mode" value="full"<?php echo xz_visit_stats_admin_selected($settings['ip_mode'], 'full'); ?> /> 完整 IP</label><label><input type="radio" name="ip_mode" value="masked"<?php echo xz_visit_stats_admin_selected($settings['ip_mode'], 'masked'); ?> /> IP 脱敏</label><p class="xz-overview-note">IP 用于访客去重、异常访问识别和来源明细。选择脱敏后仅影响新记录。</p></section>
+      <section class="xz-overview-section"><h2>隐私设置</h2><label><input type="radio" name="ip_mode" value="full"<?php echo xz_visit_stats_admin_checked($settings['ip_mode'], 'full'); ?> /> 完整 IP</label><label><input type="radio" name="ip_mode" value="masked"<?php echo xz_visit_stats_admin_checked($settings['ip_mode'], 'masked'); ?> /> IP 脱敏</label><p class="xz-overview-note">IP 用于访客去重、异常访问识别和来源明细。选择脱敏后仅影响新记录。</p></section>
       <section class="xz-overview-section"><h2>性能设置</h2><p>数据处理方式：实时写入。批量处理为后续兼容预留，当前不启用。</p><label for="settings-alert">日志数量提醒</label><input id="settings-alert" type="number" min="10000" max="10000000" step="10000" name="log_alert_count" value="<?php echo (int) $settings['log_alert_count']; ?>" /><p class="xz-overview-note">日志数量达到该值后，会在设置页提醒检查保留策略。</p></section>
-      <section class="xz-overview-section"><h2>关于插件</h2><p>插件名称：访问统计<br />版本号：1.2.0<br /><a href="docs/CHANGELOG.md" target="_blank">更新日志</a>　<a href="docs/DEVELOPMENT.md" target="_blank">开发文档</a></p></section>
+      <section class="xz-overview-section"><h2>关于插件</h2><p>插件名称：访问统计<br />版本号：1.3.0<br /><a href="docs/CHANGELOG.md" target="_blank">更新日志</a>　<a href="docs/DEVELOPMENT.md" target="_blank">开发文档</a></p></section>
       <p><button type="submit" class="button">保存设置</button></p>
     </form>
 <?php } elseif ($view !== 'records') { ?>
     <div class="xz-placeholder">该功能将在后续版本开放</div>
 <?php } else { ?>
 <?php
-    $hasAdvancedFilters = $filters['start'] !== '' || $filters['end'] !== ''
-        || $filters['ip_mode'] !== 'prefix' || $filters['visit_type'] !== 'all'
+    $hasAdvancedFilters = $filters['range'] === 'custom' || $filters['start'] !== '' || $filters['end'] !== ''
+        || $filters['ip'] !== '' || $filters['ip_mode'] !== 'prefix'
         || $filters['bot_name'] !== '' || $filters['browser'] !== ''
-        || $filters['status_code'] !== '' || $filters['url'] !== '' || $filters['referer'] !== '';
+        || $filters['status_group'] !== 'all' || $filters['status_code'] !== ''
+        || $filters['url'] !== '' || $filters['referer'] !== '' || $filters['page_size'] !== 50;
 ?>
     <form class="xz-filter xz-filter-panel<?php echo $hasAdvancedFilters ? ' is-open' : ''; ?>" method="get" action="main.php">
       <input type="hidden" name="view" value="records" />
       <div class="xz-filter-basic">
         <div><label for="record-range">时间范围</label><select id="record-range" name="range"><option value="all"<?php echo xz_visit_stats_admin_selected($filters['range'], 'all'); ?>>全部时间</option><option value="today"<?php echo xz_visit_stats_admin_selected($filters['range'], 'today'); ?>>今天</option><option value="yesterday"<?php echo xz_visit_stats_admin_selected($filters['range'], 'yesterday'); ?>>昨天</option><option value="7d"<?php echo xz_visit_stats_admin_selected($filters['range'], '7d'); ?>>最近 7 天</option><option value="30d"<?php echo xz_visit_stats_admin_selected($filters['range'], '30d'); ?>>最近 30 天</option><option value="custom"<?php echo xz_visit_stats_admin_selected($filters['range'], 'custom'); ?>>自定义</option></select></div>
-        <div><label for="record-ip">IP</label><input id="record-ip" name="ip" maxlength="45" value="<?php echo xz_visit_stats_admin_escape($filters['ip']); ?>" placeholder="IPv4 / IPv6" /></div>
-        <div><label for="record-status-group">HTTP 状态</label><select id="record-status-group" name="status_group"><option value="all"<?php echo xz_visit_stats_admin_selected($filters['status_group'], 'all'); ?>>全部</option><option value="2xx"<?php echo xz_visit_stats_admin_selected($filters['status_group'], '2xx'); ?>>正常请求（2xx）</option><option value="3xx"<?php echo xz_visit_stats_admin_selected($filters['status_group'], '3xx'); ?>>跳转请求（3xx）</option><option value="4xx"<?php echo xz_visit_stats_admin_selected($filters['status_group'], '4xx'); ?>>错误请求（4xx）</option><option value="5xx"<?php echo xz_visit_stats_admin_selected($filters['status_group'], '5xx'); ?>>异常请求（5xx）</option></select></div>
+        <div><label for="visit_type">访问类型</label><select id="visit_type" name="visit_type"><option value="all"<?php echo xz_visit_stats_admin_selected($filters['visit_type'], 'all'); ?>>全部</option><option value="human"<?php echo xz_visit_stats_admin_selected($filters['visit_type'], 'human'); ?>>普通访客</option><option value="bot"<?php echo xz_visit_stats_admin_selected($filters['visit_type'], 'bot'); ?>>蜘蛛</option></select></div>
         <div class="xz-filter-submit"><button type="submit" class="button">查询</button></div>
-        <div class="xz-filter-toggle-wrap"><button type="button" class="button xz-filter-toggle" aria-expanded="<?php echo $hasAdvancedFilters ? 'true' : 'false'; ?>"><?php echo $hasAdvancedFilters ? '收起高级筛选' : '高级筛选'; ?></button></div>
+        <div class="xz-filter-toggle-wrap"><button type="button" class="button xz-filter-toggle" aria-expanded="<?php echo $hasAdvancedFilters ? 'true' : 'false'; ?>" aria-controls="records-advanced-filter"><?php echo $hasAdvancedFilters ? '收起高级筛选' : '高级筛选'; ?></button></div>
       </div>
-      <div class="xz-advanced-filter">
+      <div id="records-advanced-filter" class="xz-advanced-filter">
       <div class="xz-filter-sections">
         <fieldset class="xz-filter-section">
           <legend>时间条件</legend>
           <div class="xz-filter-grid xz-filter-grid-time"><div>
-          <label for="advanced-range">时间范围</label>
-          <select id="advanced-range" name="range_display" disabled="disabled">
-            <option value="all"<?php echo xz_visit_stats_admin_selected($filters['range'], 'all'); ?>>全部时间</option>
-            <option value="today"<?php echo xz_visit_stats_admin_selected($filters['range'], 'today'); ?>>今天</option>
-            <option value="yesterday"<?php echo xz_visit_stats_admin_selected($filters['range'], 'yesterday'); ?>>昨天</option>
-            <option value="7d"<?php echo xz_visit_stats_admin_selected($filters['range'], '7d'); ?>>最近 7 天</option>
-            <option value="30d"<?php echo xz_visit_stats_admin_selected($filters['range'], '30d'); ?>>最近 30 天</option>
-            <option value="custom"<?php echo xz_visit_stats_admin_selected($filters['range'], 'custom'); ?>>自定义</option>
-          </select>
-          </div><div>
           <label for="start">开始时间</label>
           <input id="start" type="datetime-local" name="start" value="<?php echo xz_visit_stats_admin_escape($filters['start']); ?>" />
           </div><div>
@@ -420,20 +410,13 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         <fieldset class="xz-filter-section">
           <legend>访客条件</legend>
           <div class="xz-filter-grid"><div>
-          <label for="advanced-ip">IP</label>
-          <input id="advanced-ip" name="ip_display" maxlength="45" value="<?php echo xz_visit_stats_admin_escape($filters['ip']); ?>" placeholder="IPv4 / IPv6" disabled="disabled" />
+          <label for="record-ip">IP</label>
+          <input id="record-ip" name="ip" maxlength="45" value="<?php echo xz_visit_stats_admin_escape($filters['ip']); ?>" placeholder="IPv4 / IPv6" />
           </div><div>
           <label for="ip_mode">IP 查询方式</label>
           <select id="ip_mode" name="ip_mode">
             <option value="prefix"<?php echo xz_visit_stats_admin_selected($filters['ip_mode'], 'prefix'); ?>>前缀</option>
             <option value="exact"<?php echo xz_visit_stats_admin_selected($filters['ip_mode'], 'exact'); ?>>精确</option>
-          </select>
-          </div><div>
-          <label for="visit_type">访问类型</label>
-          <select id="visit_type" name="visit_type">
-            <option value="all"<?php echo xz_visit_stats_admin_selected($filters['visit_type'], 'all'); ?>>全部</option>
-            <option value="human"<?php echo xz_visit_stats_admin_selected($filters['visit_type'], 'human'); ?>>普通访客</option>
-            <option value="bot"<?php echo xz_visit_stats_admin_selected($filters['visit_type'], 'bot'); ?>>蜘蛛</option>
           </select>
           </div><div>
           <label for="bot_name">蜘蛛名称</label>
@@ -454,8 +437,8 @@ require $blogpath . 'zb_system/admin/admin_top.php';
         <fieldset class="xz-filter-section">
           <legend>请求条件</legend>
           <div class="xz-filter-grid"><div>
-          <label for="advanced-status-group">HTTP 状态</label>
-          <select id="advanced-status-group" name="status_group_display" disabled="disabled">
+          <label for="record-status-group">HTTP 状态</label>
+          <select id="record-status-group" name="status_group">
             <option value="all"<?php echo xz_visit_stats_admin_selected($filters['status_group'], 'all'); ?>>全部</option>
             <option value="2xx"<?php echo xz_visit_stats_admin_selected($filters['status_group'], '2xx'); ?>>2xx 正常</option>
             <option value="3xx"<?php echo xz_visit_stats_admin_selected($filters['status_group'], '3xx'); ?>>3xx 跳转</option>
@@ -470,7 +453,7 @@ require $blogpath . 'zb_system/admin/admin_top.php';
           <input id="url" name="url" value="<?php echo xz_visit_stats_admin_escape($filters['url']); ?>" />
           </div><div>
           <label for="page_size">每页数量</label>
-          <select id="page_size" name="page_size">
+          <select id="page_size" name="page_size" data-default-value="50">
             <option value="20"<?php echo xz_visit_stats_admin_selected($filters['page_size'], 20); ?>>20</option>
             <option value="50"<?php echo xz_visit_stats_admin_selected($filters['page_size'], 50); ?>>50</option>
             <option value="100"<?php echo xz_visit_stats_admin_selected($filters['page_size'], 100); ?>>100</option>
@@ -586,7 +569,7 @@ require $blogpath . 'zb_system/admin/admin_top.php';
   </div>
 </div>
 <script src="assets/admin.js?v=0.1.0"></script>
-<script src="assets/filter.js?v=1.1.0"></script>
+<script src="assets/filter.js?v=1.3.0"></script>
 <?php
 require $blogpath . 'zb_system/admin/admin_footer.php';
 

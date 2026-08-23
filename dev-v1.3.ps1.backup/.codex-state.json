@@ -1,0 +1,10 @@
+{
+  "current": 0,
+  "completed": [
+    "legacy: compact-filter-ui",
+    "legacy: privacy-ip-radio-fix"
+  ],
+  "skipped": [],
+  "last_run": "privacy-ip-radio-fix (completed before this automation revision)",
+  "last_exit_code": 0
+}
