@@ -7,6 +7,19 @@
 .xz-filter label { display: block; margin-bottom: 4px; font-weight: 600; }
 .xz-filter input, .xz-filter select { box-sizing: border-box; width: 100%; }
 .xz-filter-actions { margin: 12px 0 0; }
+.xz-filter-panel { padding: 12px; }
+.xz-filter-basic { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(180px, 1fr) minmax(160px, 1fr) auto auto; align-items: end; gap: 10px 12px; }
+.xz-filter-basic > div, .xz-advanced-filter > fieldset { min-width: 0; }
+.xz-filter-basic label, .xz-advanced-filter label { display: block; margin-bottom: 4px; font-weight: 600; }
+.xz-filter-basic input, .xz-filter-basic select, .xz-advanced-filter input, .xz-advanced-filter select { box-sizing: border-box; width: 100%; }
+.xz-filter-submit, .xz-filter-toggle-wrap { display: flex; align-items: end; gap: 8px; }
+.xz-filter-toggle { white-space: nowrap; }
+.xz-advanced-filter { display: none; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; padding-top: 12px; border-top: 1px solid #ddd; }
+.xz-advanced-filter .xz-filter-section { margin: 0; }
+.xz-advanced-filter .xz-filter-grid { grid-template-columns: repeat(2, minmax(140px, 1fr)); }
+@media (min-width: 681px) {
+  .xz-filter-panel:hover .xz-advanced-filter, .xz-filter-panel:focus-within .xz-advanced-filter, .xz-filter-panel.is-open .xz-advanced-filter { display: grid; }
+}
 .xz-list-summary { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 20px; margin: 10px 0; padding: 10px 12px; border-left: 4px solid #3a6ea5; background: #f5f8fb; }
 .xz-table-wrap { position: relative; max-height: 68vh; overflow: auto; border: 1px solid #ddd; }
 .xz-visit-table { min-width: 1320px; margin: 0; border: 0; }
@@ -119,6 +132,14 @@
 .xz-seo-url-table { min-width: 920px; }
 .xz-seo-engine-table th, .xz-seo-engine-table td, .xz-seo-effect-table th, .xz-seo-effect-table td, .xz-seo-url-table th, .xz-seo-url-table td { white-space: nowrap; }
 .xz-seo-url-table .xz-cell-clip { max-width: 360px; }
+.xz-seo-source-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.xz-seo-source-table { min-width: 840px; }
+.xz-seo-link-table { min-width: 1120px; }
+.xz-seo-record-table { min-width: 1180px; }
+.xz-seo-source-table th, .xz-seo-source-table td, .xz-seo-link-table th, .xz-seo-link-table td, .xz-seo-record-table th, .xz-seo-record-table td { white-space: nowrap; }
+.xz-seo-link-table .xz-cell-clip, .xz-seo-record-table .xz-cell-clip { max-width: 360px; }
+.xz-overview-top-path { overflow: hidden; font-size: 17px !important; text-overflow: ellipsis; white-space: nowrap; }
+.xz-overview-top-path + p { color: #666; }
 
 @media (max-width: 1100px) {
   .xz-filter-sections { grid-template-columns: 1fr; }
@@ -130,11 +151,19 @@
   .xz-ip-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .xz-maintenance-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .xz-seo-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .xz-filter-basic { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .xz-filter-submit, .xz-filter-toggle-wrap { align-items: stretch; }
+  .xz-seo-source-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 @media (max-width: 680px) {
   .xz-filter { padding: 10px; }
   .xz-filter-grid, .xz-filter-grid-time { grid-template-columns: 1fr; }
+  .xz-filter-basic, .xz-advanced-filter { grid-template-columns: 1fr; }
+  .xz-filter-submit, .xz-filter-toggle-wrap { display: block; }
+  .xz-filter-submit .button, .xz-filter-toggle-wrap .button { width: 100%; }
+  .xz-filter-toggle-wrap { margin-top: 2px; }
+  .xz-filter-panel.is-open .xz-advanced-filter { display: grid; }
   .xz-list-summary { align-items: flex-start; flex-direction: column; }
   .xz-table-wrap { max-height: 62vh; }
   .xz-visit-table { min-width: 900px; }
@@ -151,5 +180,6 @@
   .xz-maintenance-preview form { align-items: flex-start; flex-direction: column; }
   .xz-realtime-metrics { grid-template-columns: 1fr; }
   .xz-seo-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .xz-seo-source-metrics { grid-template-columns: 1fr; }
   .xz-metric-card > strong { font-size: 22px; }
 }

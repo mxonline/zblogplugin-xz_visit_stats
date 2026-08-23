@@ -11,7 +11,7 @@
   }
 
   function empty(container, text) {
-    container.textContent = text || '该时间范围暂无访问数据';
+    container.textContent = text || '暂无数据，有访问记录后将在这里展示。';
     container.classList.add('xz-chart-empty');
   }
 
@@ -24,14 +24,14 @@
 
     var width = 760, height = 250, left = 42, right = 18, top = 24, bottom = 36;
     var plotWidth = width - left - right, plotHeight = height - top - bottom;
-    var chart = svg('svg', { viewBox: '0 0 ' + width + ' ' + height, role: 'img', 'aria-label': 'PV、UV、独立 IP 趋势图' });
+    var chart = svg('svg', { viewBox: '0 0 ' + width + ' ' + height, role: 'img', 'aria-label': '访问量、访客数、独立访客趋势图' });
     [0, 0.5, 1].forEach(function (ratio) {
       var y = top + plotHeight - plotHeight * ratio;
       chart.appendChild(svg('line', { x1: left, y1: y, x2: width - right, y2: y, class: 'xz-chart-grid' }));
       var label = svg('text', { x: left - 7, y: y + 4, 'text-anchor': 'end', class: 'xz-chart-axis' });
       label.textContent = String(Math.round(max * ratio)); chart.appendChild(label);
     });
-    var series = [{ key: 'pv', color: '#3a6ea5', label: 'PV' }, { key: 'uv', color: '#42a36b', label: 'UV' }, { key: 'ip', color: '#9a6ac5', label: '独立 IP' }];
+    var series = [{ key: 'pv', color: '#3a6ea5', label: '访问量' }, { key: 'uv', color: '#42a36b', label: '访客数' }, { key: 'ip', color: '#9a6ac5', label: '独立访客' }];
     series.forEach(function (item) {
       var points = rows.map(function (row, index) {
         var x = left + (rows.length === 1 ? plotWidth / 2 : (plotWidth * index / (rows.length - 1)));

@@ -251,6 +251,161 @@ function xz_visit_stats_seo_report_hours($range)
     return $items;
 }
 
+function xz_visit_stats_seo_report_source_where($range)
+{
+    return 'vs_VisitedAt >= ' . (int) $range['start']
+        . ' AND vs_VisitedAt < ' . (int) $range['end'];
+}
+
+function xz_visit_stats_seo_report_source_name_case()
+{
+    $host = xz_visit_stats_source_host_expression();
+    $site = str_replace("'", "''", xz_visit_stats_source_site_host());
+
+    return "CASE"
+        . " WHEN vs_Referer = '' THEN '直接访问'"
+        . " WHEN vs_Referer NOT REGEXP '^https?://' THEN '其他来源'"
+        . " WHEN " . $host . " = '" . $site . "' OR " . $host . " IN ('localhost', '127.0.0.1') THEN '站内来源'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)baidu\\\\.(com|cn)$' THEN '百度'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)google\\\\.' THEN 'Google'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)bing\\\\.com$' THEN 'Bing'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)sogou\\\\.com$' THEN '搜狗'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)(so\\\\.com$|360\\\\.cn$)' THEN '360'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)(weixin\\\\.qq\\\\.com$|wechat\\\\.com$)' THEN '微信'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)weibo\\\\.com$' THEN '微博'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)qq\\\\.com$' THEN 'QQ'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)douyin\\\\.com$' THEN '抖音'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)xiaohongshu\\\\.com$' THEN '小红书'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)zhihu\\\\.com$' THEN '知乎'"
+        . " WHEN " . $host . " REGEXP '(^|\\\\.)bilibili\\\\.com$' THEN 'Bilibili'"
+        . ' ELSE ' . $host . ' END';
+}
+
+function xz_visit_stats_seo_report_source_summary($range)
+{
+    $sourceType = xz_visit_stats_source_type_case();
+    $row = xz_visit_stats_stats_row(
+        "SELECT SUM((" . $sourceType . ") = '搜索引擎') AS search,"
+        . " SUM((" . $sourceType . ") = '直接访问') AS direct,"
+        . " SUM((" . $sourceType . ") IN ('外部网站', '社交媒体', '其他来源')) AS external"
+        . ' FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_seo_report_source_where($range)
+    );
+
+    return array(
+        'search' => xz_visit_stats_stats_number($row, 'search'),
+        'external' => xz_visit_stats_stats_number($row, 'external'),
+        'direct' => xz_visit_stats_stats_number($row, 'direct'),
+    );
+}
+
+function xz_visit_stats_seo_report_source_domains($range, $limit = 100)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $sourceType = xz_visit_stats_source_type_case();
+    $sourceName = xz_visit_stats_seo_report_source_name_case();
+    $host = xz_visit_stats_source_host_expression();
+    $sql = 'SELECT ' . $sourceType . ' AS type, ' . $sourceName . ' AS name, ' . $host . ' AS domain, COUNT(*) AS visits,'
+        . ' COUNT(DISTINCT vs_Path) AS paths, MAX(vs_VisitedAt) AS last_visit'
+        . ' FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_seo_report_source_where($range)
+        . ' GROUP BY type, name, domain ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        foreach (array('visits', 'paths', 'last_visit') as $key) {
+            $row[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
+        }
+        $row['type'] = isset($row['type']) ? (string) $row['type'] : '';
+        $row['name'] = isset($row['name']) && $row['name'] !== '' ? (string) $row['name'] : '其他来源';
+        $row['domain'] = isset($row['domain']) ? (string) $row['domain'] : '';
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_seo_report_source_links($range, $limit = 100)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $sourceName = xz_visit_stats_seo_report_source_name_case();
+    $host = xz_visit_stats_source_host_expression();
+    $sql = 'SELECT ' . $sourceName . ' AS name, ' . $host . ' AS domain, vs_Referer AS referer, COUNT(*) AS visits,'
+        . ' COUNT(DISTINCT vs_Path) AS paths, MAX(vs_VisitedAt) AS last_visit'
+        . ' FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_seo_report_source_where($range)
+        . ' GROUP BY referer, name, domain ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        foreach (array('visits', 'paths', 'last_visit') as $key) {
+            $row[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
+        }
+        $row['name'] = isset($row['name']) && $row['name'] !== '' ? (string) $row['name'] : '其他来源';
+        $row['domain'] = isset($row['domain']) ? (string) $row['domain'] : '';
+        $row['referer'] = isset($row['referer']) ? (string) $row['referer'] : '';
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_seo_report_source_targets($range, $limit = 100)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $sourceType = xz_visit_stats_source_type_case();
+    $sql = 'SELECT vs_Path AS path, COUNT(*) AS visits, COUNT(DISTINCT '
+        . 'CASE WHEN vs_Referer <> \'\' THEN ' . xz_visit_stats_source_host_expression() . ' END) AS domains,'
+        . " SUM((" . $sourceType . ") = '搜索引擎') AS search,"
+        . " SUM((" . $sourceType . ") = '直接访问') AS direct,"
+        . " SUM((" . $sourceType . ") IN ('外部网站', '社交媒体', '其他来源')) AS external,"
+        . ' MAX(vs_VisitedAt) AS last_visit FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_seo_report_source_where($range)
+        . ' GROUP BY vs_Path ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        foreach (array('visits', 'domains', 'search', 'direct', 'external', 'last_visit') as $key) {
+            $row[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
+        }
+        $row['path'] = isset($row['path']) ? (string) $row['path'] : '';
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_seo_report_source_records($range, $limit = 100)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $sourceName = xz_visit_stats_seo_report_source_name_case();
+    $host = xz_visit_stats_source_host_expression();
+    $sql = 'SELECT vs_ID AS id, ' . $sourceName . ' AS name, ' . $host . ' AS domain, vs_Referer AS referer, vs_IP AS ip,'
+        . ' vs_Url AS url, vs_Path AS path, vs_VisitedAt AS visited_at FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_seo_report_source_where($range)
+        . ' ORDER BY vs_VisitedAt DESC, vs_ID DESC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        foreach (array('id', 'visited_at') as $key) {
+            $row[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
+        }
+        foreach (array('name', 'domain', 'referer', 'ip', 'url', 'path') as $key) {
+            $row[$key] = isset($row[$key]) ? (string) $row[$key] : '';
+        }
+        if ($row['name'] === '') {
+            $row['name'] = '其他来源';
+        }
+    }
+    unset($row);
+
+    return $rows;
+}
+
 function xz_visit_stats_seo_report_thresholds()
 {
     return array('minimum_sample' => 5, 'high_404_ratio' => 10.0, 'high_avg_ms' => 1000.0);
@@ -302,6 +457,11 @@ function xz_visit_stats_seo_report_build($filters)
         'page_all' => $pageAll,
         'trend' => xz_visit_stats_seo_report_trend($range),
         'hours' => xz_visit_stats_seo_report_hours($range),
+        'source_summary' => xz_visit_stats_seo_report_source_summary($range),
+        'source_domains' => xz_visit_stats_seo_report_source_domains($range),
+        'source_links' => xz_visit_stats_seo_report_source_links($range),
+        'source_targets' => xz_visit_stats_seo_report_source_targets($range),
+        'source_records' => xz_visit_stats_seo_report_source_records($range),
         'anomalies' => xz_visit_stats_seo_report_anomalies($summary),
     );
 }

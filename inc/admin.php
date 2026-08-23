@@ -164,20 +164,26 @@ function xz_visit_stats_admin_status_distribution($row)
     return implode(' / ', $parts);
 }
 
-function xz_visit_stats_admin_delta($current, $previous, $decimal = false)
+function xz_visit_stats_admin_delta($current, $previous, $decimal = false, $compareLabel = '昨日')
 {
     $delta = xz_visit_stats_stats_delta($current, $previous);
-    $sign = $delta['value'] > 0 ? '+' : '';
     $value = $decimal
-        ? number_format((float) $delta['value'], 1)
-        : number_format((int) $delta['value']);
+        ? number_format(abs((float) $delta['value']), 1)
+        : number_format(abs((int) $delta['value']));
+
+    if ($delta['percent'] === null) {
+        return array('class' => 'xz-delta-flat', 'text' => '暂无' . $compareLabel . '数据');
+    }
+    if ($delta['value'] > 0) {
+        return array('class' => 'xz-delta-up', 'text' => '较' . $compareLabel . '增加 ' . $value . ($decimal ? ' ms' : ''));
+    }
+    if ($delta['value'] < 0) {
+        return array('class' => 'xz-delta-down', 'text' => '较' . $compareLabel . '减少 ' . $value . ($decimal ? ' ms' : ''));
+    }
 
     return array(
-        'class' => $delta['value'] > 0 ? 'xz-delta-up' : ($delta['value'] < 0 ? 'xz-delta-down' : 'xz-delta-flat'),
-        'text' => $sign . $value . ($decimal ? ' ms' : ''),
-        'percent' => $delta['percent'] === null
-            ? '无基准'
-            : ($sign . number_format($delta['percent'], 1) . '%'),
+        'class' => 'xz-delta-flat',
+        'text' => '与' . $compareLabel . '持平',
     );
 }
 
@@ -187,5 +193,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=0.8.0" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=1.1.0" type="text/css" />';
 }

@@ -237,6 +237,63 @@ function xz_visit_stats_stats_hours($range)
     return $items;
 }
 
+function xz_visit_stats_stats_top_paths($range, $limit = 5)
+{
+    global $zbp;
+
+    $limit = max(1, min(20, (int) $limit));
+    $sql = 'SELECT vs_Path AS path, COUNT(*) AS visits FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE vs_VisitedAt >= ' . (int) $range['start']
+        . ' AND vs_VisitedAt < ' . (int) $range['end']
+        . ' GROUP BY vs_Path ORDER BY visits DESC, path ASC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        $row['path'] = isset($row['path']) ? (string) $row['path'] : '';
+        $row['visits'] = isset($row['visits']) ? (int) $row['visits'] : 0;
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_stats_top_spiders($range, $limit = 5)
+{
+    global $zbp;
+
+    $limit = max(1, min(20, (int) $limit));
+    $sql = "SELECT CASE WHEN vs_BotName = '' THEN '其他蜘蛛' ELSE vs_BotName END AS name, COUNT(*) AS visits"
+        . ' FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE vs_IsBot = 1 AND vs_VisitedAt >= ' . (int) $range['start']
+        . ' AND vs_VisitedAt < ' . (int) $range['end']
+        . ' GROUP BY name ORDER BY visits DESC, name ASC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        $row['name'] = isset($row['name']) ? (string) $row['name'] : '其他蜘蛛';
+        $row['visits'] = isset($row['visits']) ? (int) $row['visits'] : 0;
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_stats_source_summary($range)
+{
+    $sourceType = xz_visit_stats_source_type_case();
+    $where = 'vs_VisitedAt >= ' . (int) $range['start']
+        . ' AND vs_VisitedAt < ' . (int) $range['end'];
+    $sql = "SELECT SUM((" . $sourceType . ") = '直接访问') AS direct,"
+        . " SUM((" . $sourceType . ") = '搜索引擎') AS search,"
+        . " SUM((" . $sourceType . ") IN ('外部网站', '社交媒体', '其他来源')) AS external"
+        . ' FROM ' . xz_visit_stats_stats_table() . ' WHERE ' . $where;
+    $row = xz_visit_stats_stats_row($sql);
+
+    return array(
+        'direct' => xz_visit_stats_stats_number($row, 'direct'),
+        'search' => xz_visit_stats_stats_number($row, 'search'),
+        'external' => xz_visit_stats_stats_number($row, 'external'),
+    );
+}
+
 function xz_visit_stats_stats_delta($current, $previous)
 {
     $delta = $current - $previous;
@@ -257,6 +314,9 @@ function xz_visit_stats_stats_build($filters)
         'summary' => $summary,
         'trend' => xz_visit_stats_stats_trend($range),
         'hours' => xz_visit_stats_stats_hours($range),
+        'top_paths' => xz_visit_stats_stats_top_paths($range),
+        'top_spiders' => xz_visit_stats_stats_top_spiders($range),
+        'sources' => xz_visit_stats_stats_source_summary($range),
         'types' => array(
             array('label' => '普通访客', 'value' => max(0, $summary['current']['pv'] - $summary['current']['bot'])),
             array('label' => '蜘蛛', 'value' => $summary['current']['bot']),
