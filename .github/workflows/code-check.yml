@@ -24,10 +24,6 @@ jobs:
       - name: PHP Syntax Check
         run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
-      - name: PHPStan
-        continue-on-error: true
-        run: vendor/bin/phpstan analyse --memory-limit=512M
-
       - name: PHPUnit
         run: vendor/bin/phpunit
 
@@ -35,3 +31,7 @@ jobs:
         uses: semgrep/semgrep-action@v1
         with:
           config: semgrep.yml
+
+      - name: PHPStan Report Only
+        continue-on-error: true
+        run: vendor/bin/phpstan analyse --memory-limit=512M
