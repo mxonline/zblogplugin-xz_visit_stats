@@ -14,9 +14,11 @@ require_once __DIR__ . '/inc/settings.php';
 require_once __DIR__ . '/inc/stats.php';
 require_once __DIR__ . '/inc/maintenance.php';
 require_once __DIR__ . '/inc/collector.php';
+require_once __DIR__ . '/inc/upgrade/runner.php';
 
 function ActivePlugin_xz_visit_stats()
 {
+    xz_visit_stats_upgrade_run();
     xz_visit_stats_ensure_secret();
     xz_visit_stats_ensure_settings();
     Add_Filter_Plugin('Filter_Plugin_Zbp_Terminate', 'xz_visit_stats_collect');
@@ -42,6 +44,7 @@ function xz_visit_stats_admin_menu(&$menus)
 function InstallPlugin_xz_visit_stats()
 {
     xz_visit_stats_install_table();
+    xz_visit_stats_upgrade_run();
     xz_visit_stats_ensure_secret();
     xz_visit_stats_ensure_settings();
 }
