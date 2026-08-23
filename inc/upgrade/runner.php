@@ -13,5 +13,23 @@ function xz_visit_stats_upgrade_run()
         return true;
     }
 
-    return xz_visit_stats_upgrade_migrate_to_20();
+    $result = xz_visit_stats_upgrade_migrate_to_20();
+
+    if ($result) {
+        xz_visit_stats_upgrade_mark_complete($target);
+    }
+
+    return $result;
+}
+
+function xz_visit_stats_upgrade_mark_complete($version)
+{
+    global $zbp;
+
+    if (!isset($zbp->Config('xz_visit_stats'))) {
+        return;
+    }
+
+    $zbp->Config('xz_visit_stats')->db_version = $version;
+    $zbp->SaveConfig('xz_visit_stats');
 }
