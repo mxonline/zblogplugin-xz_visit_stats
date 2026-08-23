@@ -4,6 +4,8 @@ if (!defined('ZBP_PATH')) {
     exit('Access denied');
 }
 
+require_once __DIR__ . '/page_stats.php';
+
 function xz_visit_stats_collect()
 {
     global $zbp;
@@ -28,50 +30,28 @@ function xz_visit_stats_collect()
     $recordedIp = $settings['ip_mode'] === 'masked' ? xz_visit_stats_settings_mask_ip($ip) : $ip;
 
     $data = array(
-        'vs_IP'          => $recordedIp,
+        'vs_IP' => $recordedIp,
         'vs_VisitorHash' => xz_visit_stats_visitor_hash($ip, $userAgent),
-        'vs_Url'         => xz_visit_stats_limit(xz_visit_stats_request_url(), 16384),
-        'vs_Path'        => xz_visit_stats_request_path(),
-        'vs_Referer'     => $settings['record_referer'] === 1 ? xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384) : '',
-        'vs_UserAgent'   => $settings['record_user_agent'] === 1 ? $userAgent : '',
-        'vs_UaType'      => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['type'], 32) : '',
-        'vs_Browser'     => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['browser'], 64) : '',
-        'vs_Os'          => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['os'], 64) : '',
-        'vs_Device'      => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['device'], 32) : '',
-        'vs_IsBot'       => $bot['is_bot'] ? 1 : 0,
-        'vs_BotName'     => xz_visit_stats_limit($bot['name'], 64),
-        'vs_StatusCode'  => xz_visit_stats_response_status(),
-        'vs_DurationMs'  => xz_visit_stats_duration_ms(),
-        'vs_VisitedAt'   => time(),
+        'vs_Url' => xz_visit_stats_limit(xz_visit_stats_request_url(), 16384),
+        'vs_Path' => xz_visit_stats_request_path(),
+        'vs_Referer' => $settings['record_referer'] === 1 ? xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384) : '',
+        'vs_UserAgent' => $settings['record_user_agent'] === 1 ? $userAgent : '',
+        'vs_UaType' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['type'], 32) : '',
+        'vs_Browser' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['browser'], 64) : '',
+        'vs_Os' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['os'], 64) : '',
+        'vs_Device' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['device'], 32) : '',
+        'vs_IsBot' => $bot['is_bot'] ? 1 : 0,
+        'vs_BotName' => xz_visit_stats_limit($bot['name'], 64),
+        'vs_StatusCode' => xz_visit_stats_response_status(),
+        'vs_DurationMs' => xz_visit_stats_duration_ms(),
+        'vs_VisitedAt' => time(),
     );
 
     try {
         $sql = $zbp->db->sql->Insert($GLOBALS['table']['xz_visit_stats_log'], $data);
         $zbp->db->Query($sql);
 
-        xz_visit_stats_update_page_stats($data['vs_Path']);
-        xz_visit_stats_update_keyword_stats($data['vs_Referer'], $data['vs_Path']);
+        xz_visit_stats_update_page_stats($data['vs_Url'], '', $data['vs_VisitorHash']);
     } catch (Exception $exception) {
-        // Statistics must never interrupt the frontend response.
     }
-}
-
-function xz_visit_stats_update_page_stats($path)
-{
-    if ($path === '') {
-        return;
-    }
-
-    // v2.0 page aggregation entry point.
-    // Actual upsert logic will be enabled after migration tests pass.
-}
-
-function xz_visit_stats_update_keyword_stats($referer, $path)
-{
-    if ($referer === '') {
-        return;
-    }
-
-    // v2.0 keyword aggregation entry point.
-    // Search engine parsing will reuse existing source analysis logic.
 }
