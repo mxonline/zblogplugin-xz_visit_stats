@@ -139,7 +139,7 @@ function xz_visit_stats_seo_report_urls($range, $page, $pageSize)
     global $zbp;
 
     $offset = max(0, ($page - 1) * $pageSize);
-    $sql = 'SELECT vs_Path AS path, COUNT(*) AS visits, MAX(vs_VisitedAt) AS last_visit,'
+    $sql = 'SELECT vs_Path AS path, COUNT(*) AS visits, MAX(vs_VisitedAt) AS last_visit, GROUP_CONCAT(DISTINCT vs_BotName) AS bot_names,'
         . ' SUM(vs_StatusCode >= 200 AND vs_StatusCode < 300) AS status_2xx,'
         . ' SUM(vs_StatusCode >= 300 AND vs_StatusCode < 400) AS status_3xx,'
         . ' SUM(vs_StatusCode >= 400 AND vs_StatusCode < 500) AS status_4xx,'
@@ -153,6 +153,7 @@ function xz_visit_stats_seo_report_urls($range, $page, $pageSize)
             $row[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
         }
         $row['path'] = isset($row['path']) ? (string) $row['path'] : '';
+        $row['bot_names'] = isset($row['bot_names']) ? (string) $row['bot_names'] : '';
     }
     unset($row);
 
@@ -225,6 +226,93 @@ function xz_visit_stats_seo_report_trend($range)
     }
 
     return array('unit' => $unit, 'items' => $items);
+}
+
+function xz_visit_stats_seo_report_statuses($range)
+{
+    global $zbp;
+
+    $sql = 'SELECT vs_StatusCode AS status_code, COUNT(*) AS visits FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_seo_report_where($range)
+        . ' AND vs_StatusCode IN (200, 301, 302, 403, 404, 500) GROUP BY vs_StatusCode';
+    $rows = (array) $zbp->db->Query($sql);
+    $values = array();
+    foreach ($rows as $row) {
+        $values[(int) $row['status_code']] = (int) $row['visits'];
+    }
+    $summary = xz_visit_stats_seo_report_summary($range);
+    $items = array();
+    foreach (array(200, 301, 302, 403, 404, 500) as $status) {
+        $visits = isset($values[$status]) ? $values[$status] : 0;
+        $items[] = array('status_code' => $status, 'visits' => $visits, 'percent' => $summary['visits'] > 0 ? $visits * 100 / $summary['visits'] : 0.0);
+    }
+
+    return $items;
+}
+
+function xz_visit_stats_seo_report_recent_pages($range, $limit = 20)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT vs_Path AS path, vs_BotName AS bot_name, vs_VisitedAt AS visited_at, vs_StatusCode AS status_code'
+        . ' FROM ' . xz_visit_stats_stats_table() . ' WHERE ' . xz_visit_stats_seo_report_where($range)
+        . ' ORDER BY vs_VisitedAt DESC, vs_ID DESC LIMIT ' . $limit;
+
+    return (array) $zbp->db->Query($sql);
+}
+
+function xz_visit_stats_seo_report_uncrawled_pages($limit = 50)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT vs_Path AS path, MAX(CASE WHEN vs_IsBot = 1 THEN vs_VisitedAt ELSE 0 END) AS last_crawl,'
+        . ' MAX(vs_VisitedAt) AS last_visit FROM ' . xz_visit_stats_stats_table()
+        . ' GROUP BY vs_Path HAVING last_crawl = 0 OR last_crawl < ' . (int) (time() - 30 * 86400)
+        . ' ORDER BY last_crawl ASC, last_visit DESC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        $row['path'] = isset($row['path']) ? (string) $row['path'] : '';
+        $row['last_crawl'] = isset($row['last_crawl']) ? (int) $row['last_crawl'] : 0;
+        $row['uncrawled_days'] = $row['last_crawl'] > 0 ? (int) floor((time() - $row['last_crawl']) / 86400) : 30;
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_seo_report_search_pages($range, $limit = 100)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $where = xz_visit_stats_seo_report_source_where($range)
+        . " AND vs_IsBot = 0 AND (" . xz_visit_stats_source_type_case() . ") = '搜索引擎'";
+    $sql = 'SELECT vs_Path AS path, ' . xz_visit_stats_source_search_name_case() . ' AS source, COUNT(*) AS visits, MAX(vs_VisitedAt) AS last_visit'
+        . ' FROM ' . xz_visit_stats_stats_table() . ' WHERE ' . $where
+        . ' GROUP BY path, source ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
+
+    return (array) $zbp->db->Query($sql);
+}
+
+function xz_visit_stats_seo_report_efficiency($range)
+{
+    global $zbp;
+
+    $sql = 'SELECT vs_BotName AS name, COUNT(*) AS visits, MIN(vs_VisitedAt) AS first_visit, MAX(vs_VisitedAt) AS last_visit'
+        . ' FROM ' . xz_visit_stats_stats_table() . ' WHERE ' . xz_visit_stats_seo_report_where($range)
+        . ' GROUP BY vs_BotName ORDER BY visits DESC, last_visit DESC';
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        $row['visits'] = isset($row['visits']) ? (int) $row['visits'] : 0;
+        $row['first_visit'] = isset($row['first_visit']) ? (int) $row['first_visit'] : 0;
+        $row['last_visit'] = isset($row['last_visit']) ? (int) $row['last_visit'] : 0;
+        $row['avg_interval'] = $row['visits'] > 1 ? ($row['last_visit'] - $row['first_visit']) / ($row['visits'] - 1) : 0;
+    }
+    unset($row);
+
+    return $rows;
 }
 
 function xz_visit_stats_seo_report_hours($range)
@@ -457,6 +545,11 @@ function xz_visit_stats_seo_report_build($filters)
         'page_all' => $pageAll,
         'trend' => xz_visit_stats_seo_report_trend($range),
         'hours' => xz_visit_stats_seo_report_hours($range),
+        'statuses' => xz_visit_stats_seo_report_statuses($range),
+        'recent_pages' => xz_visit_stats_seo_report_recent_pages($range),
+        'uncrawled_pages' => xz_visit_stats_seo_report_uncrawled_pages(),
+        'search_pages' => xz_visit_stats_seo_report_search_pages($range),
+        'efficiency' => xz_visit_stats_seo_report_efficiency($range),
         'source_summary' => xz_visit_stats_seo_report_source_summary($range),
         'source_domains' => xz_visit_stats_seo_report_source_domains($range),
         'source_links' => xz_visit_stats_seo_report_source_links($range),

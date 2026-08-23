@@ -183,3 +183,23 @@
   .xz-seo-source-metrics { grid-template-columns: 1fr; }
   .xz-metric-card > strong { font-size: 22px; }
 }
+
+.xz-settings-form label {
+  display: block;
+  margin: 10px 0;
+}
+
+.xz-settings-form input[type="number"], .xz-settings-form select {
+  margin: 0 8px;
+}
+
+.xz-settings-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+  margin-left: 18px;
+}
+
+@media (max-width: 680px) {
+  .xz-settings-options { display: block; margin-left: 0; }
+}

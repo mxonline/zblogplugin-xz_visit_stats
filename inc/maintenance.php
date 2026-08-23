@@ -6,11 +6,9 @@ if (!defined('ZBP_PATH')) {
 
 function xz_visit_stats_maintenance_retention_days()
 {
-    global $zbp;
+    $settings = xz_visit_stats_settings_values();
 
-    $days = (int) $zbp->Config('xz_visit_stats')->retention_days;
-
-    return $days >= 1 && $days <= 3650 ? $days : 180;
+    return $settings['retention_days'];
 }
 
 function xz_visit_stats_maintenance_save_retention_days($value)
@@ -22,13 +20,35 @@ function xz_visit_stats_maintenance_save_retention_days($value)
         return false;
     }
     $days = (int) $raw;
-    if ($days < 1 || $days > 3650) {
+    if (!in_array($days, array(30, 90, 180, 365), true)) {
         return false;
     }
     $zbp->Config('xz_visit_stats')->retention_days = $days;
     $zbp->SaveConfig('xz_visit_stats');
 
     return true;
+}
+
+function xz_visit_stats_maintenance_auto_cleanup()
+{
+    global $zbp;
+
+    $settings = xz_visit_stats_settings_values();
+    if ($settings['auto_cleanup'] !== 1) {
+        return;
+    }
+    $config = $zbp->Config('xz_visit_stats');
+    $today = strtotime('today');
+    if ((int) $config->last_cleanup_at >= $today) {
+        return;
+    }
+    try {
+        $zbp->db->Query('DELETE FROM ' . xz_visit_stats_stats_table() . ' WHERE vs_VisitedAt < ' . (int) ($today - $settings['retention_days'] * 86400));
+        $config->last_cleanup_at = $today;
+        $zbp->SaveConfig('xz_visit_stats');
+    } catch (Exception $exception) {
+        // Maintenance must not affect frontend requests.
+    }
 }
 
 function xz_visit_stats_maintenance_table_name()
@@ -176,7 +196,7 @@ function xz_visit_stats_maintenance_handle_post($source = null)
     if ($action === 'save_retention') {
         return xz_visit_stats_maintenance_save_retention_days(xz_visit_stats_query_value($source, 'retention_days', ''))
             ? array('type' => 'success', 'message' => '日志保存天数已保存。自动清理仍处于关闭状态。', 'filters' => null, 'count' => 0)
-            : array('type' => 'error', 'message' => '日志保存天数应为 1 至 3650 的整数。', 'filters' => null, 'count' => 0);
+            : array('type' => 'error', 'message' => '日志保存天数仅支持 30、90、180 或 365 天。', 'filters' => null, 'count' => 0);
     }
     if ($action !== 'preview_purge' && $action !== 'confirm_purge') {
         return array('type' => 'error', 'message' => '无效的维护操作。', 'filters' => null, 'count' => 0);

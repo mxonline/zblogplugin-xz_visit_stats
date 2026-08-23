@@ -9,7 +9,11 @@ function xz_visit_stats_collect()
     global $zbp;
 
     static $collected = false;
-    if ($collected || !xz_visit_stats_should_collect()) {
+    $settings = xz_visit_stats_settings_values();
+    if ($collected || $settings['enabled'] !== 1 || !xz_visit_stats_should_collect()) {
+        return;
+    }
+    if ($settings['exclude_admin'] === 1 && xz_visit_stats_settings_is_admin_visitor()) {
         return;
     }
     $collected = true;
@@ -17,19 +21,23 @@ function xz_visit_stats_collect()
     $ip = xz_visit_stats_client_ip();
     $userAgent = xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_USER_AGENT'), 8192);
     $bot = xz_visit_stats_detect_bot($userAgent);
+    if ($bot['is_bot'] && !xz_visit_stats_settings_record_bot($bot['name'], $settings)) {
+        return;
+    }
     $ua = xz_visit_stats_parse_ua($userAgent, $bot['is_bot']);
+    $recordedIp = $settings['ip_mode'] === 'masked' ? xz_visit_stats_settings_mask_ip($ip) : $ip;
 
     $data = array(
-        'vs_IP'          => $ip,
+        'vs_IP'          => $recordedIp,
         'vs_VisitorHash' => xz_visit_stats_visitor_hash($ip, $userAgent),
         'vs_Url'         => xz_visit_stats_limit(xz_visit_stats_request_url(), 16384),
         'vs_Path'        => xz_visit_stats_request_path(),
-        'vs_Referer'     => xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384),
-        'vs_UserAgent'   => $userAgent,
-        'vs_UaType'      => xz_visit_stats_limit($ua['type'], 32),
-        'vs_Browser'     => xz_visit_stats_limit($ua['browser'], 64),
-        'vs_Os'          => xz_visit_stats_limit($ua['os'], 64),
-        'vs_Device'      => xz_visit_stats_limit($ua['device'], 32),
+        'vs_Referer'     => $settings['record_referer'] === 1 ? xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384) : '',
+        'vs_UserAgent'   => $settings['record_user_agent'] === 1 ? $userAgent : '',
+        'vs_UaType'      => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['type'], 32) : '',
+        'vs_Browser'     => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['browser'], 64) : '',
+        'vs_Os'          => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['os'], 64) : '',
+        'vs_Device'      => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['device'], 32) : '',
         'vs_IsBot'       => $bot['is_bot'] ? 1 : 0,
         'vs_BotName'     => xz_visit_stats_limit($bot['name'], 64),
         'vs_StatusCode'  => xz_visit_stats_response_status(),

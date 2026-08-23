@@ -30,6 +30,7 @@ function xz_visit_stats_source_filters($source = null)
     }
     $filters['source_type'] = $type;
     $filters['domain'] = $domain;
+    $filters['referer'] = xz_visit_stats_query_text(xz_visit_stats_query_value($source, 'referer', ''), 200);
     $filters['page'] = $page;
     $filters['page_size'] = $size;
 
@@ -100,6 +101,15 @@ function xz_visit_stats_source_where($filters, $range)
     if ($filters['domain'] !== '') {
         $where .= " AND " . xz_visit_stats_source_host_expression() . " = '"
             . str_replace("'", "''", $filters['domain']) . "'";
+    }
+    if ($filters['referer'] !== '') {
+        $where .= " AND vs_Referer LIKE '%" . str_replace("'", "''", $filters['referer']) . "%'";
+    }
+    if ($filters['ip'] !== '') {
+        $ip = str_replace("'", "''", $filters['ip']);
+        $where .= $filters['ip_mode'] === 'exact'
+            ? " AND vs_IP = '" . $ip . "'"
+            : " AND vs_IP LIKE '" . $ip . "%'";
     }
 
     return $where;
@@ -203,9 +213,7 @@ function xz_visit_stats_source_trend($filters, $range)
 
 function xz_visit_stats_source_domain_count($filters, $range)
 {
-    $type = xz_visit_stats_source_type_case();
-    $where = xz_visit_stats_source_where($filters, $range)
-        . " AND (" . $type . ") IN ('外部网站', '社交媒体')";
+    $where = xz_visit_stats_source_where($filters, $range) . " AND vs_Referer <> ''";
     $sql = 'SELECT COUNT(DISTINCT ' . xz_visit_stats_source_host_expression() . ') AS num FROM '
         . xz_visit_stats_stats_table() . ' WHERE ' . $where;
 
@@ -217,8 +225,7 @@ function xz_visit_stats_source_domains($filters, $range, $page, $pageSize)
     global $zbp;
 
     $type = xz_visit_stats_source_type_case();
-    $where = xz_visit_stats_source_where($filters, $range)
-        . " AND (" . $type . ") IN ('外部网站', '社交媒体')";
+    $where = xz_visit_stats_source_where($filters, $range) . " AND vs_Referer <> ''";
     $sql = 'SELECT ' . xz_visit_stats_source_host_expression() . ' AS domain, ' . $type . ' AS type,'
         . ' COUNT(*) AS visits, COUNT(DISTINCT vs_VisitorHash) AS uv, MAX(vs_VisitedAt) AS last_visit,'
         . ' AVG(vs_DurationMs) AS avg_ms FROM ' . xz_visit_stats_stats_table()
@@ -236,11 +243,63 @@ function xz_visit_stats_source_domains($filters, $range, $page, $pageSize)
     return $rows;
 }
 
+function xz_visit_stats_source_links($filters, $range, $limit = 100)
+{
+    global $zbp;
+
+    $limit = max(1, min(100, (int) $limit));
+    $where = xz_visit_stats_source_where($filters, $range) . " AND vs_Referer <> ''";
+    $sql = 'SELECT vs_Referer AS referer, COUNT(*) AS visits, MAX(vs_VisitedAt) AS last_visit'
+        . ' FROM ' . xz_visit_stats_stats_table() . ' WHERE ' . $where
+        . ' GROUP BY vs_Referer ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        $row['referer'] = isset($row['referer']) ? (string) $row['referer'] : '';
+        $row['visits'] = isset($row['visits']) ? (int) $row['visits'] : 0;
+        $row['last_visit'] = isset($row['last_visit']) ? (int) $row['last_visit'] : 0;
+    }
+    unset($row);
+
+    return $rows;
+}
+
+function xz_visit_stats_source_record_count($filters, $range)
+{
+    $row = xz_visit_stats_stats_row('SELECT COUNT(*) AS num FROM ' . xz_visit_stats_stats_table()
+        . ' WHERE ' . xz_visit_stats_source_where($filters, $range) . " AND vs_Referer <> ''");
+
+    return xz_visit_stats_stats_number($row, 'num');
+}
+
+function xz_visit_stats_source_records($filters, $range, $page, $pageSize)
+{
+    global $zbp;
+
+    $offset = max(0, ($page - 1) * $pageSize);
+    $host = xz_visit_stats_source_host_expression();
+    $sql = 'SELECT vs_ID AS id, ' . $host . ' AS domain, vs_Referer AS referer, vs_IP AS ip, vs_Url AS url, vs_Path AS path, vs_VisitedAt AS visited_at'
+        . ' FROM ' . xz_visit_stats_stats_table() . ' WHERE ' . xz_visit_stats_source_where($filters, $range) . " AND vs_Referer <> ''"
+        . ' ORDER BY vs_VisitedAt DESC, vs_ID DESC LIMIT ' . $offset . ', ' . (int) $pageSize;
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) {
+        foreach (array('id', 'visited_at') as $key) {
+            $row[$key] = isset($row[$key]) ? (int) $row[$key] : 0;
+        }
+        foreach (array('domain', 'referer', 'ip', 'url', 'path') as $key) {
+            $row[$key] = isset($row[$key]) ? (string) $row[$key] : '';
+        }
+    }
+    unset($row);
+
+    return $rows;
+}
+
 function xz_visit_stats_source_build($filters)
 {
     $range = xz_visit_stats_stats_range($filters);
     $summary = xz_visit_stats_source_summary($filters, $range);
     $domainCount = xz_visit_stats_source_domain_count($filters, $range);
+    $recordCount = xz_visit_stats_source_record_count($filters, $range);
     $pageAll = max(1, (int) ceil($domainCount / $filters['page_size']));
     $page = min($filters['page'], $pageAll);
 
@@ -251,7 +310,10 @@ function xz_visit_stats_source_build($filters)
         'searches' => xz_visit_stats_source_search_distribution($filters, $range),
         'trend' => xz_visit_stats_source_trend($filters, $range),
         'domains' => xz_visit_stats_source_domains($filters, $range, $page, $filters['page_size']),
+        'links' => xz_visit_stats_source_links($filters, $range),
+        'records' => xz_visit_stats_source_records($filters, $range, $page, $filters['page_size']),
         'domain_count' => $domainCount,
+        'record_count' => $recordCount,
         'page' => $page,
         'page_all' => $pageAll,
     );
