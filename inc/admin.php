@@ -57,6 +57,11 @@ function xz_visit_stats_admin_selected($actual, $expected)
     return (string) $actual === (string) $expected ? ' selected="selected"' : '';
 }
 
+function xz_visit_stats_admin_checked($actual, $expected)
+{
+    return (string) $actual === (string) $expected ? ' checked="checked"' : '';
+}
+
 function xz_visit_stats_admin_page_url($filters, $page)
 {
     global $zbp;
@@ -193,5 +198,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=1.1.0" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=1.3.1" type="text/css" />';
 }

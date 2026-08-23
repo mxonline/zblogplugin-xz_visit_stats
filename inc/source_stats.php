@@ -89,6 +89,104 @@ function xz_visit_stats_source_search_name_case()
         . " ELSE '其他搜索' END";
 }
 
+function xz_visit_stats_source_referer_details($referer)
+{
+    $referer = (string) $referer;
+    $parsed = $referer !== '' ? parse_url($referer) : false;
+    $host = is_array($parsed) && isset($parsed['host']) ? strtolower((string) $parsed['host']) : '';
+    $host = preg_replace('/:\\d+$/', '', $host);
+    $siteHost = xz_visit_stats_source_site_host();
+    $type = 'other';
+    $name = $host;
+    $searchEngine = '';
+    $keyword = '';
+
+    if ($referer === '') {
+        $type = 'direct';
+        $name = '直接访问';
+    } elseif ($host === '' || !isset($parsed['scheme']) || !in_array(strtolower((string) $parsed['scheme']), array('http', 'https'), true)) {
+        $name = $host !== '' ? $host : '未知来源';
+    } elseif ($host === $siteHost || in_array($host, array('localhost', '127.0.0.1'), true)) {
+        $type = 'internal';
+        $name = '站内来源';
+    } else {
+        $searchHosts = array(
+            'baidu' => array('baidu.com', 'baidu.cn'), 'bing' => array('bing.com'),
+            'google' => array('google.'), 'sogou' => array('sogou.com'), '360' => array('so.com', '360.cn'),
+        );
+        $searchEngineNames = array('baidu' => '百度', 'bing' => 'Bing', 'google' => 'Google', 'sogou' => '搜狗', '360' => '360 搜索');
+        $queryKeys = array(
+            'baidu' => array('wd', 'word'), 'bing' => array('q'), 'google' => array('q'),
+            'sogou' => array('query', 'keyword'), '360' => array('q', 'keyword'),
+        );
+        foreach ($searchHosts as $engine => $domains) {
+            foreach ($domains as $domain) {
+                $matched = $engine === 'google'
+                    ? preg_match('/(^|\\.)google\\.[a-z.]+$/', $host) === 1
+                    : ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain);
+                if (!$matched) {
+                    continue;
+                }
+                $type = 'search';
+                $searchEngine = $searchEngineNames[$engine];
+                $name = $searchEngine;
+                if (isset($parsed['query'])) {
+                    $query = array();
+                    parse_str((string) $parsed['query'], $query);
+                    foreach ($queryKeys[$engine] as $queryKey) {
+                        if (isset($query[$queryKey]) && is_string($query[$queryKey]) && trim($query[$queryKey]) !== '') {
+                            $keyword = trim($query[$queryKey]);
+                            break;
+                        }
+                    }
+                }
+                break 2;
+            }
+        }
+        if ($type !== 'search') {
+            $sourceNames = array(
+                'weixin.qq.com' => '微信', 'wechat.com' => '微信', 'weibo.com' => '微博', 'qq.com' => 'QQ',
+                'douyin.com' => '抖音', 'xiaohongshu.com' => '小红书', 'zhihu.com' => '知乎', 'bilibili.com' => '哔哩哔哩',
+            );
+            foreach ($sourceNames as $domain => $sourceName) {
+                if ($host === $domain || substr($host, -strlen('.' . $domain)) === '.' . $domain) {
+                    $name = $sourceName;
+                    $type = 'social';
+                    break;
+                }
+            }
+            if ($type === 'other') {
+                $type = 'external';
+            }
+        }
+    }
+
+    $labels = xz_visit_stats_source_type_labels();
+    return array(
+        'referer' => $referer, 'domain' => $host, 'name' => $name !== '' ? $name : '未知来源',
+        'type' => $type, 'type_label' => isset($labels[$type]) ? $labels[$type] : $labels['other'],
+        'search_engine' => $searchEngine, 'keyword' => $keyword,
+    );
+}
+
+function xz_visit_stats_source_referer_cell($referer)
+{
+    $details = xz_visit_stats_source_referer_details($referer);
+    $escape = function ($value) {
+        return htmlspecialchars((string) $value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+    };
+    $keyword = $details['keyword'] !== '' ? $details['keyword'] : '未提供';
+    $title = $details['referer'] !== '' ? $details['referer'] : '未提供';
+
+    return '<span class="xz-referer-hover" tabindex="0"><span class="xz-referer-label" title="' . $escape($title) . '">' . $escape($details['name']) . '</span>'
+        . '<span class="xz-referer-tooltip" role="tooltip"><strong>来源详情</strong>'
+        . '<span><b>完整 Referer URL：</b>' . $escape($title) . '</span>'
+        . '<span><b>来源域名：</b>' . $escape($details['domain'] !== '' ? $details['domain'] : '未提供') . '</span>'
+        . '<span><b>来源类型：</b>' . $escape($details['type_label']) . '</span>'
+        . ($details['search_engine'] !== '' ? '<span><b>搜索引擎：</b>' . $escape($details['search_engine']) . '</span><span><b>搜索关键词：</b>' . $escape($keyword) . '</span>' : '')
+        . '</span></span>';
+}
+
 function xz_visit_stats_source_where($filters, $range)
 {
     $where = 'vs_IsBot = 0 AND vs_VisitedAt >= ' . (int) $range['start']
