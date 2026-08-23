@@ -1,0 +1,10 @@
+<?php
+
+/** @var mixed $zbp */
+$zbp = null;
+
+/** @var string $blogpath */
+$blogpath = '';
+
+/** @var string $bloghost */
+$bloghost = '';
