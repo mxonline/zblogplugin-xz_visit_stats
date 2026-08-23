@@ -7,18 +7,36 @@ if (!defined('ZBP_PATH')) {
 /**
  * Update v2 page statistics.
  *
- * This module keeps page aggregation separate from the raw visit log.
- * It will be connected with collector after database verification.
+ * Aggregate page PV/UV data separately from raw visit logs.
  */
 function xz_visit_stats_update_page_stats($url, $title = '', $visitorHash = '')
 {
     global $zbp;
 
-    if (!$url) {
+    if ($url === '') {
         return false;
     }
 
-    // v2 page aggregation implementation placeholder.
-    // Database upsert will be enabled after table structure validation.
+    $table = $zbp->db->dbpre . 'xz_visit_stats_pages';
+    $safeUrl = addslashes($url);
+    $row = $zbp->GetOne("SELECT * FROM {$table} WHERE Url='{$safeUrl}' LIMIT 1");
+
+    if ($row) {
+        $pv = intval($row['PV']) + 1;
+        $uv = intval($row['UV']);
+        $sql = "UPDATE {$table} SET PV={$pv}, LastVisit=" . time() . " WHERE ID=" . intval($row['ID']);
+        $zbp->db->Query($sql);
+    } else {
+        $data = array(
+            'Url' => $url,
+            'Title' => $title,
+            'PV' => 1,
+            'UV' => $visitorHash ? 1 : 0,
+            'LastVisit' => time(),
+        );
+        $sql = $zbp->db->sql->Insert($table, $data);
+        $zbp->db->Query($sql);
+    }
+
     return true;
 }
