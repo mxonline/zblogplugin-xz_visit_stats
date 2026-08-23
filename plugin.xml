@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin version="php">
+<id>xz_visit_stats</id>
+<name>访问统计</name>
+<url></url>
+<note>记录前台访问、来源、终端与搜索引擎蜘蛛信息</note>
+<description>前台访问统计、蜘蛛分析、来源分析、IP 分析与 SEO 报告。</description>
+<path>main.php</path>
+<include>include.php</include>
+<level>1</level>
+<author>
+  <name>新肇数码</name>
+  <email></email>
+  <url></url>
+</author>
+<source>
+  <name></name>
+  <email></email>
+  <url></url>
+</source>
+<adapted>173540</adapted>
+<version>1.0.0</version>
+<pubdate>2026-08-23</pubdate>
+<modified>2026-08-23</modified>
+<price>0</price>
+<phpver>5.6</phpver>
+<advanced>
+  <dependency></dependency>
+  <rewritefunctions></rewritefunctions>
+  <existsfunctions></existsfunctions>
+  <conflict></conflict>
+</advanced>
+<sidebars>
+  <sidebar1></sidebar1>
+  <sidebar2></sidebar2>
+  <sidebar3></sidebar3>
+  <sidebar4></sidebar4>
+  <sidebar5></sidebar5>
+  <sidebar6></sidebar6>
+  <sidebar7></sidebar7>
+  <sidebar8></sidebar8>
+  <sidebar9></sidebar9>
+</sidebars>
+</plugin>
