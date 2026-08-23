@@ -6,3 +6,5 @@ parameters:
     - ./vendor/*
   bootstrapFiles:
     - phpstan/bootstrap.php
+  stubFiles:
+    - phpstan/stubs/zbp-globals.stub
