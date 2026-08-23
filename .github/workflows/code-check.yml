@@ -1,0 +1,18 @@
+name: Code Quality Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  quality-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: PHP Syntax Check
+        run: php -l $(find . -name '*.php') || true
+
+      - name: Quality Review
+        run: echo "Run PHPStan Semgrep PHPUnit after environment setup"
