@@ -1,0 +1,68 @@
+{
+  "project": "xz_visit_stats",
+  "version": "2.0.0",
+  "workflow": "chatgpt-design-codex-development",
+  "tasks": [
+    {
+      "id": "TASK-001",
+      "name": "来源分析升级",
+      "priority": "P0",
+      "status": "pending",
+      "developer": "codex",
+      "requirements": [
+        "来源URL完整解析",
+        "来源类型识别",
+        "搜索引擎识别",
+        "搜索关键词提取",
+        "来源统计"
+      ]
+    },
+    {
+      "id": "TASK-002",
+      "name": "页面访问统计",
+      "priority": "P0",
+      "status": "pending",
+      "developer": "codex",
+      "requirements": [
+        "页面PV统计",
+        "页面UV统计",
+        "热门页面分析"
+      ]
+    },
+    {
+      "id": "TASK-003",
+      "name": "后台来源分析UI优化",
+      "priority": "P1",
+      "status": "pending",
+      "developer": "codex",
+      "requirements": [
+        "筛选区域收纳",
+        "时间下拉选择",
+        "来源类型折叠筛选"
+      ]
+    },
+    {
+      "id": "TASK-004",
+      "name": "隐私设置修复",
+      "priority": "P0",
+      "status": "pending",
+      "developer": "codex",
+      "requirements": [
+        "修复设置保存",
+        "修复配置读取同步"
+      ]
+    },
+    {
+      "id": "TASK-005",
+      "name": "v2.0升级测试",
+      "priority": "P0",
+      "status": "pending",
+      "developer": "codex",
+      "requirements": [
+        "升级测试",
+        "安装测试",
+        "兼容测试"
+      ]
+    }
+  ]
+}
