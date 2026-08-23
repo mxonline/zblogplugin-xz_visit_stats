@@ -13,8 +13,20 @@ class PluginSmokeTest extends TestCase
         $this->assertFileExists($root . '/main.php');
     }
 
-    public function testBotDetectorFileExists(): void
+    public function testPluginSupportFilesExist(): void
     {
-        $this->assertFileExists(dirname(__DIR__) . '/inc/bot.php');
+        $root = dirname(__DIR__);
+
+        $this->assertFileExists($root . '/inc/helpers.php');
+        $this->assertFileExists($root . '/inc/bot.php');
+    }
+
+    public function testPluginXmlContainsIdentity(): void
+    {
+        $xml = file_get_contents(dirname(__DIR__) . '/plugin.xml');
+
+        $this->assertIsString($xml);
+        $this->assertStringContainsString('xz_visit_stats', $xml);
+        $this->assertStringContainsString('访问统计', $xml);
     }
 }
