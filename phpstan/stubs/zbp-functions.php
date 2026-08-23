@@ -27,3 +27,7 @@ function GetVars(...$args)
 {
     return null;
 }
+
+function MakeLeftMenu(...$args): void
+{
+}
