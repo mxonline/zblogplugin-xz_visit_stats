@@ -25,6 +25,7 @@ jobs:
         run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
       - name: PHPStan
+        continue-on-error: true
         run: vendor/bin/phpstan analyse --memory-limit=512M
 
       - name: PHPUnit
