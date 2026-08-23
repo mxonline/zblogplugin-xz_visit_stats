@@ -48,7 +48,30 @@ function xz_visit_stats_collect()
     try {
         $sql = $zbp->db->sql->Insert($GLOBALS['table']['xz_visit_stats_log'], $data);
         $zbp->db->Query($sql);
+
+        xz_visit_stats_update_page_stats($data['vs_Path']);
+        xz_visit_stats_update_keyword_stats($data['vs_Referer'], $data['vs_Path']);
     } catch (Exception $exception) {
         // Statistics must never interrupt the frontend response.
     }
+}
+
+function xz_visit_stats_update_page_stats($path)
+{
+    if ($path === '') {
+        return;
+    }
+
+    // v2.0 page aggregation entry point.
+    // Actual upsert logic will be enabled after migration tests pass.
+}
+
+function xz_visit_stats_update_keyword_stats($referer, $path)
+{
+    if ($referer === '') {
+        return;
+    }
+
+    // v2.0 keyword aggregation entry point.
+    // Search engine parsing will reuse existing source analysis logic.
 }
