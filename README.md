@@ -1,6 +1,6 @@
 # xz_visit_stats
 
-Z-BlogPHP 站长访问分析中心，当前正式版本为 **v2.0.1**。
+Z-BlogPHP 完整访问统计与分析中心，当前开发版本为 **v3.0.0**。
 
 ## 功能范围
 
@@ -10,7 +10,7 @@ Z-BlogPHP 站长访问分析中心，当前正式版本为 **v2.0.1**。
 
 ## 安装
 
-1. 解压 `xz_visit_stats-v2.0.1.zip` 至 `zb_users/plugin/`，保持目录名为 `xz_visit_stats`。
+1. v3.0.0 正式包尚未发布；开发验收包应解压至 `zb_users/plugin/`，保持目录名为 `xz_visit_stats`。
 2. 在 Z-BlogPHP 后台的插件管理中启用“访问统计”。
 3. 使用具备 `root` 权限的账号打开“访问分析”；从 v1.3 升级会保留原始日志并初始化 PathKey、日汇总和汇总状态结构。
 
@@ -23,7 +23,7 @@ Z-BlogPHP 站长访问分析中心，当前正式版本为 **v2.0.1**。
 - [版本信息](docs/VERSION.md)
 - [变更记录](docs/CHANGELOG.md)
 - [开发指南](docs/DEVELOPMENT.md)
-- [v2.0.1 发布说明](docs/RELEASE_NOTES_v2.0.1.md)
+- [v3.0.0 发布说明](docs/RELEASE_NOTES_v3.0.0.md)
 
 ## 注意事项
 
