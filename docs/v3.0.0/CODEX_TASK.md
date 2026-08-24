@@ -7,7 +7,10 @@
 唯一正式需求基线：
 
 - `docs/v3.0.0/PRD-v1.0.md`
+- `docs/v3.0.0/UI-SPEC.md`
 - GitHub Issue `#18`
+
+`UI-SPEC.md` 是 v3.0.0 后台 UI 的冻结实施基线。必须采用：Z-Blog 原生后台 Shell / PHP SSR + `xzvs-` Scoped CSS Design System + Alpine.js 3.x + Apache ECharts 6.x + Fetch/AJAX；所有前端运行时资源随插件本地打包，不依赖公网 CDN。不要改造成 React/Vue SPA，不整套引入 Bootstrap/Tabler/Element Plus/Ant Design 覆盖 Z-Blog 后台。
 
 不要重新设计产品范围，不要生成新的 PRD 版本。只有遇到 P0 无法安全实现、统计语义冲突或重大兼容阻断时才暂停并明确报告。
 
@@ -29,6 +32,7 @@
 6. 创建并切换分支：`feature/visit-stats-3.0`。
 7. 读取：
    - `docs/v3.0.0/PRD-v1.0.md`
+   - `docs/v3.0.0/UI-SPEC.md`
    - `docs/v2.0.0/technical-design-v1.0.md`
    - `docs/v2.0.0/performance-validation.md`
    - `docs/TESTING.md`
@@ -61,9 +65,10 @@
 - `VisitorHash` 不是登录用户身份。
 - `DurationMs` 始终表示服务端处理耗时。
 - 精确跨日 UV/IP 不得直接相加小时/日 UV/IP。
-- 服务器端采集继续是 P0 核心；P1 浏览器 Beacon 不得偷偷并入 v3.0.0 首发。
+- 服务器端采集继续是 P0 核心；P0 Beacon 仍必须可选，关闭时基础统计完整可用。
 - 不实现 P2。
-- 不引入运行时外部 CDN 依赖；图表优先使用仓库内可维护的本地方案。
+- 不引入运行时外部 CDN 依赖；图表使用仓库内本地打包的 ECharts 6.x。
+- 后台轻量交互使用本地打包 Alpine.js 3.x，不引入 React/Vue SPA。
 - 普通可逆操作自动继续，不逐步询问。
 - 测试失败自动分析、修复、复测。
 
@@ -95,6 +100,9 @@
 22. 404/错误与来源、搜索蜘蛛、AI 爬虫关联。
 23. 服务端处理耗时分析。
 24. v2.0.1 → v3.0 真实升级兼容。
+25. 可选轻量浏览器 Beacon，后台可启停，关闭时不加载/不上报。
+26. 真实用户性能 LCP / INP / CLS / TTFB / FCP，与 `DurationMs` 严格分离。
+27. 屏幕分辨率、视口尺寸、浏览器语言采集和分析，不用于生成新的持久浏览器指纹。
 
 ## 推荐开发阶段
 
@@ -108,6 +116,8 @@
 - 页面标题/Z-Blog 内容关联所需数据。
 - AI 爬虫分类。
 - 小时级汇总。
+- Beacon/RUM 数据模型、同源上报端点、采集开关及 migration。
+- LCP/INP/CLS/TTFB/FCP、屏幕/视口、语言字段与聚合基础。
 - migration / backfill / state。
 - 新安装与 v2.0.1 升级 schema parity。
 
@@ -117,6 +127,7 @@
 - 同比/环比。
 - 24 小时分布。
 - IP/环境/Campaign/AI 来源查询。
+- RUM/Core Web Vitals 分位数查询与页面/环境维度聚合。
 - Keyset/游标分页。
 - CSV 导出查询边界。
 - 保存筛选数据模型。
@@ -124,6 +135,18 @@
 
 ### V3-T3｜后台 UI
 
+严格执行 `docs/v3.0.0/UI-SPEC.md`：
+
+- Z-Blog 原生后台 Shell / PHP SSR。
+- `xzvs-` Scoped CSS Design System。
+- Alpine.js 3.x 轻量交互。
+- Apache ECharts 6.x 图表，本地打包。
+- 插件内部左侧分组导航，小屏折叠；不把 11 个模块继续堆在顶部。
+- Dashboard KPI + 图表 + 下钻。
+- 实时分析轮询。
+- 访问记录右侧 Drawer 详情。
+- 性能页将服务器 `DurationMs` 与 RUM/Core Web Vitals 明确分区。
+- 全部模块响应式、空数据、加载、失败状态。
 - 图表化总览。
 - 实时分析。
 - 访问记录增强。
@@ -135,15 +158,16 @@
 - 错误增强。
 - 性能分析。
 - 设置与维护。
-- 菜单按合理分组呈现，不堆满顶部导航。
 
 ### V3-T4｜性能与安全验收
 
 - 10 万与 100 万实际数据关键查询。
 - 1000 万如资源不足可 EXPLAIN + 风险估算，但必须明确不是实测。
-- 重点验证宽范围 DISTINCT、小时汇总、来源物化、Campaign、Keyset 分页、实时查询。
+- 重点验证宽范围 DISTINCT、小时汇总、来源物化、Campaign、Keyset 分页、实时查询、RUM 聚合。
 - 可信代理伪造头安全测试。
 - CSV 权限/范围/最大行数测试。
+- Beacon 同源、字段、payload、频率、异常隔离测试。
+- UI 无公网 CDN、CSS 污染、Tooltip/XSS、轮询、响应式验收。
 - 并发 INSERT + 查询 + 汇总轻量验证。
 
 ### V3-T5｜完整回归与发布
@@ -153,6 +177,8 @@
 - 新安装。
 - schema parity。
 - 全模块逐页回归。
+- Beacon 关闭/开启两套前台 smoke。
+- UI 11 模块导航、图表、Drawer、轮询和 RUM 页面回归。
 - PHP syntax / 自动测试 / HTTP / DB / 日志 / 敏感信息扫描。
 - GitHub CI。
 - PR → main。
@@ -185,7 +211,7 @@
 
 “当前活跃访客”采用短时间窗口统计，例如最近 5 分钟的去重 VisitorHash/IP，不得描述为真实 TCP/WebSocket 在线连接数。
 
-实现可使用 15–30 秒轻量 AJAX polling；v3.0.0 不要求 WebSocket。
+实现可使用 15–30 秒轻量 AJAX polling；v3.0.0 不要求 WebSocket。页面隐藏时应降低或暂停轮询。
 
 ## 地域能力
 
@@ -197,14 +223,33 @@
 
 如果地域数据库需要用户额外安装或更新，必须提供明确降级：没有地域库时插件其他功能正常工作。
 
-## 图表要求
+## 图表与 UI 要求
 
-- 图表只是展示层，数据必须来自统一查询层。
+以 `docs/v3.0.0/UI-SPEC.md` 为唯一 UI 实施规范。
+
+核心要求：
+
+- 图表数据必须来自统一 PHP 查询层，不在浏览器重算统计口径。
 - 支持空数据状态。
 - 支持今天/昨天/7d/30d/自定义范围。
-- 可点击的图表/排行应下钻到相应模块或访问记录。
-- 不依赖公网 CDN 才能打开后台。
-- 保持 Z-Blog 后台整体风格，不做无关视觉重构。
+- 可点击图表/排行应下钻到相应模块或访问记录。
+- Alpine.js 仅管理轻量 UI 状态，不承载业务数据真源。
+- ECharts 6.x 与 Alpine.js 3.x 均本地打包，不依赖公网 CDN。
+- 所有插件 UI CSS 使用 `xzvs-` 命名空间并限制在插件容器内。
+- 11 个模块使用插件内部侧栏分组导航，小屏折叠，避免顶部 Tab 溢出。
+- 访问记录详情优先右侧 Drawer。
+- 服务端性能与 RUM 性能使用不同区域和标签。
+- 保持 Z-Blog 后台整体风格，不做无关全局视觉重构。
+
+## Beacon / RUM 要求
+
+- Beacon 对管理员可选，默认关闭；关闭时不加载脚本、不上报。
+- 优先原生 PerformanceObserver / Performance API。
+- 同源 `navigator.sendBeacon()` 上报，必要时 `fetch(...,{keepalive:true})` 降级。
+- 不采集 DOM 文本、表单值、Cookie、LocalStorage、键盘输入。
+- LCP/INP/CLS 至少提供 P75；指标不可用允许缺失，不得补零。
+- 屏幕/视口/语言只用于统计聚合，不用于新的浏览器指纹。
+- 失败不得影响前台页面。
 
 ## CSV 导出
 
@@ -228,7 +273,7 @@
 - 新小时汇总。
 - 旧设置。
 
-能从历史 `Url/Path/Referer/IP/UA` 安全派生的维度可以分批回填；不能可靠派生的维度不得假填。
+能从历史 `Url/Path/Referer/IP/UA` 安全派生的维度可以分批回填；不能可靠派生的维度不得假填。Beacon/RUM、屏幕/视口和语言从 v3.0 启用后开始统计，不回填 v2.x 历史。
 
 ## Git 与 CI
 
@@ -247,6 +292,8 @@
 - 新安装 PASS。
 - Local Runtime PASS。
 - GitHub CI PASS。
+- UI-SPEC 验收 PASS。
+- Beacon/RUM 验收 PASS。
 - Release Dry Run PASS。
 - Tag、Release、ZIP 版本一致。
 
