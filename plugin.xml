@@ -3,8 +3,8 @@
 <id>xz_visit_stats</id>
 <name>访问统计</name>
 <url></url>
-<note>记录前台访问、来源、终端与搜索引擎蜘蛛信息</note>
-<description>前台访问统计、蜘蛛分析、来源分析、IP 分析与 SEO 报告。</description>
+<note>站长访问分析中心，提供访问记录、页面、来源、蜘蛛与错误分析。</note>
+<description>提供访问总览、访问记录、页面分析、来源分析、蜘蛛分析、错误分析及数据维护功能。</description>
 <path>main.php</path>
 <include>include.php</include>
 <level>1</level>
@@ -19,7 +19,7 @@
   <url></url>
 </source>
 <adapted>173540</adapted>
-<version>2.0.0</version>
+<version>2.0.1</version>
 <pubdate>2026-08-25</pubdate>
 <modified>2026-08-25</modified>
 <price>0</price>
