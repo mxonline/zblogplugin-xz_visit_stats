@@ -1,0 +1,32 @@
+name: Codex Workspace Check
+
+on:
+  pull_request:
+    paths:
+      - 'AGENTS.md'
+      - 'docs/DEVELOPMENT.md'
+      - 'docs/TESTING.md'
+      - 'docs/RELEASE.md'
+      - 'scripts/*.ps1'
+      - '.github/workflows/codex-workspace-check.yml'
+  workflow_dispatch:
+
+jobs:
+  powershell-syntax:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Parse local verification script
+        shell: powershell
+        run: |
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path '.\scripts\local-verify.ps1'),
+            [ref]$null,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | Format-List | Out-String | Write-Error
+            exit 1
+          }
+          Write-Host 'PowerShell syntax: PASS'
