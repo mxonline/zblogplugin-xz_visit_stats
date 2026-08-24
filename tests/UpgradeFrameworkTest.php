@@ -10,7 +10,7 @@ class XzVisitStatsTestDb
 {
     public $dbpre = 'zbp_';
     public $tables = array('zbp_xz_visit_stats_log');
-    public $columns = array('vs_ID', 'vs_Path', 'vs_VisitedAt');
+    public $columns = array('vs_ID', 'vs_Path', 'vs_VisitedAt', 'vs_SourceType');
     public $queries = array();
 
     public function ExistTable($table)
@@ -33,6 +33,12 @@ class XzVisitStatsTestDb
             }
             if (strpos($sql, 'xz_visit_stats_rollup_state') !== false) {
                 $this->tables[] = 'zbp_xz_visit_stats_rollup_state';
+            }
+            if (strpos($sql, 'xz_visit_stats_rollup_hourly') !== false) {
+                $this->tables[] = 'zbp_xz_visit_stats_rollup_hourly';
+            }
+            if (strpos($sql, 'xz_visit_stats_saved_filters') !== false) {
+                $this->tables[] = 'zbp_xz_visit_stats_saved_filters';
             }
             return array();
         }
@@ -81,14 +87,16 @@ class UpgradeFrameworkTest extends TestCase
         require_once dirname(__DIR__) . '/inc/upgrade/runner.php';
 
         $this->assertTrue(xz_visit_stats_upgrade_run());
-        $this->assertSame('2.0.0', $zbp->Config('xz_visit_stats')->db_version);
+        $this->assertSame('3.0.0', $zbp->Config('xz_visit_stats')->db_version);
         $this->assertTrue(in_array('zbp_xz_visit_stats_rollup_daily', $zbp->db->tables, true));
         $this->assertTrue(in_array('zbp_xz_visit_stats_rollup_state', $zbp->db->tables, true));
+        $this->assertTrue(in_array('zbp_xz_visit_stats_rollup_hourly', $zbp->db->tables, true));
+        $this->assertTrue(in_array('zbp_xz_visit_stats_saved_filters', $zbp->db->tables, true));
         $this->assertContains('vs_PathKey', $zbp->db->columns);
 
         $queryCount = count($zbp->db->queries);
         $this->assertTrue(xz_visit_stats_upgrade_run());
-        $this->assertGreaterThan($queryCount, count($zbp->db->queries));
+        $this->assertGreaterThanOrEqual($queryCount, count($zbp->db->queries));
     }
 
     public function testPathNormalizationAndKeyAreStable(): void

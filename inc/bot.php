@@ -18,6 +18,12 @@ function xz_visit_stats_detect_bot($userAgent)
         'YandexBot'   => 'YandexBot',
         'DuckDuckBot' => 'DuckDuckBot',
         'Applebot'    => 'Applebot',
+        'GPTBot'      => 'GPTBot',
+        'OAI-SearchBot' => 'OAI-SearchBot',
+        'ClaudeBot'   => 'ClaudeBot',
+        'PerplexityBot' => 'PerplexityBot',
+        'Google-Extended' => 'Google-Extended',
+        'Applebot-Extended' => 'Applebot-Extended',
     );
 
     foreach ($bots as $needle => $name) {
