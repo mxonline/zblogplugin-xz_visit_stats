@@ -13,7 +13,7 @@ function xz_visit_stats_v2_filters($source = null)
         return xz_visit_stats_query_value($source, $name, $default);
     };
     $range = xz_visit_stats_query_text($get('range', 'today'), 16);
-    if (!in_array($range, array('all', 'today', 'yesterday', '7d', '30d', 'custom'), true)) {
+    if (!in_array($range, array('all', 'today', 'yesterday', '5m', '15m', '30m', '7d', '30d', 'custom'), true)) {
         $range = 'today';
     }
     $type = xz_visit_stats_query_text($get('visit_type', 'all'), 8);
@@ -76,12 +76,18 @@ function xz_visit_stats_v2_range($filters, $now = null)
     $now = $now === null ? time() : (int) $now;
     $timezone = xz_visit_stats_rollup_timezone();
     $zone = new DateTimeZone($timezone);
-    $today = new DateTime('now', $zone);
+    $today = new DateTime('@' . $now);
+    $today->setTimezone($zone);
     $today->setTime(0, 0, 0);
     $start = clone $today;
     $end = clone $today;
     $label = '今天';
-    if ($filters['range'] === 'yesterday') {
+    if ($filters['range'] === '5m' || $filters['range'] === '15m' || $filters['range'] === '30m') {
+        $minutes = (int) substr($filters['range'], 0, -1);
+        $end = new DateTime('@' . $now); $end->setTimezone($zone);
+        $start = new DateTime('@' . ($now - $minutes * 60)); $start->setTimezone($zone);
+        $label = '最近 ' . $minutes . ' 分钟';
+    } elseif ($filters['range'] === 'yesterday') {
         $start->modify('-1 day');
         $end = clone $today;
         $label = '昨天';
@@ -318,4 +324,120 @@ function xz_visit_stats_v2_drilldown_params($filters, $extra = array())
     foreach ($keys as $key) if (isset($filters[$key]) && $filters[$key] !== '' && $filters[$key] !== 'all') $params[$key] = $filters[$key];
     foreach ($extra as $key => $value) if ($value !== '' && $value !== null) $params[$key] = $value;
     return $params;
+}
+
+function xz_visit_stats_v2_count($filters)
+{
+    global $zbp;
+
+    $range = xz_visit_stats_v2_range($filters);
+    $where = implode(' AND ', xz_visit_stats_v2_where($filters, $range));
+    $rows = (array) $zbp->db->Query('SELECT COUNT(*) AS total FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where);
+    return !empty($rows) ? (int) $rows[0]['total'] : 0;
+}
+
+function xz_visit_stats_v2_trend($filters)
+{
+    global $zbp;
+
+    $range = xz_visit_stats_v2_range($filters);
+    $days = xz_visit_stats_v2_rollup_days($range);
+    $items = array();
+    if ($filters['visit_type'] === 'all' && $filters['status_group'] === 'all' && $filters['status_code'] === ''
+        && $filters['source_type'] === 'all' && $filters['source_domain'] === '' && $filters['path_key'] === ''
+        && $filters['bot_name'] === '' && $filters['ip'] === '' && $filters['url'] === '' && $filters['referer'] === '' && $filters['slow_ms'] === ''
+        && !empty($days)) {
+        $quoted = array_map('xz_visit_stats_v2_quote', $days);
+        $sql = 'SELECT rd_Day day,rd_VisitorPV human_pv,rd_BotPV bot_pv,rd_Error4xx error_4xx,rd_Error5xx error_5xx FROM '
+            . xz_visit_stats_upgrade_quote_table(xz_visit_stats_rollup_table())
+            . " WHERE rd_Dimension='site' AND rd_Key='all' AND rd_Day IN (" . implode(',', $quoted) . ') ORDER BY rd_Day ASC';
+        $rows = (array) $zbp->db->Query($sql);
+        foreach ($rows as $row) $items[(string) $row['day']] = array(
+            'label' => (string) $row['day'], 'human_pv' => (int) $row['human_pv'], 'bot_pv' => (int) $row['bot_pv'],
+            'error_4xx' => (int) $row['error_4xx'], 'error_5xx' => (int) $row['error_5xx'], 'not_found' => 0,
+        );
+        $currentStart = max($range['start'], $range['today_start']);
+        if ($currentStart < $range['end']) {
+            $currentWhere = implode(' AND ', xz_visit_stats_v2_where($filters, array('start' => $currentStart, 'end' => $range['end'])));
+            $currentRows = (array) $zbp->db->Query('SELECT DATE_FORMAT(FROM_UNIXTIME(vs_VisitedAt), \'%Y-%m-%d\') AS day, SUM(vs_IsBot=0) human_pv, SUM(vs_IsBot=1) bot_pv, SUM(vs_StatusCode BETWEEN 400 AND 499) error_4xx, SUM(vs_StatusCode BETWEEN 500 AND 599) error_5xx FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $currentWhere . ' GROUP BY day');
+            foreach ($currentRows as $row) $items[(string) $row['day']] = array(
+                'label' => (string) $row['day'], 'human_pv' => (int) $row['human_pv'], 'bot_pv' => (int) $row['bot_pv'],
+                'error_4xx' => (int) $row['error_4xx'], 'error_5xx' => (int) $row['error_5xx'], 'not_found' => 0,
+            );
+        }
+        $notFoundRows = (array) $zbp->db->Query('SELECT DATE_FORMAT(FROM_UNIXTIME(vs_VisitedAt), \'%Y-%m-%d\') AS day, COUNT(*) not_found FROM ' . xz_visit_stats_v2_table() . ' WHERE vs_VisitedAt >= ' . (int) $range['start'] . ' AND vs_VisitedAt < ' . (int) $range['end'] . ' AND vs_StatusCode=404 GROUP BY day');
+        foreach ($notFoundRows as $row) { $key = (string) $row['day']; if (!isset($items[$key])) $items[$key] = array('label' => $key, 'human_pv' => 0, 'bot_pv' => 0, 'error_4xx' => 0, 'error_5xx' => 0); $items[$key]['not_found'] = (int) $row['not_found']; }
+    } else {
+        $where = implode(' AND ', xz_visit_stats_v2_where($filters, $range));
+        $rows = (array) $zbp->db->Query('SELECT DATE_FORMAT(FROM_UNIXTIME(vs_VisitedAt), \'%Y-%m-%d\') AS day, SUM(vs_IsBot=0) human_pv, SUM(vs_IsBot=1) bot_pv, SUM(vs_StatusCode BETWEEN 400 AND 499) error_4xx, SUM(vs_StatusCode BETWEEN 500 AND 599) error_5xx FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' GROUP BY day ORDER BY day ASC');
+        foreach ($rows as $row) $items[(string) $row['day']] = array(
+            'label' => (string) $row['day'], 'human_pv' => (int) $row['human_pv'], 'bot_pv' => (int) $row['bot_pv'],
+            'error_4xx' => (int) $row['error_4xx'], 'error_5xx' => (int) $row['error_5xx'], 'not_found' => 0,
+        );
+    }
+    $cursor = new DateTime('@' . $range['start']);
+    $end = new DateTime('@' . $range['end']);
+    $zone = new DateTimeZone($range['timezone']);
+    $cursor->setTimezone($zone); $end->setTimezone($zone); $cursor->setTime(0, 0, 0);
+    while ($cursor < $end) {
+        $key = $cursor->format('Y-m-d');
+        if (!isset($items[$key])) $items[$key] = array('label' => $key, 'human_pv' => 0, 'bot_pv' => 0, 'error_4xx' => 0, 'error_5xx' => 0, 'not_found' => 0);
+        $cursor->modify('+1 day');
+    }
+    ksort($items);
+    return array_values($items);
+}
+
+function xz_visit_stats_v2_status_distribution($filters)
+{
+    global $zbp;
+
+    $range = xz_visit_stats_v2_range($filters);
+    $where = implode(' AND ', xz_visit_stats_v2_where($filters, $range));
+    $rows = (array) $zbp->db->Query('SELECT FLOOR(vs_StatusCode / 100) AS code_group, COUNT(*) AS visits, SUM(vs_StatusCode=404) AS not_found FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' GROUP BY code_group ORDER BY code_group');
+    $result = array();
+    foreach (array(2, 3, 4, 5) as $group) $result[$group . 'xx'] = array('visits' => 0, 'not_found' => 0);
+    foreach ($rows as $row) { $key = ((int) $row['code_group']) . 'xx'; if (isset($result[$key])) { $result[$key]['visits'] = (int) $row['visits']; $result[$key]['not_found'] = (int) $row['not_found']; } }
+    return $result;
+}
+
+function xz_visit_stats_v2_state_snapshot()
+{
+    global $zbp;
+
+    $state = array('last_rollup' => 0, 'status' => '未运行', 'message' => '', 'pathkey_status' => '未运行');
+    if ($zbp->db->ExistTable(xz_visit_stats_rollup_state_table())) {
+        $table = xz_visit_stats_upgrade_quote_table(xz_visit_stats_rollup_state_table());
+        $rows = (array) $zbp->db->Query("SELECT rs_Name,rs_Status,rs_LastRunAt,rs_LastError FROM {$table} ORDER BY rs_LastRunAt DESC");
+        foreach ($rows as $row) {
+            if ($row['rs_Name'] === 'daily' && $state['last_rollup'] === 0) { $state['last_rollup'] = (int) $row['rs_LastRunAt']; $state['status'] = (string) $row['rs_Status']; $state['message'] = (string) $row['rs_LastError']; }
+            if ($row['rs_Name'] === 'pathkey') $state['pathkey_status'] = (string) $row['rs_Status'];
+        }
+    }
+    return $state;
+}
+
+function xz_visit_stats_v2_source_domains($filters, $limit = 20)
+{
+    global $zbp;
+
+    $range = xz_visit_stats_v2_range($filters); $where = implode(' AND ', xz_visit_stats_v2_where($filters, $range));
+    $source = xz_visit_stats_v2_source_case();
+    $sql = 'SELECT LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX(vs_Referer, \'/\', 3), \'/\', -1)) AS domain, COUNT(*) visits, SUM(vs_IsBot=0) human_pv FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . " AND vs_Referer <> '' AND ({$source}) IN ('external','search','social') GROUP BY domain ORDER BY visits DESC LIMIT " . max(1, min(100, (int) $limit));
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) { $row['visits'] = (int) $row['visits']; $row['human_pv'] = (int) $row['human_pv']; }
+    unset($row);
+    return $rows;
+}
+
+function xz_visit_stats_v2_referers($filters, $limit = 20)
+{
+    global $zbp;
+
+    $range = xz_visit_stats_v2_range($filters); $where = implode(' AND ', xz_visit_stats_v2_where($filters, $range));
+    $sql = 'SELECT SUBSTRING(vs_Referer,1,512) AS referer, COUNT(*) visits, SUM(vs_IsBot=0) human_pv FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . " AND vs_Referer <> '' GROUP BY referer ORDER BY visits DESC LIMIT " . max(1, min(100, (int) $limit));
+    $rows = (array) $zbp->db->Query($sql);
+    foreach ($rows as &$row) { $row['visits'] = (int) $row['visits']; $row['human_pv'] = (int) $row['human_pv']; }
+    unset($row);
+    return $rows;
 }
