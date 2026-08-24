@@ -157,7 +157,10 @@ function xz_visit_stats_install_indexes()
             continue;
         }
         if (!empty($actual)) {
-            $operations[] = 'DROP INDEX `' . $name . '`';
+            // Keep unknown or legacy index definitions. Migration never drops
+            // an existing index; a compatible replacement requires an explicit
+            // maintenance operation with a rollback plan.
+            continue;
         }
         $operations[] = 'ADD INDEX `' . $name . '` (`' . implode('`, `', $columns) . '`)';
     }

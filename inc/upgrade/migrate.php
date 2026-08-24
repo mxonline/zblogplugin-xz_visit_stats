@@ -23,12 +23,55 @@ function xz_visit_stats_upgrade_column_exists($table, $column)
     return false;
 }
 
+function xz_visit_stats_migration_columns($table)
+{
+    global $zbp;
+    $result = array();
+    foreach ((array) $zbp->db->Query('SHOW COLUMNS FROM ' . xz_visit_stats_upgrade_quote_table($table)) as $row) {
+        if (isset($row['Field'])) $result[(string) $row['Field']] = strtolower((string) (isset($row['Type']) ? $row['Type'] : ''));
+    }
+    return $result;
+}
+
+function xz_visit_stats_migration_assert_columns($table, $required)
+{
+    $columns = xz_visit_stats_migration_columns($table);
+    foreach ((array) $required as $name => $type) {
+        if (!isset($columns[$name])) throw new Exception('Missing existing column ' . $name . ' in ' . $table);
+        if ($type !== '' && strpos($columns[$name], strtolower($type)) === false) throw new Exception('Incompatible existing column ' . $name . ' in ' . $table);
+    }
+    return true;
+}
+
+function xz_visit_stats_migration_index_columns($table, $name)
+{
+    global $zbp;
+    $result = array();
+    foreach ((array) $zbp->db->Query('SHOW INDEX FROM ' . xz_visit_stats_upgrade_quote_table($table)) as $row) {
+        if (isset($row['Key_name']) && (string) $row['Key_name'] === $name) {
+            $part = isset($row['Sub_part']) && $row['Sub_part'] !== '' ? '(' . (int) $row['Sub_part'] . ')' : '';
+            $result[(int) $row['Seq_in_index']] = (string) $row['Column_name'] . $part;
+        }
+    }
+    ksort($result);
+    return array_values($result);
+}
+
+function xz_visit_stats_migration_assert_index($table, $name, $expected)
+{
+    $actual = xz_visit_stats_migration_index_columns($table, $name);
+    if (empty($actual)) return false;
+    if ($actual !== $expected) throw new Exception('Incompatible existing index ' . $name . ' in ' . $table);
+    return true;
+}
+
 function xz_visit_stats_upgrade_create_rollup_daily()
 {
     global $zbp;
 
     $tableName = xz_visit_stats_rollup_table();
     if ($zbp->db->ExistTable($tableName)) {
+        xz_visit_stats_migration_assert_columns($tableName, array('rd_Day' => 'char(10)', 'rd_Dimension' => 'varchar(24)', 'rd_KeyHash' => 'char(64)', 'rd_VisitorPV' => 'bigint'));
         return;
     }
     $table = xz_visit_stats_upgrade_quote_table($tableName);
@@ -61,6 +104,7 @@ function xz_visit_stats_upgrade_create_rollup_state()
 
     $tableName = xz_visit_stats_rollup_state_table();
     if ($zbp->db->ExistTable($tableName)) {
+        xz_visit_stats_migration_assert_columns($tableName, array('rs_Name' => 'varchar(64)', 'rs_Status' => 'varchar(24)', 'rs_Timezone' => 'varchar(128)'));
         if (!xz_visit_stats_upgrade_column_exists($tableName, 'rs_BackfillCursor')) {
             $zbp->db->Query('ALTER TABLE ' . xz_visit_stats_upgrade_quote_table($tableName) . ' ADD COLUMN rs_BackfillCursor BIGINT UNSIGNED NOT NULL DEFAULT 0 AFTER rs_BackfillDay');
         }
@@ -141,6 +185,11 @@ function xz_visit_stats_upgrade_add_v30_columns()
     if (!empty($operations)) {
         $zbp->db->Query('ALTER TABLE ' . $table . ' ' . implode(', ', $operations));
     }
+    xz_visit_stats_migration_assert_columns($tableName, array(
+        'vs_SourceType' => 'varchar(24)', 'vs_SourceDomain' => 'varchar(253)', 'vs_AiSource' => 'varchar(32)',
+        'vs_UtmCampaign' => 'varchar(255)', 'vs_PageTitle' => 'varchar(512)', 'vs_PostID' => 'bigint',
+        'vs_GeoCountry' => 'varchar(64)', 'vs_AiCrawler' => 'varchar(32)',
+    ));
     $indexes = (array) $zbp->db->Query('SHOW INDEX FROM ' . $table);
     $existing = array();
     foreach ($indexes as $index) {
@@ -154,7 +203,10 @@ function xz_visit_stats_upgrade_add_v30_columns()
         'xzvs_campaign_time' => '(`vs_UtmCampaign`(191),`vs_VisitedAt`)',
     );
     foreach ($indexOps as $name => $definition) {
-        if (!isset($existing[$name])) {
+        $expected = $name === 'xzvs_source_time' ? array('vs_SourceType', 'vs_VisitedAt') : ($name === 'xzvs_domain_time' ? array('vs_SourceDomain(191)', 'vs_VisitedAt') : array('vs_UtmCampaign(191)', 'vs_VisitedAt'));
+        if (isset($existing[$name])) {
+            xz_visit_stats_migration_assert_index($tableName, $name, $expected);
+        } else {
             $zbp->db->Query('ALTER TABLE ' . $table . ' ADD INDEX `' . $name . '` ' . $definition);
         }
     }
@@ -166,6 +218,7 @@ function xz_visit_stats_upgrade_create_hourly()
 
     $tableName = xz_visit_stats_rollup_hourly_table();
     if ($zbp->db->ExistTable($tableName)) {
+        xz_visit_stats_migration_assert_columns($tableName, array('rh_Hour' => 'char(16)', 'rh_Dimension' => 'varchar(24)', 'rh_KeyHash' => 'char(64)', 'rh_VisitorPV' => 'bigint'));
         $columns = (array) $zbp->db->Query('SHOW COLUMNS FROM ' . xz_visit_stats_upgrade_quote_table($tableName));
         foreach ($columns as $column) {
             if (isset($column['Field'], $column['Type']) && $column['Field'] === 'rh_Hour' && strtolower((string) $column['Type']) !== 'char(16)') {
@@ -204,6 +257,7 @@ function xz_visit_stats_upgrade_create_saved_filters()
 
     $tableName = xz_visit_stats_saved_filters_table();
     if ($zbp->db->ExistTable($tableName)) {
+        xz_visit_stats_migration_assert_columns($tableName, array('sf_UserID' => 'bigint', 'sf_Name' => 'varchar(128)', 'sf_Filters' => 'text'));
         return;
     }
     $table = xz_visit_stats_upgrade_quote_table($tableName);
@@ -227,4 +281,20 @@ function xz_visit_stats_upgrade_migrate_to_30()
     xz_visit_stats_upgrade_create_hourly();
     xz_visit_stats_upgrade_create_saved_filters();
     return true;
+}
+
+function xz_visit_stats_upgrade_v30_schema_compatible()
+{
+    try {
+        xz_visit_stats_migration_assert_columns(xz_visit_stats_physical_table(), array('vs_PathKey' => 'char(64)', 'vs_SourceType' => 'varchar(24)', 'vs_SourceDomain' => 'varchar(253)', 'vs_UtmCampaign' => 'varchar(255)'));
+        xz_visit_stats_migration_assert_columns(xz_visit_stats_rollup_table(), array('rd_Day' => 'char(10)', 'rd_Dimension' => 'varchar(24)'));
+        xz_visit_stats_migration_assert_columns(xz_visit_stats_rollup_hourly_table(), array('rh_Hour' => 'char(16)', 'rh_Dimension' => 'varchar(24)'));
+        xz_visit_stats_migration_assert_columns(xz_visit_stats_saved_filters_table(), array('sf_UserID' => 'bigint', 'sf_Filters' => 'text'));
+        xz_visit_stats_migration_assert_index(xz_visit_stats_physical_table(), 'xzvs_source_time', array('vs_SourceType', 'vs_VisitedAt'));
+        xz_visit_stats_migration_assert_index(xz_visit_stats_physical_table(), 'xzvs_domain_time', array('vs_SourceDomain(191)', 'vs_VisitedAt'));
+        xz_visit_stats_migration_assert_index(xz_visit_stats_physical_table(), 'xzvs_campaign_time', array('vs_UtmCampaign(191)', 'vs_VisitedAt'));
+        return true;
+    } catch (Exception $exception) {
+        return false;
+    }
 }
