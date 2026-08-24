@@ -4,7 +4,6 @@ if (!defined('ZBP_PATH')) {
     exit('Access denied');
 }
 
-require_once __DIR__ . '/page_stats.php';
 
 function xz_visit_stats_collect()
 {
@@ -28,12 +27,14 @@ function xz_visit_stats_collect()
     }
     $ua = xz_visit_stats_parse_ua($userAgent, $bot['is_bot']);
     $recordedIp = $settings['ip_mode'] === 'masked' ? xz_visit_stats_settings_mask_ip($ip) : $ip;
+    $path = xz_visit_stats_normalize_path(xz_visit_stats_request_path());
 
     $data = array(
         'vs_IP' => $recordedIp,
         'vs_VisitorHash' => xz_visit_stats_visitor_hash($ip, $userAgent),
         'vs_Url' => xz_visit_stats_limit(xz_visit_stats_request_url(), 16384),
-        'vs_Path' => xz_visit_stats_request_path(),
+        'vs_Path' => $path,
+        'vs_PathKey' => xz_visit_stats_path_key($path),
         'vs_Referer' => $settings['record_referer'] === 1 ? xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384) : '',
         'vs_UserAgent' => $settings['record_user_agent'] === 1 ? $userAgent : '',
         'vs_UaType' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['type'], 32) : '',
@@ -51,7 +52,6 @@ function xz_visit_stats_collect()
         $sql = $zbp->db->sql->Insert($GLOBALS['table']['xz_visit_stats_log'], $data);
         $zbp->db->Query($sql);
 
-        xz_visit_stats_update_page_stats($data['vs_Url'], '', $data['vs_VisitorHash']);
     } catch (Exception $exception) {
     }
 }

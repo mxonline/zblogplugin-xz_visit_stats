@@ -13,6 +13,7 @@ require_once __DIR__ . '/inc/install.php';
 require_once __DIR__ . '/inc/settings.php';
 require_once __DIR__ . '/inc/stats.php';
 require_once __DIR__ . '/inc/maintenance.php';
+require_once __DIR__ . '/inc/rollup.php';
 require_once __DIR__ . '/inc/collector.php';
 require_once __DIR__ . '/inc/upgrade/runner.php';
 

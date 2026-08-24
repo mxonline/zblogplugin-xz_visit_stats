@@ -7,13 +7,14 @@ if (!defined('ZBP_PATH')) {
 require_once __DIR__ . '/version.php';
 require_once __DIR__ . '/checker.php';
 require_once __DIR__ . '/migrate.php';
+require_once dirname(__DIR__) . '/rollup.php';
 
 function xz_visit_stats_upgrade_run()
 {
     $current = xz_visit_stats_upgrade_current_version();
     $target = xz_visit_stats_upgrade_target_version();
 
-    if (!xz_visit_stats_upgrade_need_update($current, $target)) {
+    if (!xz_visit_stats_upgrade_need_update($current, $target) && xz_visit_stats_upgrade_schema_ready()) {
         return true;
     }
 
@@ -28,6 +29,17 @@ function xz_visit_stats_upgrade_run()
     }
 
     return $result;
+}
+
+function xz_visit_stats_upgrade_schema_ready()
+{
+    global $zbp;
+
+    if (!$zbp->db->ExistTable(xz_visit_stats_rollup_table()) || !$zbp->db->ExistTable(xz_visit_stats_rollup_state_table())) {
+        return false;
+    }
+
+    return xz_visit_stats_upgrade_column_exists(xz_visit_stats_physical_table(), 'vs_PathKey');
 }
 
 function xz_visit_stats_upgrade_mark_complete($version)
