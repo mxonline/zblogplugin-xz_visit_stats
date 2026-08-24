@@ -1,5 +1,13 @@
 # xz_visit_stats 变更记录
 
+## v3.0.1｜冻结 P0 门禁补齐
+
+- 本地打包 Alpine.js 3.16.3 与 Apache ECharts 6.1.0。
+- Dashboard 增加图表容器与 ECharts 渲染，访问记录增加右侧详情 Drawer。
+- 增加来源/UTM/AI 维度可恢复回填入口；RUM 与 DurationMs 保持分区。
+- 记录 100k/1m 临时 benchmark 实测；独立数据库因本机权限不足未执行。
+- 不修改 v3.0.0 Tag/Release，不改变历史日志和统计口径。
+
 ## v3.0.0｜完整访问统计与分析中心
 
 ### 状态
