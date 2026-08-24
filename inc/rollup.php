@@ -44,6 +44,27 @@ function xz_visit_stats_rollup_state_table()
     return $zbp->db->dbpre . 'xz_visit_stats_rollup_state';
 }
 
+function xz_visit_stats_rollup_hourly_table()
+{
+    global $zbp;
+
+    return $zbp->db->dbpre . 'xz_visit_stats_rollup_hourly';
+}
+
+function xz_visit_stats_saved_filters_table()
+{
+    global $zbp;
+
+    return $zbp->db->dbpre . 'xz_visit_stats_saved_filters';
+}
+
+function xz_visit_stats_rum_table()
+{
+    global $zbp;
+
+    return $zbp->db->dbpre . 'xz_visit_stats_rum';
+}
+
 function xz_visit_stats_rollup_timezone()
 {
     global $zbp;
@@ -115,9 +136,15 @@ function xz_visit_stats_rollup_dimension_key($dimension, $row)
         return xz_visit_stats_normalize_path(isset($row['vs_Path']) ? $row['vs_Path'] : '/');
     }
     if ($dimension === 'source_type') {
+        if (isset($row['vs_SourceType']) && trim((string) $row['vs_SourceType']) !== '') {
+            return trim((string) $row['vs_SourceType']);
+        }
         return xz_visit_stats_rollup_source_type(isset($row['vs_Referer']) ? $row['vs_Referer'] : '');
     }
     if ($dimension === 'source_domain') {
+        if (isset($row['vs_SourceDomain']) && trim((string) $row['vs_SourceDomain']) !== '') {
+            return strtolower(trim((string) $row['vs_SourceDomain']));
+        }
         $host = strtolower((string) parse_url(isset($row['vs_Referer']) ? $row['vs_Referer'] : '', PHP_URL_HOST));
         return $host !== '' ? substr($host, 0, 512) : '(direct)';
     }
@@ -302,4 +329,59 @@ function xz_visit_stats_rollup_rebuild($startDay, $endDay)
     }
 
     return $result;
+}
+
+function xz_visit_stats_rollup_hour_key($timestamp)
+{
+    $zone = new DateTimeZone(xz_visit_stats_rollup_timezone());
+    $date = new DateTime('@' . (int) $timestamp);
+    $date->setTimezone($zone);
+    return $date->format('Y-m-d H:00');
+}
+
+function xz_visit_stats_rollup_build_hour($hour, $batchSize = 1000)
+{
+    global $zbp;
+
+    $zone = new DateTimeZone(xz_visit_stats_rollup_timezone());
+    $startDate = DateTime::createFromFormat('Y-m-d H:i:s', $hour . ':00', $zone);
+    if (!$startDate) {
+        throw new Exception('Invalid hour');
+    }
+    $start = $startDate->getTimestamp();
+    $end = $start + 3600;
+    $table = xz_visit_stats_v2_table();
+    $groups = array();
+    $cursor = 0;
+    do {
+        $rows = (array) $zbp->db->Query('SELECT * FROM ' . $table . ' WHERE vs_ID>' . (int) $cursor . ' AND vs_VisitedAt>=' . $start . ' AND vs_VisitedAt<' . $end . ' ORDER BY vs_ID ASC LIMIT ' . (int) $batchSize);
+        foreach ($rows as $row) {
+            $cursor = max($cursor, (int) $row['vs_ID']);
+            foreach (array('site/all', 'source_type/' . (isset($row['vs_SourceType']) && $row['vs_SourceType'] !== '' ? $row['vs_SourceType'] : xz_visit_stats_rollup_source_type(isset($row['vs_Referer']) ? $row['vs_Referer'] : ''))) as $dimension) {
+                $key = $dimension === 'site/all' ? 'all' : substr($dimension, strpos($dimension, '/') + 1);
+                $hash = sha1($dimension . '|' . $key);
+                if (!isset($groups[$hash])) {
+                    $groups[$hash] = array('dimension' => $dimension, 'key' => $key, 'key_hash' => $hash, 'visitor_pv' => 0, 'visitor_uv' => array(), 'visitor_ip' => array(), 'bot_pv' => 0, 'error_4xx' => 0, 'error_5xx' => 0, 'duration_sum' => 0, 'duration_count' => 0, 'last_visit' => 0);
+                }
+                $group =& $groups[$hash];
+                $isBot = (int) $row['vs_IsBot'] === 1;
+                if ($isBot) $group['bot_pv']++;
+                else { $group['visitor_pv']++; $group['visitor_uv'][(string) $row['vs_VisitorHash']] = true; $group['visitor_ip'][(string) $row['vs_IP']] = true; }
+                if ((int) $row['vs_StatusCode'] >= 400 && (int) $row['vs_StatusCode'] < 500) $group['error_4xx']++;
+                if ((int) $row['vs_StatusCode'] >= 500 && (int) $row['vs_StatusCode'] < 600) $group['error_5xx']++;
+                $group['duration_sum'] += (int) $row['vs_DurationMs']; $group['duration_count']++; $group['last_visit'] = max($group['last_visit'], (int) $row['vs_VisitedAt']);
+                unset($group);
+            }
+        }
+    } while (count($rows) === $batchSize);
+    $hourTable = xz_visit_stats_rollup_hourly_table();
+    $zbp->db->Query("DELETE FROM `{$hourTable}` WHERE rh_Hour='" . xz_visit_stats_rollup_escape($hour) . "'");
+    foreach ($groups as $group) {
+        $values = array(
+            xz_visit_stats_rollup_escape($hour), xz_visit_stats_rollup_escape($group['dimension']), xz_visit_stats_rollup_escape($group['key_hash']), xz_visit_stats_rollup_escape(substr($group['key'], 0, 512)),
+            (int) $group['visitor_pv'], count($group['visitor_uv']), count($group['visitor_ip']), (int) $group['bot_pv'], (int) $group['error_4xx'], (int) $group['error_5xx'], (int) $group['duration_sum'], (int) $group['duration_count'], (int) $group['last_visit'], time()
+        );
+        $zbp->db->Query('INSERT INTO `' . $hourTable . '` (rh_Hour,rh_Dimension,rh_KeyHash,rh_Key,rh_VisitorPV,rh_VisitorUV,rh_VisitorIP,rh_BotPV,rh_Error4xx,rh_Error5xx,rh_DurationSum,rh_DurationCount,rh_LastVisitAt,rh_UpdatedAt) VALUES (\'' . implode("','", $values) . '\')');
+    }
+    return count($groups);
 }
