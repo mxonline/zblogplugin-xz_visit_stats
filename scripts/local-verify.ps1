@@ -45,7 +45,7 @@ function Invoke-CheckedCommand {
         $code = $LASTEXITCODE
         if ($null -eq $code) { $code = 0 }
         if ($code -ne 0) {
-            throw "Command failed with exit code $code: $FilePath $($Arguments -join ' ')"
+            throw "Command failed with exit code ${code}: $FilePath $($Arguments -join ' ')"
         }
     }
     finally {
