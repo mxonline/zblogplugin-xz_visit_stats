@@ -14,6 +14,8 @@ require_once __DIR__ . '/inc/settings.php';
 require_once __DIR__ . '/inc/stats.php';
 require_once __DIR__ . '/inc/maintenance.php';
 require_once __DIR__ . '/inc/rollup.php';
+require_once __DIR__ . '/inc/query.php';
+require_once __DIR__ . '/inc/query_v2.php';
 require_once __DIR__ . '/inc/collector.php';
 require_once __DIR__ . '/inc/upgrade/runner.php';
 
