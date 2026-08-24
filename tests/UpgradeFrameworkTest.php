@@ -22,7 +22,13 @@ class XzVisitStatsTestDb
     {
         $this->queries[] = $sql;
         if (stripos($sql, 'SHOW COLUMNS') === 0) {
-            return array_map(function ($column) { return array('Field' => $column); }, $this->columns);
+            $columns = $this->columns;
+            if (strpos($sql, 'rollup_daily') !== false) $columns = array('rd_Day', 'rd_Dimension', 'rd_KeyHash', 'rd_VisitorPV');
+            if (strpos($sql, 'rollup_state') !== false) $columns = array('rs_Name', 'rs_Status', 'rs_Timezone', 'rs_BackfillCursor');
+            if (strpos($sql, 'rollup_hourly') !== false) $columns = array('rh_Hour', 'rh_Dimension', 'rh_KeyHash', 'rh_VisitorPV');
+            if (strpos($sql, 'saved_filters') !== false) $columns = array('sf_UserID', 'sf_Name', 'sf_Filters');
+            $types = array('rd_Day' => 'char(10)', 'rd_Dimension' => 'varchar(24)', 'rd_KeyHash' => 'char(64)', 'rd_VisitorPV' => 'bigint', 'rs_Name' => 'varchar(64)', 'rs_Status' => 'varchar(24)', 'rs_Timezone' => 'varchar(128)', 'rs_BackfillCursor' => 'bigint', 'rh_Hour' => 'char(16)', 'rh_Dimension' => 'varchar(24)', 'rh_KeyHash' => 'char(64)', 'rh_VisitorPV' => 'bigint', 'sf_UserID' => 'bigint', 'sf_Name' => 'varchar(128)', 'sf_Filters' => 'text');
+            return array_map(function ($column) use ($types) { return array('Field' => $column, 'Type' => isset($types[$column]) ? $types[$column] : 'varchar(255)'); }, $columns);
         }
         if (stripos($sql, 'SHOW INDEX') === 0) {
             return array();
