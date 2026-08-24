@@ -4,6 +4,7 @@ if (!defined('ZBP_PATH')) {
     exit('Access denied');
 }
 
+
 function xz_visit_stats_collect()
 {
     global $zbp;
@@ -26,29 +27,31 @@ function xz_visit_stats_collect()
     }
     $ua = xz_visit_stats_parse_ua($userAgent, $bot['is_bot']);
     $recordedIp = $settings['ip_mode'] === 'masked' ? xz_visit_stats_settings_mask_ip($ip) : $ip;
+    $path = xz_visit_stats_normalize_path(xz_visit_stats_request_path());
 
     $data = array(
-        'vs_IP'          => $recordedIp,
+        'vs_IP' => $recordedIp,
         'vs_VisitorHash' => xz_visit_stats_visitor_hash($ip, $userAgent),
-        'vs_Url'         => xz_visit_stats_limit(xz_visit_stats_request_url(), 16384),
-        'vs_Path'        => xz_visit_stats_request_path(),
-        'vs_Referer'     => $settings['record_referer'] === 1 ? xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384) : '',
-        'vs_UserAgent'   => $settings['record_user_agent'] === 1 ? $userAgent : '',
-        'vs_UaType'      => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['type'], 32) : '',
-        'vs_Browser'     => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['browser'], 64) : '',
-        'vs_Os'          => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['os'], 64) : '',
-        'vs_Device'      => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['device'], 32) : '',
-        'vs_IsBot'       => $bot['is_bot'] ? 1 : 0,
-        'vs_BotName'     => xz_visit_stats_limit($bot['name'], 64),
-        'vs_StatusCode'  => xz_visit_stats_response_status(),
-        'vs_DurationMs'  => xz_visit_stats_duration_ms(),
-        'vs_VisitedAt'   => time(),
+        'vs_Url' => xz_visit_stats_limit(xz_visit_stats_request_url(), 16384),
+        'vs_Path' => $path,
+        'vs_PathKey' => xz_visit_stats_path_key($path),
+        'vs_Referer' => $settings['record_referer'] === 1 ? xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_REFERER'), 16384) : '',
+        'vs_UserAgent' => $settings['record_user_agent'] === 1 ? $userAgent : '',
+        'vs_UaType' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['type'], 32) : '',
+        'vs_Browser' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['browser'], 64) : '',
+        'vs_Os' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['os'], 64) : '',
+        'vs_Device' => $settings['record_user_agent'] === 1 ? xz_visit_stats_limit($ua['device'], 32) : '',
+        'vs_IsBot' => $bot['is_bot'] ? 1 : 0,
+        'vs_BotName' => xz_visit_stats_limit($bot['name'], 64),
+        'vs_StatusCode' => xz_visit_stats_response_status(),
+        'vs_DurationMs' => xz_visit_stats_duration_ms(),
+        'vs_VisitedAt' => time(),
     );
 
     try {
         $sql = $zbp->db->sql->Insert($GLOBALS['table']['xz_visit_stats_log'], $data);
         $zbp->db->Query($sql);
+
     } catch (Exception $exception) {
-        // Statistics must never interrupt the frontend response.
     }
 }

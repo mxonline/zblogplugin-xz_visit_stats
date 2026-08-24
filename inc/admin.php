@@ -37,12 +37,10 @@ function xz_visit_stats_admin_submenu($view)
     $items = array(
         'overview' => '统计概览',
         'records' => '访问记录',
-        'spider' => '蜘蛛分析',
-        'seo' => 'SEO 报告',
+        'pages' => '页面分析',
         'source' => '来源分析',
-        'ip' => 'IP 分析',
-        'realtime' => '实时访问',
-        'maintenance' => '数据维护',
+        'spider' => '蜘蛛分析',
+        'errors' => '错误分析',
         'settings' => '设置',
     );
     foreach ($items as $key => $label) {

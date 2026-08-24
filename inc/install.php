@@ -12,6 +12,7 @@ $GLOBALS['datainfo']['xz_visit_stats_log'] = array(
     'VisitorHash' => array('vs_VisitorHash', 'char', 64, ''),
     'Url'         => array('vs_Url', 'string', 'text', ''),
     'Path'        => array('vs_Path', 'string', 2048, ''),
+    'PathKey'     => array('vs_PathKey', 'char', 64, ''),
     'Referer'     => array('vs_Referer', 'string', 'text', ''),
     'UserAgent'   => array('vs_UserAgent', 'string', 'text', ''),
     'UaType'      => array('vs_UaType', 'string', 32, ''),
