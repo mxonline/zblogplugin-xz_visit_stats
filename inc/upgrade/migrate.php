@@ -274,12 +274,38 @@ function xz_visit_stats_upgrade_create_saved_filters()
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4");
 }
 
+function xz_visit_stats_upgrade_create_rum()
+{
+    global $zbp;
+
+    $tableName = xz_visit_stats_rum_table();
+    if ($zbp->db->ExistTable($tableName)) {
+        xz_visit_stats_migration_assert_columns($tableName, array(
+            'rum_Path' => 'varchar(2048)', 'rum_PathKey' => 'char(64)',
+            'rum_LCP' => 'decimal', 'rum_INP' => 'decimal', 'rum_CLS' => 'decimal',
+            'rum_TTFB' => 'decimal', 'rum_FCP' => 'decimal', 'rum_VisitedAt' => 'bigint',
+        ));
+        return;
+    }
+    $table = xz_visit_stats_upgrade_quote_table($tableName);
+    $zbp->db->Query("CREATE TABLE {$table} (
+        rum_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+        rum_VisitorHash CHAR(64) NOT NULL DEFAULT '', rum_Path VARCHAR(2048) NOT NULL DEFAULT '/', rum_PathKey CHAR(64) NOT NULL DEFAULT '',
+        rum_Browser VARCHAR(64) NOT NULL DEFAULT '', rum_Os VARCHAR(64) NOT NULL DEFAULT '', rum_Device VARCHAR(32) NOT NULL DEFAULT '',
+        rum_Language VARCHAR(32) NOT NULL DEFAULT '', rum_Screen VARCHAR(32) NOT NULL DEFAULT '', rum_Viewport VARCHAR(32) NOT NULL DEFAULT '',
+        rum_LCP DECIMAL(10,2) NOT NULL DEFAULT 0, rum_INP DECIMAL(10,2) NOT NULL DEFAULT 0, rum_CLS DECIMAL(10,4) NOT NULL DEFAULT 0,
+        rum_TTFB DECIMAL(10,2) NOT NULL DEFAULT 0, rum_FCP DECIMAL(10,2) NOT NULL DEFAULT 0, rum_VisitedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        PRIMARY KEY (rum_ID), KEY xzvs_rum_time (rum_VisitedAt), KEY xzvs_rum_path_time (rum_PathKey,rum_VisitedAt)
+    ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4");
+}
+
 function xz_visit_stats_upgrade_migrate_to_30()
 {
     xz_visit_stats_upgrade_migrate_to_20();
     xz_visit_stats_upgrade_add_v30_columns();
     xz_visit_stats_upgrade_create_hourly();
     xz_visit_stats_upgrade_create_saved_filters();
+    xz_visit_stats_upgrade_create_rum();
     return true;
 }
 
@@ -290,6 +316,7 @@ function xz_visit_stats_upgrade_v30_schema_compatible()
         xz_visit_stats_migration_assert_columns(xz_visit_stats_rollup_table(), array('rd_Day' => 'char(10)', 'rd_Dimension' => 'varchar(24)'));
         xz_visit_stats_migration_assert_columns(xz_visit_stats_rollup_hourly_table(), array('rh_Hour' => 'char(16)', 'rh_Dimension' => 'varchar(24)'));
         xz_visit_stats_migration_assert_columns(xz_visit_stats_saved_filters_table(), array('sf_UserID' => 'bigint', 'sf_Filters' => 'text'));
+        xz_visit_stats_migration_assert_columns(xz_visit_stats_rum_table(), array('rum_Path' => 'varchar(2048)', 'rum_PathKey' => 'char(64)', 'rum_LCP' => 'decimal', 'rum_INP' => 'decimal', 'rum_CLS' => 'decimal', 'rum_TTFB' => 'decimal', 'rum_FCP' => 'decimal', 'rum_VisitedAt' => 'bigint'));
         xz_visit_stats_migration_assert_index(xz_visit_stats_physical_table(), 'xzvs_source_time', array('vs_SourceType', 'vs_VisitedAt'));
         xz_visit_stats_migration_assert_index(xz_visit_stats_physical_table(), 'xzvs_domain_time', array('vs_SourceDomain(191)', 'vs_VisitedAt'));
         xz_visit_stats_migration_assert_index(xz_visit_stats_physical_table(), 'xzvs_campaign_time', array('vs_UtmCampaign(191)', 'vs_VisitedAt'));

@@ -58,6 +58,13 @@ function xz_visit_stats_saved_filters_table()
     return $zbp->db->dbpre . 'xz_visit_stats_saved_filters';
 }
 
+function xz_visit_stats_rum_table()
+{
+    global $zbp;
+
+    return $zbp->db->dbpre . 'xz_visit_stats_rum';
+}
+
 function xz_visit_stats_rollup_timezone()
 {
     global $zbp;

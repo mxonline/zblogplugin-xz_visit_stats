@@ -26,6 +26,7 @@ function xz_visit_stats_settings_defaults()
         'geo_db_path' => '',
         'realtime_window' => 5,
         'enhanced_collect' => 0,
+        'beacon_enabled' => 0,
     );
 }
 
@@ -56,7 +57,7 @@ function xz_visit_stats_settings_values()
     foreach ($settings as $key => $default) {
         $settings[$key] = $config->$key;
     }
-    foreach (array('enabled', 'exclude_admin', 'record_bots', 'record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'record_referer', 'record_user_agent', 'auto_cleanup') as $key) {
+    foreach (array('enabled', 'exclude_admin', 'record_bots', 'record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'record_referer', 'record_user_agent', 'auto_cleanup', 'beacon_enabled') as $key) {
         $settings[$key] = (int) $settings[$key] === 1 ? 1 : 0;
     }
     $settings['retention_days'] = in_array((int) $settings['retention_days'], array(30, 90, 180, 365), true) ? (int) $settings['retention_days'] : 180;
@@ -118,7 +119,7 @@ function xz_visit_stats_settings_save($source)
         return array('type' => 'error', 'message' => '安全校验失败，请刷新页面后重试。');
     }
     $settings = xz_visit_stats_settings_defaults();
-    foreach (array('enabled', 'exclude_admin', 'record_bots', 'record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'record_referer', 'record_user_agent', 'auto_cleanup') as $key) {
+    foreach (array('enabled', 'exclude_admin', 'record_bots', 'record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'record_referer', 'record_user_agent', 'auto_cleanup', 'beacon_enabled') as $key) {
         $settings[$key] = xz_visit_stats_query_value($source, $key, '') === '1' ? 1 : 0;
     }
     $days = (int) xz_visit_stats_query_value($source, 'retention_days', 180);

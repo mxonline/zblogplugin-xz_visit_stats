@@ -27,7 +27,8 @@ class XzVisitStatsTestDb
             if (strpos($sql, 'rollup_state') !== false) $columns = array('rs_Name', 'rs_Status', 'rs_Timezone', 'rs_BackfillCursor');
             if (strpos($sql, 'rollup_hourly') !== false) $columns = array('rh_Hour', 'rh_Dimension', 'rh_KeyHash', 'rh_VisitorPV');
             if (strpos($sql, 'saved_filters') !== false) $columns = array('sf_UserID', 'sf_Name', 'sf_Filters');
-            $types = array('rd_Day' => 'char(10)', 'rd_Dimension' => 'varchar(24)', 'rd_KeyHash' => 'char(64)', 'rd_VisitorPV' => 'bigint', 'rs_Name' => 'varchar(64)', 'rs_Status' => 'varchar(24)', 'rs_Timezone' => 'varchar(128)', 'rs_BackfillCursor' => 'bigint', 'rh_Hour' => 'char(16)', 'rh_Dimension' => 'varchar(24)', 'rh_KeyHash' => 'char(64)', 'rh_VisitorPV' => 'bigint', 'sf_UserID' => 'bigint', 'sf_Name' => 'varchar(128)', 'sf_Filters' => 'text');
+            if (strpos($sql, 'xz_visit_stats_rum') !== false) $columns = array('rum_Path', 'rum_PathKey', 'rum_LCP', 'rum_INP', 'rum_CLS', 'rum_TTFB', 'rum_FCP', 'rum_VisitedAt');
+            $types = array('rd_Day' => 'char(10)', 'rd_Dimension' => 'varchar(24)', 'rd_KeyHash' => 'char(64)', 'rd_VisitorPV' => 'bigint', 'rs_Name' => 'varchar(64)', 'rs_Status' => 'varchar(24)', 'rs_Timezone' => 'varchar(128)', 'rs_BackfillCursor' => 'bigint', 'rh_Hour' => 'char(16)', 'rh_Dimension' => 'varchar(24)', 'rh_KeyHash' => 'char(64)', 'rh_VisitorPV' => 'bigint', 'sf_UserID' => 'bigint', 'sf_Name' => 'varchar(128)', 'sf_Filters' => 'text', 'rum_Path' => 'varchar(2048)', 'rum_PathKey' => 'char(64)', 'rum_LCP' => 'decimal(10,2)', 'rum_INP' => 'decimal(10,2)', 'rum_CLS' => 'decimal(10,4)', 'rum_TTFB' => 'decimal(10,2)', 'rum_FCP' => 'decimal(10,2)', 'rum_VisitedAt' => 'bigint');
             return array_map(function ($column) use ($types) { return array('Field' => $column, 'Type' => isset($types[$column]) ? $types[$column] : 'varchar(255)'); }, $columns);
         }
         if (stripos($sql, 'SHOW INDEX') === 0) {
@@ -45,6 +46,9 @@ class XzVisitStatsTestDb
             }
             if (strpos($sql, 'xz_visit_stats_saved_filters') !== false) {
                 $this->tables[] = 'zbp_xz_visit_stats_saved_filters';
+            }
+            if (strpos($sql, 'xz_visit_stats_rum') !== false) {
+                $this->tables[] = 'zbp_xz_visit_stats_rum';
             }
             return array();
         }
@@ -98,6 +102,7 @@ class UpgradeFrameworkTest extends TestCase
         $this->assertTrue(in_array('zbp_xz_visit_stats_rollup_state', $zbp->db->tables, true));
         $this->assertTrue(in_array('zbp_xz_visit_stats_rollup_hourly', $zbp->db->tables, true));
         $this->assertTrue(in_array('zbp_xz_visit_stats_saved_filters', $zbp->db->tables, true));
+        $this->assertTrue(in_array('zbp_xz_visit_stats_rum', $zbp->db->tables, true));
         $this->assertContains('vs_PathKey', $zbp->db->columns);
 
         $queryCount = count($zbp->db->queries);

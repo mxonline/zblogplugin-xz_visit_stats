@@ -29,6 +29,14 @@ function ActivePlugin_xz_visit_stats()
     Add_Filter_Plugin('Filter_Plugin_Zbp_Terminate', 'xz_visit_stats_collect');
     Add_Filter_Plugin('Filter_Plugin_Zbp_Terminate', 'xz_visit_stats_maintenance_auto_cleanup');
     Add_Filter_Plugin('Filter_Plugin_Admin_LeftMenu', 'xz_visit_stats_admin_menu');
+    Add_Filter_Plugin('Filter_Plugin_Other_Header', 'xz_visit_stats_rum_head');
+}
+
+function xz_visit_stats_rum_head()
+{
+    $settings = xz_visit_stats_settings_values();
+    if ((int) $settings['beacon_enabled'] !== 1 || !isset($GLOBALS['zbp']->host)) return;
+    echo '<script src="' . htmlspecialchars($GLOBALS['zbp']->host . 'zb_users/plugin/xz_visit_stats/assets/rum.js', ENT_QUOTES, 'UTF-8') . '" defer></script>';
 }
 
 function xz_visit_stats_admin_menu(&$menus)

@@ -35,7 +35,7 @@ function xz_visit_stats_upgrade_schema_ready()
 {
     global $zbp;
 
-    if (!$zbp->db->ExistTable(xz_visit_stats_rollup_table()) || !$zbp->db->ExistTable(xz_visit_stats_rollup_state_table()) || !$zbp->db->ExistTable(xz_visit_stats_rollup_hourly_table()) || !$zbp->db->ExistTable(xz_visit_stats_saved_filters_table())) {
+    if (!$zbp->db->ExistTable(xz_visit_stats_rollup_table()) || !$zbp->db->ExistTable(xz_visit_stats_rollup_state_table()) || !$zbp->db->ExistTable(xz_visit_stats_rollup_hourly_table()) || !$zbp->db->ExistTable(xz_visit_stats_saved_filters_table()) || !$zbp->db->ExistTable(xz_visit_stats_rum_table())) {
         return false;
     }
 

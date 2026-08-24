@@ -81,6 +81,18 @@ function xz_visit_stats_v3_hour_rows($filters, $limit = 48)
     return (array) $zbp->db->Query($sql);
 }
 
+function xz_visit_stats_v3_rum_summary($filters, $limit = 20)
+{
+    global $zbp;
+    $table = xz_visit_stats_rum_table();
+    if (!$zbp->db->ExistTable($table)) return array();
+    $range = xz_visit_stats_v2_range($filters);
+    $limit = max(1, min(100, (int) $limit));
+    $where = 'rum_VisitedAt>=' . (int) $range['start'] . ' AND rum_VisitedAt<' . (int) $range['end'];
+    $sql = 'SELECT COUNT(*) AS samples, rum_PathKey AS path_key, MAX(rum_Path) AS path, AVG(NULLIF(rum_LCP,0)) AS lcp, AVG(NULLIF(rum_INP,0)) AS inp, AVG(NULLIF(rum_CLS,0)) AS cls, AVG(NULLIF(rum_TTFB,0)) AS ttfb, AVG(NULLIF(rum_FCP,0)) AS fcp FROM `' . $table . '` WHERE ' . $where . ' GROUP BY rum_PathKey ORDER BY samples DESC LIMIT ' . $limit;
+    return (array) $zbp->db->Query($sql);
+}
+
 function xz_visit_stats_v3_daily_trend($filters)
 {
     global $zbp;
