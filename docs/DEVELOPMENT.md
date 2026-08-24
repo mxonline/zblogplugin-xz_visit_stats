@@ -1,136 +1,160 @@
 # xz_visit_stats 开发指南
 
-## 项目定位
+## 开发方式
 
-`xz_visit_stats` 是 Z-BlogPHP 的本地访问统计插件。它在前台请求结束时记录有效页面访问，并在后台提供访问记录、统计概览、蜘蛛分析、SEO 报告、来源分析以及 IP 分析与基础异常检测。
+`xz_visit_stats` 的主开发方式调整为：**直接在能够访问真实 Git 工作树和终端的 Codex 工作区中完成开发与本机验证**。
 
-当前开发版本为 v1.3.0。插件的数据源为 `zbp_xz_visit_stats_log`（实际表前缀由 Z-BlogPHP 数据库配置决定）。
-
-## v1.3.0 第一批改动
-
-- 五个分析页面统一使用紧凑的基础筛选 + 高级筛选布局，高级条件支持展开和收起。
-- 修复隐私设置 radio 回显使用 `selected` 而非 `checked` 的问题；设置保存、读取和 `ip_mode` 采集链路保持兼容。
-- 来源 URL/Referer 明细增加截断展示与悬停/聚焦查看完整内容，保留 HTML 转义并避免超长 URL 撑开表格。
-- 本批改动不修改访问日志数据库结构、既有 GET 参数、表单名称和公开函数。
-- 发布前状态：`git diff --check`、JavaScript 语法检查和变更 PHP 文件语法检查已执行；浏览器和真实数据库验证待人工/可用环境确认。
-
-## v1.2.0 开发范围
-
-- 设置中心使用插件配置保存采集、隐私、日志保留和自动清理选项，不新增日志字段。
-- 来源分析复用 Referer、IP、页面地址和访问时间字段，提供 Top100 排行与有界明细查询。
-- SEO 报告复用蜘蛛、状态码和访问时间字段，提供抓取状态、页面排行和抓取效率统计。
-
-## 开发原则
-
-- 保持 Z-BlogPHP 插件边界：不修改 `zb_system`，不修改其他插件。
-- 采集、查询、后台展示分层组织；SQL 不写入后台 HTML 模板。
-- 采集范围仅限有效前台页面请求。后台、安装路径、插件后台路径和常见静态资源不计入访问日志。
-- 后台分析统一沿用 `inc/stats.php` 的时间范围语义。
-- 访问日志是长期增长数据。列表、排行和详情必须使用有界查询与分页，不能一次读取整张日志表。
-- SEO 来源域名、来源链接、目标页面和来路链接明细固定使用 Top100 有界查询；来源数据只读取现有 Referer、IP、页面地址和访问时间字段。
-- 基础风控只负责识别和展示，不执行自动封禁、拉黑或远程处置。
-- 图表和后台资源保存在插件目录，不依赖第三方公网 CDN。
-
-## 代码结构
+不再把“ChatGPT → 本地 Runner → Codex”作为主链路。正常开发时，Codex 直接打开实际插件工作区，读取 `AGENTS.md`、当前分支、真实源码和任务文档，然后在同一个环境中完成代码修改、测试、实机验证、修复、Git 提交与后续 CI。
 
 ```text
-xz_visit_stats/
-├─ include.php                 插件注册、启用、安装和卸载入口
-├─ main.php                    后台单入口与各视图 HTML
-├─ plugin.xml                  Z-BlogPHP 插件元数据
-├─ assets/
-│  ├─ admin.css                后台页面样式与响应式规则
-│  ├─ admin.js                 访问记录详情展开行为
-│  ├─ filter.js                访问记录高级筛选展开行为
-│  ├─ overview.js              统计概览本地图表
-│  ├─ spider.js                蜘蛛分析本地图表
-│  ├─ source.js                来源分析本地图表
-│  ├─ realtime.js              实时访问列表 AJAX 刷新
-│  └─ seo.js                   SEO 报告本地图表
-└─ inc/
-   ├─ settings.php             设置项默认值、读取、保存与隐私处理
-   ├─ helpers.php              请求、IP、URL、静态资源、哈希和响应信息工具
-   ├─ collector.php            前台访问采集与日志写入
-   ├─ bot.php                  搜索引擎蜘蛛 UA 识别
-   ├─ ua.php                   UA、浏览器、系统和设备解析
-   ├─ install.php              数据表、字段升级与索引维护
-   ├─ query.php                访问记录筛选、分页和查询
-   ├─ admin.php                后台菜单、转义、链接与显示辅助函数
-   ├─ stats.php                概览统计、时间范围和统计数据源接口
-   ├─ spider_stats.php         蜘蛛分析与规则型 SEO 报告
-   ├─ source_stats.php         来源分类、来源排行与趋势
-   ├─ ip_stats.php             IP 排行、详情和基础异常检测
-   ├─ maintenance.php          日志概览、保留期配置与手动清理
-   ├─ realtime.php             最近访问的有界查询和 JSON 响应
-   └─ seo_report.php           SEO 蜘蛛报告统计、排行和异常分析
+需求 / PRD
+→ Codex 打开真实工作区
+→ 读取 AGENTS.md 与当前代码
+→ 修改插件
+→ 快速自动测试
+→ 必要时运行本机 Z-Blog 实机验证
+→ 失败则读取真实错误并修复
+→ Git diff / commit / push
+→ GitHub CI
+→ 发布文档与 Release gate
 ```
 
-`include.php` 注册 `Filter_Plugin_Zbp_Terminate`，由 `xz_visit_stats_collect()` 在请求结束阶段采集；`main.php` 以 `view` 参数路由后台页面。当前视图为 `overview`、`records`、`spider`、`seo`、`source`、`ip`、`maintenance`、`realtime` 与 `settings`。
+## 项目定位
 
-## 数据与索引
+`xz_visit_stats` 是 Z-BlogPHP 访问统计插件，负责前台访问采集和后台统计分析。功能包括访问记录、PV/UV/IP 统计、蜘蛛识别与分析、来源/Referer 分析、SEO 报告、IP 分析、实时访问和日志维护等。
 
-日志字段以 `vs_` 为前缀，包括：`vs_ID`、`vs_IP`、`vs_VisitorHash`、`vs_Url`、`vs_Path`、`vs_Referer`、`vs_UserAgent`、UA 分类字段、蜘蛛字段、状态码、响应耗时和 Unix 时间戳。
+版本、分支和正式发布状态必须以 `plugin.xml`、`docs/VERSION.md`、Git 分支/Tag/Release 的真实状态为准，不在本页写死一个长期会过期的“当前版本”。
 
-关键字段类型：
+## 本机开发环境
 
-- `vs_ID`：`BIGINT UNSIGNED AUTO_INCREMENT`
-- `vs_VisitedAt`：`BIGINT UNSIGNED` Unix 时间戳
-- `vs_IP`：最长 45 字符，覆盖 IPv4 与 IPv6
-- `vs_VisitorHash`：64 字符 SHA-256 HMAC 输出
+当前 Windows 测试环境的典型配置：
 
-安装逻辑维护以下索引：`vs_VisitedAt`、`vs_VisitorHash + vs_VisitedAt`、`vs_IsBot + vs_VisitedAt`、`vs_IP + vs_VisitedAt`、`vs_StatusCode + vs_VisitedAt`。对 URL、Referer、User-Agent 等文本字段不建立大文本索引。
+```text
+Z-Blog 根目录：D:\wwwroot\xinzhao_net
+插件目录：      D:\wwwroot\xinzhao_net\zb_users\plugin\xz_visit_stats
+本地站点：      http://127.0.0.1
+PHP CLI：       D:\BtSoft\php\83\php.exe
+```
 
-## 安全规范
+这些值属于开发环境默认值，不应写入插件运行时代码。脚本需要允许通过参数覆盖。
 
-- 访问者哈希通过每站随机 `visitor_secret` 生成。密钥存放于插件配置，不得写入页面、日志、文档或版本库。
-- IP 筛选使用 `FILTER_VALIDATE_IP`，兼容 IPv4 和 IPv6。
-- 页码、每页数量、状态码、时间范围、蜘蛛名称和来源类型均须校验或白名单限制。
-- SQL 中的动态数值必须转换为整数；文本参数必须先校验并转义，禁止直接拼接未验证的请求参数。
-- 数据库中的 URL、Referer、User-Agent、IP、蜘蛛名称等均按不可信输入处理。输出到 HTML 前统一使用 `xz_visit_stats_admin_escape()`。
-- 后台入口保留 Z-BlogPHP 的 `root` 权限检查和插件启用检查。
-- 静态资源、后台请求和插件后台请求不应产生访问日志；页面型 404 仍应记录。
+Codex 工作区最好直接打开插件 Git 工作树，且该工作树位于真实 Z-Blog 测试站的 `zb_users/plugin/xz_visit_stats` 中。这样同一个 Codex 终端既能修改真实代码，也能立即访问本地 Z-Blog 做运行时验证。
 
-## 测试流程
+## 开始一轮开发前
 
-### 采集回归
+Codex 必须先确认：
 
-1. 访问首页与文章页，确认产生 200 日志。
-2. 访问一个页面型不存在路径，确认记录状态码 404。
-3. 访问 `favicon.ico`、CSS、JS、图片和其他静态资源，确认不写入日志。
-4. 使用 Googlebot、Baiduspider、bingbot 等 UA 请求，确认蜘蛛名称与 `vs_IsBot` 正确。
-5. 访问后台页面，确认后台请求不新增日志。
-6. 停用后访问前台，确认不采集；重新启用后确认恢复采集且不会重复建表报错。
+1. `git status` 与当前分支。
+2. `plugin.xml` 和 `docs/VERSION.md` 的版本状态。
+3. 当前任务/PRD 与受影响模块。
+4. 相关 Hook、数据表、配置项和升级逻辑。
+5. 本地 Z-Blog、PHP、数据库是否需要参与本轮验收。
 
-### 后台查询回归
+禁止在未读真实代码的情况下整体重写插件；禁止覆盖人工未提交修改。
 
-1. 对访问记录验证基础筛选、高级筛选展开、分页、详情和 HTML 转义。
-2. 验证 IP、HTTP 状态、状态码、URL 和 Referer 条件能保留至分页链接。
-3. 对 SEO 报告验证百度、Google、Bing、外部链接和直接访问的来源分类、来源排行与来路明细。
-4. 对概览、蜘蛛、来源和 IP 页面，将核心指标与同范围直接 SQL 聚合结果比较。
-5. 选择无日志的自定义时间段，确认指标为 0、列表为空、不出现 `NaN` 或 `Infinity`。
-6. 在 1100px、800px 与 680px 宽度下检查筛选、指标卡、图表和表格横向滚动。
-7. 对 IP 分析验证普通访问、高频访问、404 请求和扫描工具 UA 命中规则；异常结果只用于展示。
+## 任务分级
 
-### 语法检查
+### 快速通道
 
-在当前本地环境中使用：
+适用于文案、CSS、小范围显示问题或纯函数修复。通常执行：
+
+```text
+读取真实代码
+→ 最小修改
+→ PHP/JS 相关检查
+→ PHPUnit（相关时）
+→ git diff --check
+→ Commit / CI
+```
+
+如果该小修改实际依赖 Z-Blog 运行时行为，则仍需实机验证。
+
+### 标准功能开发
+
+适用于新增统计维度、后台交互、查询逻辑、蜘蛛/来源/IP 分析等：
+
+```text
+需求影响分析
+→ 实现
+→ 快速测试
+→ 本机 HTTP / Z-Blog 验证
+→ 数据库结果抽查
+→ 修复复测
+→ Commit / Push / CI
+```
+
+### 大版本、数据库与兼容性任务
+
+例如 v2.0、数据库架构调整、迁移、Hook 生命周期变化。必须进行真实本机 Z-Blog 验证，不能只凭 PHPUnit 或 GitHub Actions 宣布完成。
+
+## 代码边界
+
+- 不修改 `zb_system`。
+- 不修改无关插件。
+- 优先使用 Z-BlogPHP 原生 Hook/API/模板机制。
+- 请求采集属于高频路径，避免在每个前台请求中执行昂贵聚合、全表扫描或外部请求。
+- 长期增长日志的列表、排行和明细必须有边界、分页或 Top N 限制。
+- URL、Referer、UA、IP、蜘蛛名称等数据库内容均视为不可信输入，输出前必须转义。
+- 后台写操作必须保留权限和 CSRF 防护。
+- 数据库升级必须考虑旧记录和重复执行。
+
+## 主要代码区域
+
+```text
+include.php           插件注册、Hook、安装/卸载入口
+main.php              后台入口与页面路由
+plugin.xml            插件元数据
+inc/install.php       数据表、迁移、索引
+inc/collector.php     前台访问采集
+inc/query.php         访问记录查询
+inc/stats.php         通用统计与时间范围
+inc/bot.php           蜘蛛识别
+inc/source_stats.php  来源/Referer 分析
+inc/ip_stats.php      IP 分析
+inc/seo_report.php    SEO 报告
+assets/               后台 JS/CSS/图表资源
+tests/                PHPUnit 与轻量回归测试
+scripts/              本机自动验证、打包等开发脚本
+```
+
+实际文件结构发生变化时，以仓库为准。
+
+## 自动测试和实机测试
+
+统一执行规范见 `docs/TESTING.md`。
+
+Codex 应优先运行：
 
 ```powershell
-$phpExe = 'D:\BtSoft\php\83\php.exe'
-Get-ChildItem .\zb_users\plugin\xz_visit_stats -Recurse -Filter '*.php' |
-  ForEach-Object { & $phpExe -l $_.FullName }
+.\scripts\local-verify.ps1
 ```
 
-## 版本开发流程
+该脚本负责标准化的 PHP 语法、现有 PHPUnit 和本地 HTTP Smoke Test。涉及数据库、Hook、采集、升级等任务时，Codex还必须按 `docs/TESTING.md` 执行对应的实机验收，并记录实际结果。
 
-1. 阅读当前模块、路由、时间范围与查询接口，确认是否已有可复用能力。
-2. 在新模块的 `inc/` 文件中集中实现数据筛选、聚合、分页与阈值；`main.php` 负责路由和展示。
-3. 优先复用 `xz_visit_stats_stats_range()`、`xz_visit_stats_stats_table()`、后台转义和 URL 辅助函数。
-4. 在本地数据库以真实请求生成最小测试样本，并进行直接 SQL 抽查。
-5. 完成无数据、异常参数、响应式与既有模块回归。
-6. 运行全部 PHP 语法检查，核对 `zb_system` 和其他插件未被修改。
-7. 更新 `VERSION.md` 与 `CHANGELOG.md`，再提交人工验收。
+## 错误处理
 
-## 发布注意事项
+测试失败后不询问用户是否修复，普通可逆错误自动进入：
 
-`plugin.xml` 的版本字段已同步为 `1.1.0`。发布前仍应核对版本、说明、发布日期、兼容性声明和后台登录态人工验收；本轮产品化优化不修改运行时数据结构。
+```text
+读取真实错误
+→ 定位原因
+→ 修改
+→ 重跑相关测试
+```
+
+只有缺少关键凭据、无法访问必须的外部环境、涉及生产数据或不可逆操作时才暂停。
+
+## Git 与 CI
+
+- 一般功能使用任务分支开发。
+- 开发前检查工作树，不能覆盖未提交人工修改。
+- 通过本轮验收后检查最终 diff，再 Commit / Push。
+- CI 失败时读取真实日志，本机修复并复测，再 Push。
+- 普通开发无需用户逐项确认 Git 命令。
+- 合并、Tag 和 Release 只能在发布门槛满足后进行。
+
+## 发布
+
+正式发布执行 `docs/RELEASE.md`。
+
+README、CHANGELOG、VERSION 和 Release Notes 必须按真实代码和真实验证结果撰写。没跑过的实机测试不能写“已通过”，仍存在的限制不能为了发布文案好看而隐藏。
