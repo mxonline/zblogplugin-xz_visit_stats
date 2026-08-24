@@ -49,6 +49,26 @@
 
 文档必须采用真实维护者写法，只写真实完成和真实验证的内容。
 
+## Release Gate
+
+每一个“完整开发流程”都必须经过 Release Gate，即使当前只是中间 Phase、并不准备正式发布。
+
+Release Gate 状态只允许：
+
+```text
+PASS
+NOT READY
+BLOCKED
+```
+
+定义：
+
+- `PASS`：当前目标版本已满足正式发布前提，Release Dry Run 可以执行或已经通过。
+- `NOT READY`：当前是中间 Phase / 功能批次，尚未达到正式版本发布条件。必须写明原因，例如“v2.0 仅完成 Phase 1，后续 Phase 尚未完成”。
+- `BLOCKED`：本应进入发布，但存在实机未通过、CI失败、版本冲突、迁移风险、文档不一致、打包错误等阻断项。
+
+`NOT READY` 表示 Release 节点已真实检查，不表示可以省略 Release Gate。
+
 ## Release Dry Run
 
 Dry Run 不创建正式 Tag/Release，不覆盖线上文件，不修改生产数据库。
@@ -64,7 +84,8 @@ Dry Run 不创建正式 Tag/Release，不覆盖线上文件，不修改生产数
 7. 本地实机测试记录；
 8. GitHub CI；
 9. 发布包白名单/排除项；
-10. Tag 与 ZIP 名称。
+10. Tag 与 ZIP 名称；
+11. Notion 发布记录预检查。
 
 Dry Run 只能给出：
 
@@ -131,7 +152,8 @@ GitHub Release 使用 `RELEASE_NOTES` 的精简版，至少说明：
 → 本地/发布级测试
 → Commit / Push
 → CI 修复循环
-→ Dry Run
+→ Release Gate
+→ Dry Run（达到发布条件时）
 ```
 
 正式合并、Tag 和 GitHub Release 只有在所有发布门槛通过后才能执行。生产部署、Z-Blog 应用中心上传和生产数据库操作不属于默认自动发布范围。
@@ -147,3 +169,28 @@ GitHub Release 真正创建成功后再更新：
 - Notion 的版本、Commit、CI、发布日期和发布包记录。
 
 Release 未真实创建时，不得提前写成“已发布”。
+
+## 完整开发流程最终硬门禁
+
+完整流程收口必须输出：
+
+```text
+FULL DEVELOPMENT FLOW GATE
+
+[1] Notion Context       PASS / BLOCKED
+[2] Codex Development    PASS / BLOCKED
+[3] Local Runtime        PASS / NOT REQUIRED / BLOCKED
+[4] GitHub CI            PASS / NOT REQUIRED / BLOCKED
+[5] Release Gate         PASS / NOT READY / BLOCKED
+[6] Notion Writeback     PASS / BLOCKED
+
+FINAL: COMPLETE / INCOMPLETE
+RELEASE: RELEASED / NOT RELEASED
+```
+
+Release 规则：
+
+- Gate 5 为 `PASS` 只表示达到发布门槛；只有 Tag、GitHub Release、正式 ZIP 都真实创建后，`RELEASE` 才能写 `RELEASED`。
+- Gate 5 为 `NOT READY` 时，当前 Phase 可以在其它 Gate 全通过后标记 `FINAL: COMPLETE`，但 `RELEASE` 必须为 `NOT RELEASED`。
+- Gate 5 为 `BLOCKED` 时，`FINAL` 必须为 `INCOMPLETE`。
+- Notion Writeback 必须记录 Release Gate 的实际结果，不能在 CI 后直接结束流程。
