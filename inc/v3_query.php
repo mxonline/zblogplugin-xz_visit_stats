@@ -17,7 +17,12 @@ function xz_visit_stats_v3_filters($source = null)
 
 function xz_visit_stats_v3_where($filters, $range)
 {
-    $where = xz_visit_stats_v2_where($filters, $range);
+    $baseFilters = $filters;
+    $baseFilters['source_type'] = 'all';
+    $baseFilters['source_domain'] = '';
+    $where = xz_visit_stats_v2_where($baseFilters, $range);
+    if (isset($filters['source_type']) && $filters['source_type'] !== 'all') $where[] = 'vs_SourceType = ' . xz_visit_stats_v2_quote($filters['source_type']);
+    if (isset($filters['source_domain']) && $filters['source_domain'] !== '') $where[] = 'vs_SourceDomain = ' . xz_visit_stats_v2_quote($filters['source_domain']);
     foreach (array('ai_source' => 'vs_AiSource', 'campaign' => 'vs_UtmCampaign', 'browser' => 'vs_Browser', 'os' => 'vs_Os', 'device' => 'vs_Device') as $key => $column) {
         if (isset($filters[$key]) && $filters[$key] !== '') {
             $where[] = $column . ' = ' . xz_visit_stats_v2_quote($filters[$key]);
@@ -89,8 +94,26 @@ function xz_visit_stats_v3_rum_summary($filters, $limit = 20)
     $range = xz_visit_stats_v2_range($filters);
     $limit = max(1, min(100, (int) $limit));
     $where = 'rum_VisitedAt>=' . (int) $range['start'] . ' AND rum_VisitedAt<' . (int) $range['end'];
-    $sql = 'SELECT COUNT(*) AS samples, rum_PathKey AS path_key, MAX(rum_Path) AS path, AVG(NULLIF(rum_LCP,0)) AS lcp, AVG(NULLIF(rum_INP,0)) AS inp, AVG(NULLIF(rum_CLS,0)) AS cls, AVG(NULLIF(rum_TTFB,0)) AS ttfb, AVG(NULLIF(rum_FCP,0)) AS fcp FROM `' . $table . '` WHERE ' . $where . ' GROUP BY rum_PathKey ORDER BY samples DESC LIMIT ' . $limit;
-    return (array) $zbp->db->Query($sql);
+    $rows = (array) $zbp->db->Query('SELECT COUNT(*) AS samples, rum_PathKey AS path_key, MAX(rum_Path) AS path, AVG(NULLIF(rum_LCP,0)) AS lcp, AVG(NULLIF(rum_INP,0)) AS inp, AVG(NULLIF(rum_CLS,0)) AS cls, AVG(NULLIF(rum_TTFB,0)) AS ttfb, AVG(NULLIF(rum_FCP,0)) AS fcp FROM `' . $table . '` WHERE ' . $where . ' GROUP BY rum_PathKey ORDER BY samples DESC LIMIT ' . $limit);
+    foreach ($rows as &$row) {
+        foreach (array('lcp', 'inp', 'cls', 'ttfb', 'fcp') as $metric) $row[$metric . '_p75'] = xz_visit_stats_v3_rum_percentile($table, $where, $metric, 0.75, isset($row['path_key']) ? $row['path_key'] : '');
+    }
+    unset($row);
+    return $rows;
+}
+
+function xz_visit_stats_v3_rum_percentile($table, $where, $metric, $quantile, $pathKey = '')
+{
+    global $zbp;
+    if (!in_array($metric, array('rum_LCP', 'rum_INP', 'rum_CLS', 'rum_TTFB', 'rum_FCP'), true)) return 0;
+    $scope = $where . ' AND ' . $metric . '>0';
+    if ($pathKey !== '') $scope .= ' AND rum_PathKey=' . xz_visit_stats_v2_quote($pathKey);
+    $countRows = (array) $zbp->db->Query('SELECT COUNT(*) AS n FROM `' . $table . '` WHERE ' . $scope);
+    $count = !empty($countRows) ? (int) $countRows[0]['n'] : 0;
+    if ($count <= 0) return 0;
+    $offset = max(0, (int) ceil($count * (float) $quantile) - 1);
+    $rows = (array) $zbp->db->Query('SELECT ' . $metric . ' AS value FROM `' . $table . '` WHERE ' . $scope . ' ORDER BY ' . $metric . ' ASC LIMIT ' . $offset . ',1');
+    return !empty($rows) ? (float) $rows[0]['value'] : 0;
 }
 
 function xz_visit_stats_v3_daily_trend($filters)

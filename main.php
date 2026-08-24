@@ -93,6 +93,13 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &
 
 $data = array();
 if (isset($_GET['export']) && $_GET['export'] === 'csv') {
+    $exportRange = xz_visit_stats_v2_range($filters);
+    if ($filters['range'] === 'all' || ($exportRange['end'] - $exportRange['start']) > 93 * 86400) {
+        http_response_code(400);
+        header('Content-Type: text/plain; charset=UTF-8');
+        echo 'CSV 导出时间范围不得超过 93 天。';
+        exit;
+    }
     $rows = xz_visit_stats_v3_export_rows($filters, isset($_GET['cursor']) ? $_GET['cursor'] : '', 5000);
     header('Content-Type: text/csv; charset=UTF-8');
     header('Content-Disposition: attachment; filename=xz_visit_stats_export.csv');
