@@ -129,9 +129,15 @@ function xz_visit_stats_rollup_dimension_key($dimension, $row)
         return xz_visit_stats_normalize_path(isset($row['vs_Path']) ? $row['vs_Path'] : '/');
     }
     if ($dimension === 'source_type') {
+        if (isset($row['vs_SourceType']) && trim((string) $row['vs_SourceType']) !== '') {
+            return trim((string) $row['vs_SourceType']);
+        }
         return xz_visit_stats_rollup_source_type(isset($row['vs_Referer']) ? $row['vs_Referer'] : '');
     }
     if ($dimension === 'source_domain') {
+        if (isset($row['vs_SourceDomain']) && trim((string) $row['vs_SourceDomain']) !== '') {
+            return strtolower(trim((string) $row['vs_SourceDomain']));
+        }
         $host = strtolower((string) parse_url(isset($row['vs_Referer']) ? $row['vs_Referer'] : '', PHP_URL_HOST));
         return $host !== '' ? substr($host, 0, 512) : '(direct)';
     }

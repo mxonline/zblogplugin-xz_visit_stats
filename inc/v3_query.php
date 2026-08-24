@@ -81,6 +81,35 @@ function xz_visit_stats_v3_hour_rows($filters, $limit = 48)
     return (array) $zbp->db->Query($sql);
 }
 
+function xz_visit_stats_v3_daily_trend($filters)
+{
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $zone = new DateTimeZone($range['timezone']);
+    $day = new DateTime('@' . $range['start']); $day->setTimezone($zone); $day->setTime(0, 0, 0);
+    $end = new DateTime('@' . $range['end']); $end->setTimezone($zone); $rows = array();
+    while ($day < $end) {
+        $next = clone $day; $next->modify('+1 day');
+        $dayFilters = $filters; $dayFilters['range'] = 'custom'; $dayFilters['start'] = $day->format('Y-m-d H:i'); $dayFilters['end'] = $next->format('Y-m-d H:i');
+        $summary = xz_visit_stats_v2_exact_summary($dayFilters, xz_visit_stats_v2_range($dayFilters));
+        $rows[] = array('label' => $day->format('Y-m-d'), 'pv' => (int) $summary['total_pv'], 'uv' => (int) $summary['visitor_uv'], 'ip' => (int) $summary['visitor_ip'], 'human_pv' => (int) $summary['visitor_pv'], 'bot_pv' => (int) $summary['bot_pv'], 'error_4xx' => (int) $summary['error_4xx'], 'error_5xx' => (int) $summary['error_5xx']);
+        $day = $next;
+    }
+    return $rows;
+}
+
+function xz_visit_stats_v3_comparison($filters)
+{
+    $range = xz_visit_stats_v2_range($filters);
+    $duration = max(1, $range['end'] - $range['start']);
+    $previous = $filters; $previous['range'] = 'custom';
+    $zone = new DateTimeZone($range['timezone']);
+    $start = new DateTime('@' . ($range['start'] - $duration)); $start->setTimezone($zone);
+    $end = new DateTime('@' . $range['start']); $end->setTimezone($zone);
+    $previous['start'] = $start->format('Y-m-d H:i'); $previous['end'] = $end->format('Y-m-d H:i');
+    return array('current' => xz_visit_stats_v2_exact_summary($filters, $range), 'previous' => xz_visit_stats_v2_exact_summary($previous, xz_visit_stats_v2_range($previous)));
+}
+
 function xz_visit_stats_v3_keyset_records($filters, $cursor = '', $limit = 50)
 {
     global $zbp;
