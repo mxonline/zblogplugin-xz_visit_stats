@@ -41,11 +41,6 @@ function xz_visit_stats_admin_submenu($view)
         'source' => '来源分析',
         'spider' => '蜘蛛分析',
         'errors' => '错误分析',
-        'realtime' => '实时分析',
-        'ip' => 'IP 分析',
-        'environment' => '访客环境',
-        'campaign' => 'Campaign / AI 来源',
-        'performance' => '性能分析',
         'settings' => '设置',
     );
     foreach ($items as $key => $label) {

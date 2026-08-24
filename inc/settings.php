@@ -21,11 +21,6 @@ function xz_visit_stats_settings_defaults()
         'ip_mode' => 'full',
         'write_mode' => 'realtime',
         'log_alert_count' => 100000,
-        'trusted_proxies' => '',
-        'real_ip_header' => 'X-Forwarded-For',
-        'geo_db_path' => '',
-        'realtime_window' => 5,
-        'enhanced_collect' => 0,
     );
 }
 
@@ -63,10 +58,6 @@ function xz_visit_stats_settings_values()
     $settings['ip_mode'] = $settings['ip_mode'] === 'masked' ? 'masked' : 'full';
     $settings['write_mode'] = $settings['write_mode'] === 'batch' ? 'batch' : 'realtime';
     $settings['log_alert_count'] = max(10000, min(10000000, (int) $settings['log_alert_count']));
-    $settings['trusted_proxies'] = xz_visit_stats_limit($settings['trusted_proxies'], 2048);
-    $settings['real_ip_header'] = xz_visit_stats_limit($settings['real_ip_header'], 64);
-    $settings['realtime_window'] = in_array((int) $settings['realtime_window'], array(5, 10, 15, 30), true) ? (int) $settings['realtime_window'] : 5;
-    $settings['enhanced_collect'] = (int) $settings['enhanced_collect'] === 1 ? 1 : 0;
 
     return $settings;
 }
@@ -128,11 +119,6 @@ function xz_visit_stats_settings_save($source)
     $settings['write_mode'] = 'realtime';
     $alert = (int) xz_visit_stats_query_value($source, 'log_alert_count', 100000);
     $settings['log_alert_count'] = max(10000, min(10000000, $alert));
-    $settings['trusted_proxies'] = xz_visit_stats_limit(xz_visit_stats_query_value($source, 'trusted_proxies', ''), 2048);
-    $settings['real_ip_header'] = xz_visit_stats_limit(xz_visit_stats_query_value($source, 'real_ip_header', 'X-Forwarded-For'), 64);
-    $window = (int) xz_visit_stats_query_value($source, 'realtime_window', 5);
-    $settings['realtime_window'] = in_array($window, array(5, 10, 15, 30), true) ? $window : 5;
-    $settings['enhanced_collect'] = xz_visit_stats_query_value($source, 'enhanced_collect', '') === '1' ? 1 : 0;
     $config = $zbp->Config('xz_visit_stats');
     foreach ($settings as $key => $value) {
         $config->$key = $value;

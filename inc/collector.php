@@ -28,9 +28,6 @@ function xz_visit_stats_collect()
     $ua = xz_visit_stats_parse_ua($userAgent, $bot['is_bot']);
     $recordedIp = $settings['ip_mode'] === 'masked' ? xz_visit_stats_settings_mask_ip($ip) : $ip;
     $path = xz_visit_stats_normalize_path(xz_visit_stats_request_path());
-    $source = xz_visit_stats_source_dimensions($settings['record_referer'] === 1 ? xz_visit_stats_server_value('HTTP_REFERER') : '');
-    $page = xz_visit_stats_page_context();
-    $geo = xz_visit_stats_geo_lookup($ip);
 
     $data = array(
         'vs_IP' => $recordedIp,
@@ -49,19 +46,6 @@ function xz_visit_stats_collect()
         'vs_StatusCode' => xz_visit_stats_response_status(),
         'vs_DurationMs' => xz_visit_stats_duration_ms(),
         'vs_VisitedAt' => time(),
-        'vs_SourceType' => $source['type'],
-        'vs_SourceDomain' => $source['domain'],
-        'vs_AiSource' => $source['ai'],
-        'vs_UtmSource' => $source['utm']['source'],
-        'vs_UtmMedium' => $source['utm']['medium'],
-        'vs_UtmCampaign' => $source['utm']['campaign'],
-        'vs_UtmContent' => $source['utm']['content'],
-        'vs_UtmTerm' => $source['utm']['term'],
-        'vs_PageTitle' => $page['title'],
-        'vs_PostID' => $page['post_id'],
-        'vs_AiCrawler' => xz_visit_stats_ai_crawler($userAgent),
-        'vs_GeoCountry' => $geo['country'],
-        'vs_GeoRegion' => $geo['region'],
     );
 
     try {

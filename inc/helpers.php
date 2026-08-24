@@ -25,11 +25,7 @@ function xz_visit_stats_limit($value, $length)
 
 function xz_visit_stats_client_ip()
 {
-    $remote = trim(xz_visit_stats_server_value('REMOTE_ADDR'));
-    $ip = $remote;
-    if (function_exists('xz_visit_stats_trusted_proxy_ip')) {
-        $ip = xz_visit_stats_trusted_proxy_ip($remote);
-    }
+    $ip = trim(xz_visit_stats_server_value('REMOTE_ADDR'));
     if ($ip !== '' && filter_var($ip, FILTER_VALIDATE_IP) !== false) {
         return xz_visit_stats_limit($ip, 45);
     }
