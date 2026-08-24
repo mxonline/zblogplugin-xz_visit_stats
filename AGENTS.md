@@ -17,6 +17,8 @@ User requirement
 → fixes failures and re-tests
 → Git commit / push / CI
 → release documentation and release gates
+→ Notion writeback
+→ mandatory six-gate completion report
 ```
 
 Routine development must not require the user to copy commands, edit task files, open a second Codex window, or confirm each normal code/test operation.
@@ -90,7 +92,9 @@ For every non-trivial task:
 7. Inspect the final diff for unrelated edits, generated junk and secrets.
 8. Update documentation/version metadata only when the task or release state requires it.
 9. Commit/push the development branch when the requested workflow includes Git delivery.
-10. Report only evidence-backed status.
+10. Evaluate the Release Gate even when the current phase is not ready to publish.
+11. Ensure the controller has written the real result back to Notion.
+12. Emit the mandatory six-gate completion report.
 
 ## When local Z-Blog runtime verification is mandatory
 
@@ -106,7 +110,7 @@ Runtime verification is a release blocker for changes involving any of the follo
 - performance-sensitive collector/statistics queries;
 - any behavior that CI unit tests cannot faithfully represent.
 
-A documentation-only change or a small isolated pure-function fix may skip full runtime verification when its acceptance criteria are fully covered by faster checks.
+A documentation-only change or a small isolated pure-function fix may skip full runtime verification when its acceptance criteria are fully covered by faster checks. In that case the Local Runtime gate must be reported as `NOT REQUIRED` with an explicit reason.
 
 ## Fast checks
 
@@ -144,6 +148,41 @@ For database assertions, compare important aggregate results against direct SQL 
 - CI failure is part of the normal repair loop: read the real logs, fix locally, re-test and push again.
 - Do not merge/tag/release until release gates pass.
 - Formal releases follow `docs/RELEASE.md` and the repository release-document rules.
+- An intermediate phase may report `Release Gate: NOT READY`; this means the gate was evaluated and the reason was recorded, not skipped.
+
+## Mandatory full-flow hard gates
+
+Whenever the task says to run the complete development flow, the final report must include exactly these six gates:
+
+```text
+FULL DEVELOPMENT FLOW GATE
+
+[1] Notion Context       PASS / BLOCKED
+    Evidence: ...
+[2] Codex Development    PASS / BLOCKED
+    Evidence: ...
+[3] Local Runtime        PASS / NOT REQUIRED / BLOCKED
+    Evidence: ...
+[4] GitHub CI            PASS / NOT REQUIRED / BLOCKED
+    Evidence: ...
+[5] Release Gate         PASS / NOT READY / BLOCKED
+    Evidence: ...
+[6] Notion Writeback     PASS / BLOCKED
+    Evidence: ...
+
+FINAL: COMPLETE / INCOMPLETE
+RELEASE: RELEASED / NOT RELEASED
+```
+
+Rules:
+
+- If any gate is `BLOCKED`, `FINAL` must be `INCOMPLETE`.
+- A `PASS` without evidence is invalid.
+- GitHub CI cannot substitute for mandatory local runtime verification.
+- Release Gate may be `NOT READY` for an intermediate phase, but it may never be omitted.
+- Notion Context and Notion Writeback are both mandatory gates for the complete flow.
+- Only a real Tag + GitHub Release + formal ZIP may produce `RELEASE: RELEASED`.
+- Do not use phrases equivalent to “complete development flow finished” before this gate block has been produced.
 
 ## Documentation style
 
@@ -158,6 +197,9 @@ Every completed task report must contain:
 - checks actually executed and their results;
 - local Z-Blog/runtime checks actually executed when required;
 - Git branch/commit/CI state when applicable;
-- remaining limitations or external blockers.
+- Release Gate result;
+- Notion context/writeback evidence for a complete-flow task;
+- remaining limitations or external blockers;
+- the mandatory six-gate block when complete flow was requested.
 
 Never replace missing execution evidence with planned commands or expected results.
