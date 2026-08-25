@@ -36,7 +36,7 @@ function xz_visit_stats_admin_submenu($view)
 {
     $groups = array(
         '概览' => array('overview' => '总览', 'realtime' => '实时分析'),
-        '流量分析' => array('records' => '访问记录', 'pages' => '页面分析', 'source' => '来源分析', 'campaign' => 'Campaign / AI 来源'),
+        '流量分析' => array('records' => '访问记录', 'pages' => '页面分析', 'source' => '来源分析', 'campaign' => '推广活动与 AI 来源'),
         '访客分析' => array('ip' => 'IP 分析', 'environment' => '访客环境'),
         '技术分析' => array('spider' => '蜘蛛分析', 'errors' => '错误分析', 'performance' => '性能分析'),
         '系统' => array('settings' => '设置与维护'),

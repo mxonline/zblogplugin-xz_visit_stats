@@ -1,5 +1,15 @@
 (function () {
   'use strict';
+  var labels = {
+    'Campaign / AI 来源': '推广活动与 AI 来源', 'direct': '直接访问', 'external': '外部网站', 'internal': '站内来源', 'search': '搜索引擎', 'social': '社交媒体',
+    'Path': '页面路径', 'Referer': '来源地址', 'Browser': '浏览器', 'Device': '设备', 'AI crawler': 'AI 爬虫', 'RUM 性能': '用户体验性能',
+    'DurationMs 分位数与慢请求': '服务器处理耗时分位数与慢请求', '真实用户体验 RUM': '真实用户体验（RUM）',
+    '本地 GeoIP 数据源不可用或暂无地域数据': '本地地域库不可用，暂不显示地域数据。'
+  };
+  function localize(node) {
+    if (node.nodeType === 3 && labels[node.nodeValue.trim()]) node.nodeValue = node.nodeValue.replace(node.nodeValue.trim(), labels[node.nodeValue.trim()]);
+  }
+  document.querySelectorAll('.xzvs-app *').forEach(function (element) { Array.prototype.forEach.call(element.childNodes, localize); });
   document.addEventListener('alpine:init', function () {
     Alpine.data('xzvsApp', function () {
       return { navOpen: false };
