@@ -63,7 +63,7 @@ if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' &
         // This T3 form intentionally exposes the common settings only. Preserve
         // legacy per-bot and cleanup flags that are not rendered in this view.
         $currentSettings = xz_visit_stats_settings_values();
-        $preserveKeys = isset($_POST['trusted_proxies']) ? array('enabled', 'exclude_admin', 'record_bots', 'record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'record_referer', 'record_user_agent', 'auto_cleanup', 'beacon_enabled', 'retention_days', 'ip_mode', 'log_alert_count') : array('record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'auto_cleanup', 'beacon_enabled');
+        $preserveKeys = isset($_POST['trusted_proxies']) ? array('enabled', 'exclude_admin', 'record_bots', 'record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'record_referer', 'record_user_agent', 'auto_cleanup', 'retention_days', 'ip_mode', 'log_alert_count') : array('record_baiduspider', 'record_googlebot', 'record_bingbot', 'record_other_bots', 'auto_cleanup', 'beacon_enabled');
         foreach ($preserveKeys as $preservedKey) {
             if (!array_key_exists($preservedKey, $_POST)) $_POST[$preservedKey] = (string) $currentSettings[$preservedKey];
         }
