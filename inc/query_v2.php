@@ -29,7 +29,7 @@ function xz_visit_stats_v2_filters($source = null)
         $statusCode = '';
     }
     $sourceType = xz_visit_stats_query_text($get('source_type', 'all'), 16);
-    if (!in_array($sourceType, array('all', 'direct', 'search', 'external', 'social', 'internal', 'other'), true)) {
+    if (!in_array($sourceType, array('all', 'direct', 'search', 'ai', 'external', 'social', 'internal', 'campaign', 'other'), true)) {
         $sourceType = 'all';
     }
     $sourceDomain = strtolower(xz_visit_stats_query_text($get('domain', $get('source_domain', '')), 253));
@@ -148,12 +148,18 @@ function xz_visit_stats_v2_source_case()
         : (is_object($zbp) && isset($zbp->host) ? (string) parse_url($zbp->host, PHP_URL_HOST) : 'localhost');
     $site = $site !== '' ? strtolower($site) : 'localhost';
 
-    return "CASE WHEN vs_Referer = '' THEN 'direct'"
+    $fallback = "CASE WHEN vs_Referer = '' THEN 'direct'"
         . " WHEN vs_Referer NOT REGEXP '^https?://' THEN 'other'"
         . " WHEN {$host} = " . xz_visit_stats_v2_quote($site) . " OR {$host} IN ('localhost','127.0.0.1') THEN 'internal'"
         . " WHEN {$host} REGEXP '(^|\\.)(google\\.|baidu\\.(com|cn)$|bing\\.com$|sogou\\.com$|so\\.com$|360\\.cn$)' THEN 'search'"
         . " WHEN {$host} REGEXP '(^|\\.)(weixin\\.qq\\.com$|wechat\\.com$|weibo\\.com$|qq\\.com$|douyin\\.com$|xiaohongshu\\.com$|zhihu\\.com$|bilibili\\.com$)' THEN 'social'"
         . " ELSE 'external' END";
+    return "CASE WHEN vs_SourceType <> '' THEN vs_SourceType ELSE ({$fallback}) END";
+}
+
+function xz_visit_stats_v2_source_domain_expr()
+{
+    return "COALESCE(NULLIF(vs_SourceDomain, ''), LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX(vs_Referer, '/', 3), '/', -1)))";
 }
 
 function xz_visit_stats_v2_where($filters, $range, $alias = '')
@@ -167,7 +173,7 @@ function xz_visit_stats_v2_where($filters, $range, $alias = '')
     if ($filters['bot_name'] !== '') { $where[] = $prefix . 'vs_BotName = ' . xz_visit_stats_v2_quote($filters['bot_name']); $where[] = $prefix . 'vs_IsBot = 1'; }
     if ($filters['path_key'] !== '') $where[] = $prefix . 'vs_PathKey = ' . xz_visit_stats_v2_quote($filters['path_key']);
     if ($filters['source_type'] !== 'all') $where[] = '(' . xz_visit_stats_v2_source_case() . ') = ' . xz_visit_stats_v2_quote($filters['source_type']);
-    if ($filters['source_domain'] !== '') $where[] = "LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX({$prefix}vs_Referer, '/', 3), '/', -1)) = " . xz_visit_stats_v2_quote($filters['source_domain']);
+    if ($filters['source_domain'] !== '') $where[] = "COALESCE(NULLIF({$prefix}vs_SourceDomain, ''), LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX({$prefix}vs_Referer, '/', 3), '/', -1))) = " . xz_visit_stats_v2_quote($filters['source_domain']);
     if ($filters['ip'] !== '') $where[] = $prefix . 'vs_IP LIKE ' . xz_visit_stats_v2_quote($filters['ip'] . '%');
     if ($filters['url'] !== '') $where[] = $prefix . 'vs_Path LIKE ' . xz_visit_stats_v2_quote('%' . $filters['url'] . '%');
     if ($filters['referer'] !== '') $where[] = $prefix . 'vs_Referer LIKE ' . xz_visit_stats_v2_quote('%' . $filters['referer'] . '%');
@@ -423,7 +429,8 @@ function xz_visit_stats_v2_source_domains($filters, $limit = 20)
 
     $range = xz_visit_stats_v2_range($filters); $where = implode(' AND ', xz_visit_stats_v2_where($filters, $range));
     $source = xz_visit_stats_v2_source_case();
-    $sql = 'SELECT LOWER(SUBSTRING_INDEX(SUBSTRING_INDEX(vs_Referer, \'/\', 3), \'/\', -1)) AS domain, COUNT(*) visits, SUM(vs_IsBot=0) human_pv FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . " AND vs_Referer <> '' AND ({$source}) IN ('external','search','social') GROUP BY domain ORDER BY visits DESC LIMIT " . max(1, min(100, (int) $limit));
+    $domain = xz_visit_stats_v2_source_domain_expr();
+    $sql = 'SELECT ' . $domain . ' AS domain, COUNT(*) visits, SUM(vs_IsBot=0) human_pv FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . " AND vs_Referer <> '' AND ({$source}) IN ('external','search','social','ai') GROUP BY domain ORDER BY visits DESC LIMIT " . max(1, min(100, (int) $limit));
     $rows = (array) $zbp->db->Query($sql);
     foreach ($rows as &$row) { $row['visits'] = (int) $row['visits']; $row['human_pv'] = (int) $row['human_pv']; }
     unset($row);

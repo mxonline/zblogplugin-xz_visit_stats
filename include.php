@@ -9,6 +9,7 @@ RegisterPlugin('xz_visit_stats', 'ActivePlugin_xz_visit_stats');
 require_once __DIR__ . '/inc/helpers.php';
 require_once __DIR__ . '/inc/bot.php';
 require_once __DIR__ . '/inc/ua.php';
+require_once __DIR__ . '/inc/v3_dimensions.php';
 require_once __DIR__ . '/inc/install.php';
 require_once __DIR__ . '/inc/settings.php';
 require_once __DIR__ . '/inc/stats.php';
@@ -16,6 +17,7 @@ require_once __DIR__ . '/inc/maintenance.php';
 require_once __DIR__ . '/inc/rollup.php';
 require_once __DIR__ . '/inc/query.php';
 require_once __DIR__ . '/inc/query_v2.php';
+require_once __DIR__ . '/inc/v3_query.php';
 require_once __DIR__ . '/inc/collector.php';
 require_once __DIR__ . '/inc/upgrade/runner.php';
 
@@ -27,6 +29,15 @@ function ActivePlugin_xz_visit_stats()
     Add_Filter_Plugin('Filter_Plugin_Zbp_Terminate', 'xz_visit_stats_collect');
     Add_Filter_Plugin('Filter_Plugin_Zbp_Terminate', 'xz_visit_stats_maintenance_auto_cleanup');
     Add_Filter_Plugin('Filter_Plugin_Admin_LeftMenu', 'xz_visit_stats_admin_menu');
+    Add_Filter_Plugin('Filter_Plugin_Zbp_MakeTemplatetags', 'xz_visit_stats_rum_head');
+}
+
+function xz_visit_stats_rum_head()
+{
+    global $zbp;
+    $settings = xz_visit_stats_settings_values();
+    if ((int) $settings['beacon_enabled'] !== 1 || !isset($zbp->host)) return;
+    $zbp->header .= '<script src="' . htmlspecialchars($zbp->host . 'zb_users/plugin/xz_visit_stats/assets/rum.js', ENT_QUOTES, 'UTF-8') . '" defer></script>' . "\n";
 }
 
 function xz_visit_stats_admin_menu(&$menus)
