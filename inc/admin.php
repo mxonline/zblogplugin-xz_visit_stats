@@ -34,20 +34,23 @@ function xz_visit_stats_admin_status_class($status)
 
 function xz_visit_stats_admin_submenu($view)
 {
-    $items = array(
-        'overview' => '统计概览',
-        'records' => '访问记录',
-        'pages' => '页面分析',
-        'source' => '来源分析',
-        'spider' => '蜘蛛分析',
-        'errors' => '错误分析',
-        'settings' => '设置',
+    $groups = array(
+        '概览' => array('overview' => '总览', 'realtime' => '实时分析'),
+        '流量分析' => array('records' => '访问记录', 'pages' => '页面分析', 'source' => '来源分析', 'campaign' => 'Campaign / AI 来源'),
+        '访客分析' => array('ip' => 'IP 分析', 'environment' => '访客环境'),
+        '技术分析' => array('spider' => '蜘蛛分析', 'errors' => '错误分析', 'performance' => '性能分析'),
+        '系统' => array('settings' => '设置与维护'),
     );
-    foreach ($items as $key => $label) {
-        $class = $view === $key ? 'm-now' : 'm-left';
-        echo '<a href="main.php?view=' . $key . '"><span class="' . $class . '">'
-            . xz_visit_stats_admin_escape($label) . '</span></a>';
+    echo '<nav class="xzvs-nav" aria-label="访问分析模块">';
+    foreach ($groups as $group => $items) {
+        echo '<div class="xzvs-nav-group"><strong class="xzvs-nav-title">' . xz_visit_stats_admin_escape($group) . '</strong><div class="xzvs-nav-items">';
+        foreach ($items as $key => $label) {
+            $class = $view === $key ? 'xzvs-nav-link is-active' : 'xzvs-nav-link';
+            echo '<a class="' . $class . '" href="main.php?view=' . rawurlencode($key) . '">' . xz_visit_stats_admin_escape($label) . '</a>';
+        }
+        echo '</div></div>';
     }
+    echo '</nav>';
 }
 
 function xz_visit_stats_admin_selected($actual, $expected)
@@ -196,5 +199,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=1.3.1" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=3.0.2-ui2" type="text/css" />';
 }

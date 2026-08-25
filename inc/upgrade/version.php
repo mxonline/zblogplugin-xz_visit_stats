@@ -18,5 +18,5 @@ function xz_visit_stats_upgrade_current_version()
 
 function xz_visit_stats_upgrade_target_version()
 {
-    return '2.0.0';
+    return '3.0.0';
 }
