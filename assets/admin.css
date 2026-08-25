@@ -37,6 +37,11 @@
 .xzvs-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
 .xzvs-drawer-body p { margin: 0; padding: 9px 0; border-bottom: 1px solid #eee; overflow-wrap: anywhere; }
 .xzvs-drawer-body strong { display: inline-block; min-width: 70px; color: #555; }
+.xzvs-drawer-body h3 { margin: 16px 0 6px; color: #3b4a59; font-size: 14px; }
+.xzvs-drawer-body section:first-child h3 { margin-top: 0; }
+.xzvs-test-row { display: none; }
+.xzvs-show-test-data .xzvs-test-row { display: table-row; }
+.xzvs-test-data-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; padding: 8px 10px; border-left: 3px solid #8aa3b8; background: #f4f7f9; color: #51606d; font-size: 12px; }
 .xzvs-nav-group { min-width: 0; }
 .xzvs-nav-title { display: block; margin: 0 0 6px; color: #68727d; font-size: 12px; }
 .xzvs-nav-items { display: flex; flex-wrap: wrap; gap: 4px; }

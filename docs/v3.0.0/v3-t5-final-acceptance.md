@@ -3,6 +3,10 @@
 日期：2026-08-25
 候选分支：`feature/visit-stats-3.0`
 
+## 当前状态
+
+此前的 UI / 文案 PASS 已作废，并由 `ui-semantic-audit.md` 重新验收。该专项现为 PASS；最终 V3-T5 仍暂停，尚未授权 PR、Tag 或 Release。
+
 ## 结论
 
 本轮补齐原有阻断项后，27 项 P0 均有可运行的后台功能或已记录的运行证据。
