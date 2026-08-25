@@ -28,9 +28,13 @@ function xz_visit_stats_collect()
     $ua = xz_visit_stats_parse_ua($userAgent, $bot['is_bot']);
     $recordedIp = $settings['ip_mode'] === 'masked' ? xz_visit_stats_settings_mask_ip($ip) : $ip;
     $path = xz_visit_stats_normalize_path(xz_visit_stats_request_path());
-    $source = xz_visit_stats_source_dimensions($settings['record_referer'] === 1 ? xz_visit_stats_server_value('HTTP_REFERER') : '');
+    $source = xz_visit_stats_source_dimensions(
+        $settings['record_referer'] === 1 ? xz_visit_stats_server_value('HTTP_REFERER') : '',
+        xz_visit_stats_server_value('REQUEST_URI')
+    );
     $page = xz_visit_stats_page_context();
-    $geo = xz_visit_stats_geo_lookup($ip);
+    // A masked address must not be used to derive precise geographic data.
+    $geo = $settings['ip_mode'] === 'masked' ? array('country' => '', 'region' => '') : xz_visit_stats_geo_lookup($ip);
 
     $data = array(
         'vs_IP' => $recordedIp,

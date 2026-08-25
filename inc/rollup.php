@@ -284,7 +284,7 @@ function xz_visit_stats_rollup_backfill_dimensions($limit = 200)
     $table = xz_visit_stats_physical_table();
     $state = xz_visit_stats_rollup_state('dimensions');
     $cursor = isset($state['rs_BackfillCursor']) ? (int) $state['rs_BackfillCursor'] : 0;
-    $rows = (array) $zbp->db->Query("SELECT vs_ID,vs_Referer,vs_UserAgent FROM `{$table}` WHERE vs_ID>{$cursor} ORDER BY vs_ID ASC LIMIT " . max(1, min(1000, (int) $limit)));
+        $rows = (array) $zbp->db->Query("SELECT vs_ID,vs_Referer,vs_Url,vs_UserAgent FROM `{$table}` WHERE vs_ID>{$cursor} ORDER BY vs_ID ASC LIMIT " . max(1, min(1000, (int) $limit)));
     if (empty($rows)) {
         xz_visit_stats_rollup_save_state(array('rs_Name' => 'dimensions', 'rs_BackfillCursor' => $cursor, 'rs_Status' => 'complete', 'rs_LastError' => ''));
         return array('processed' => 0, 'complete' => true, 'cursor' => $cursor);
@@ -292,7 +292,7 @@ function xz_visit_stats_rollup_backfill_dimensions($limit = 200)
     $processed = 0;
     foreach ($rows as $row) {
         $id = (int) $row['vs_ID'];
-        $source = function_exists('xz_visit_stats_source_dimensions') ? xz_visit_stats_source_dimensions(isset($row['vs_Referer']) ? $row['vs_Referer'] : '') : array('type' => '', 'domain' => '', 'ai' => '', 'utm' => array('source' => '', 'medium' => '', 'campaign' => '', 'content' => '', 'term' => ''));
+        $source = function_exists('xz_visit_stats_source_dimensions') ? xz_visit_stats_source_dimensions(isset($row['vs_Referer']) ? $row['vs_Referer'] : '', isset($row['vs_Url']) ? $row['vs_Url'] : '') : array('type' => '', 'domain' => '', 'ai' => '', 'utm' => array('source' => '', 'medium' => '', 'campaign' => '', 'content' => '', 'term' => ''));
         $crawler = function_exists('xz_visit_stats_ai_crawler') ? xz_visit_stats_ai_crawler(isset($row['vs_UserAgent']) ? $row['vs_UserAgent'] : '') : '';
         $values = array('vs_SourceType' => $source['type'], 'vs_SourceDomain' => $source['domain'], 'vs_AiSource' => $source['ai'], 'vs_UtmSource' => $source['utm']['source'], 'vs_UtmMedium' => $source['utm']['medium'], 'vs_UtmCampaign' => $source['utm']['campaign'], 'vs_UtmContent' => $source['utm']['content'], 'vs_UtmTerm' => $source['utm']['term'], 'vs_AiCrawler' => $crawler);
         $sets = array(); foreach ($values as $column => $value) $sets[] = $column . "='" . xz_visit_stats_rollup_escape($value) . "'";

@@ -31,9 +31,9 @@ if (!is_array($payload)) xz_visit_stats_rum_reject();
 
 function xz_visit_stats_rum_number($payload, $key, $max, $decimals = 2)
 {
-    if (!isset($payload[$key]) || !is_numeric($payload[$key])) return 0;
+    if (!isset($payload[$key]) || !is_numeric($payload[$key])) return null;
     $value = (float) $payload[$key];
-    if ($value < 0 || $value > $max) return 0;
+    if ($value < 0 || $value > $max) return null;
     return round($value, $decimals);
 }
 function xz_visit_stats_rum_text($payload, $key, $length)
@@ -48,10 +48,14 @@ $data = array(
     'rum_Path' => $path, 'rum_PathKey' => xz_visit_stats_path_key($path),
     'rum_Browser' => xz_visit_stats_limit($ua['browser'], 64), 'rum_Os' => xz_visit_stats_limit($ua['os'], 64), 'rum_Device' => xz_visit_stats_limit($ua['device'], 32),
     'rum_Language' => xz_visit_stats_rum_text($payload, 'language', 32), 'rum_Screen' => xz_visit_stats_rum_text($payload, 'screen', 32), 'rum_Viewport' => xz_visit_stats_rum_text($payload, 'viewport', 32),
-    'rum_LCP' => xz_visit_stats_rum_number($payload, 'lcp', 120000), 'rum_INP' => xz_visit_stats_rum_number($payload, 'inp', 120000),
-    'rum_CLS' => xz_visit_stats_rum_number($payload, 'cls', 10, 4), 'rum_TTFB' => xz_visit_stats_rum_number($payload, 'ttfb', 120000), 'rum_FCP' => xz_visit_stats_rum_number($payload, 'fcp', 120000),
     'rum_VisitedAt' => time(),
 );
+foreach (array('lcp' => array('rum_LCP', 120000, 2), 'inp' => array('rum_INP', 120000, 2), 'cls' => array('rum_CLS', 10, 4), 'ttfb' => array('rum_TTFB', 120000, 2), 'fcp' => array('rum_FCP', 120000, 2)) as $key => $definition) {
+    $value = xz_visit_stats_rum_number($payload, $key, $definition[1], $definition[2]);
+    if ($value !== null) {
+        $data[$definition[0]] = $value;
+    }
+}
 try {
     $sql = $zbp->db->sql->Insert(xz_visit_stats_rum_table(), $data);
     $zbp->db->Query($sql);

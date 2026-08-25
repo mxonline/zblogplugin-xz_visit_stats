@@ -35,7 +35,11 @@ function xz_visit_stats_ip_in_cidr($ip, $cidr)
 
 function xz_visit_stats_trusted_proxy_ip($remote)
 {
-    global $zbp;
+    $remote = trim((string) $remote);
+    if (filter_var($remote, FILTER_VALIDATE_IP) === false) {
+        return '';
+    }
+
     $settings = function_exists('xz_visit_stats_settings_values') ? xz_visit_stats_settings_values() : array();
     $trusted = isset($settings['trusted_proxies']) ? preg_split('/[\r\n,]+/', $settings['trusted_proxies']) : array();
     $isTrusted = false;
@@ -49,21 +53,48 @@ function xz_visit_stats_trusted_proxy_ip($remote)
     if (!$isTrusted) {
         return $remote;
     }
+
     $header = isset($settings['real_ip_header']) && $settings['real_ip_header'] !== '' ? $settings['real_ip_header'] : 'X-Forwarded-For';
+    if (preg_match('/^[A-Za-z0-9-]{1,64}$/', $header) !== 1) {
+        return $remote;
+    }
     $value = xz_visit_stats_server_value('HTTP_' . strtoupper(str_replace('-', '_', $header)));
     if ($value === '' && $header === 'X-Forwarded-For') {
         $value = xz_visit_stats_server_value('HTTP_CF_CONNECTING_IP');
     }
-    $candidates = array_map('trim', explode(',', $value));
-    foreach ($candidates as $candidate) {
-        if (filter_var($candidate, FILTER_VALIDATE_IP) !== false) {
+
+    $value = trim($value);
+    if ($value === '' || strlen($value) > 4096) {
+        return $remote;
+    }
+    $candidates = array_values(array_filter(array_map('trim', explode(',', $value)), function ($candidate) {
+        return $candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP) !== false;
+    }));
+    if (count($candidates) !== count(explode(',', $value)) || count($candidates) > 32) {
+        return $remote;
+    }
+
+    // Walk the chain from the directly connected proxy towards the client.
+    // Only addresses immediately behind trusted proxies are eligible.
+    for ($index = count($candidates) - 1; $index >= 0; $index--) {
+        $candidate = $candidates[$index];
+        $candidateIsTrusted = false;
+        foreach ((array) $trusted as $entry) {
+            $entry = trim($entry);
+            if ($entry !== '' && xz_visit_stats_ip_in_cidr($candidate, $entry)) {
+                $candidateIsTrusted = true;
+                break;
+            }
+        }
+        if (!$candidateIsTrusted) {
             return $candidate;
         }
     }
+
     return $remote;
 }
 
-function xz_visit_stats_source_dimensions($referer)
+function xz_visit_stats_source_dimensions($referer, $landingUrl = '')
 {
     global $zbp;
     $referer = (string) $referer;
@@ -92,6 +123,13 @@ function xz_visit_stats_source_dimensions($referer)
     }
     $query = array();
     parse_str((string) parse_url($referer, PHP_URL_QUERY), $query);
+    $landingQuery = array();
+    parse_str((string) parse_url($landingUrl, PHP_URL_QUERY), $landingQuery);
+    foreach ($landingQuery as $key => $value) {
+        if (strpos((string) $key, 'utm_') === 0) {
+            $query[$key] = $value;
+        }
+    }
     $utm = array();
     foreach (array('source', 'medium', 'campaign', 'content', 'term') as $key) {
         $value = isset($query['utm_' . $key]) && !is_array($query['utm_' . $key]) ? (string) $query['utm_' . $key] : '';

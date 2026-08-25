@@ -285,6 +285,7 @@ function xz_visit_stats_upgrade_create_rum()
             'rum_LCP' => 'decimal', 'rum_INP' => 'decimal', 'rum_CLS' => 'decimal',
             'rum_TTFB' => 'decimal', 'rum_FCP' => 'decimal', 'rum_VisitedAt' => 'bigint',
         ));
+        xz_visit_stats_upgrade_make_rum_metrics_nullable($tableName);
         return;
     }
     $table = xz_visit_stats_upgrade_quote_table($tableName);
@@ -293,10 +294,50 @@ function xz_visit_stats_upgrade_create_rum()
         rum_VisitorHash CHAR(64) NOT NULL DEFAULT '', rum_Path VARCHAR(2048) NOT NULL DEFAULT '/', rum_PathKey CHAR(64) NOT NULL DEFAULT '',
         rum_Browser VARCHAR(64) NOT NULL DEFAULT '', rum_Os VARCHAR(64) NOT NULL DEFAULT '', rum_Device VARCHAR(32) NOT NULL DEFAULT '',
         rum_Language VARCHAR(32) NOT NULL DEFAULT '', rum_Screen VARCHAR(32) NOT NULL DEFAULT '', rum_Viewport VARCHAR(32) NOT NULL DEFAULT '',
-        rum_LCP DECIMAL(10,2) NOT NULL DEFAULT 0, rum_INP DECIMAL(10,2) NOT NULL DEFAULT 0, rum_CLS DECIMAL(10,4) NOT NULL DEFAULT 0,
-        rum_TTFB DECIMAL(10,2) NOT NULL DEFAULT 0, rum_FCP DECIMAL(10,2) NOT NULL DEFAULT 0, rum_VisitedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,
+        rum_LCP DECIMAL(10,2) NULL DEFAULT NULL, rum_INP DECIMAL(10,2) NULL DEFAULT NULL, rum_CLS DECIMAL(10,4) NULL DEFAULT NULL,
+        rum_TTFB DECIMAL(10,2) NULL DEFAULT NULL, rum_FCP DECIMAL(10,2) NULL DEFAULT NULL, rum_VisitedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,
         PRIMARY KEY (rum_ID), KEY xzvs_rum_time (rum_VisitedAt), KEY xzvs_rum_path_time (rum_PathKey,rum_VisitedAt)
     ) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4");
+}
+
+function xz_visit_stats_upgrade_make_rum_metrics_nullable($tableName)
+{
+    global $zbp;
+
+    $table = xz_visit_stats_upgrade_quote_table($tableName);
+    $columns = (array) $zbp->db->Query('SHOW COLUMNS FROM ' . $table);
+    $required = array('rum_LCP' => 'DECIMAL(10,2)', 'rum_INP' => 'DECIMAL(10,2)', 'rum_CLS' => 'DECIMAL(10,4)', 'rum_TTFB' => 'DECIMAL(10,2)', 'rum_FCP' => 'DECIMAL(10,2)');
+    $operations = array();
+    foreach ($columns as $column) {
+        $name = isset($column['Field']) ? (string) $column['Field'] : '';
+        if (!isset($required[$name]) || strtoupper((string) (isset($column['Null']) ? $column['Null'] : 'YES')) === 'YES') {
+            continue;
+        }
+        $operations[] = 'MODIFY `' . $name . '` ' . $required[$name] . ' NULL DEFAULT NULL';
+    }
+    if (!empty($operations)) {
+        $zbp->db->Query('ALTER TABLE ' . $table . ' ' . implode(', ', $operations));
+    }
+}
+
+function xz_visit_stats_upgrade_rum_metrics_nullable($tableName)
+{
+    global $zbp;
+
+    $required = array('rum_LCP', 'rum_INP', 'rum_CLS', 'rum_TTFB', 'rum_FCP');
+    $columns = (array) $zbp->db->Query('SHOW COLUMNS FROM ' . xz_visit_stats_upgrade_quote_table($tableName));
+    $seen = array();
+    foreach ($columns as $column) {
+        if (isset($column['Field'])) {
+            $seen[(string) $column['Field']] = strtoupper((string) (isset($column['Null']) ? $column['Null'] : 'YES')) === 'YES';
+        }
+    }
+    foreach ($required as $name) {
+        if (!isset($seen[$name]) || !$seen[$name]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 function xz_visit_stats_upgrade_migrate_to_30()
