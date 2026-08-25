@@ -24,10 +24,11 @@
 .xzvs-overview-stack > .xz-overview-note { order: 4; }
 .xzvs-main-content:has(#xzvs-chart-trend) { display: flex; flex-direction: column; }
 .xzvs-main-content:has(#xzvs-chart-trend) > .xz-filter { order: 1; }
-.xzvs-main-content:has(#xzvs-chart-trend) > .xz-metric-grid { order: 2; }
-.xzvs-main-content:has(#xzvs-chart-trend) > .xzvs-dashboard-grid { order: 3; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-overview-note { order: 2; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-metric-grid { order: 3; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xzvs-dashboard-grid { order: 4; }
 .xzvs-main-content:has(#xzvs-chart-trend) > .xz-overview-section,
-.xzvs-main-content:has(#xzvs-chart-trend) > .xz-overview-split { order: 4; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-overview-split { order: 5; }
 .xzvs-empty { display: flex; align-items: center; justify-content: center; color: #777; border: 1px dashed #ccd3da; }
 .xzvs-loading, .xzvs-error { display: flex; align-items: center; justify-content: center; min-height: 280px; color: #68727d; border: 1px dashed #ccd3da; }
 .xzvs-error { color: #a32626; border-color: #e0aaaa; background: #fff7f7; }

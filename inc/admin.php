@@ -199,5 +199,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=3.0.2-ui2" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=3.0.2-ui3" type="text/css" />';
 }
