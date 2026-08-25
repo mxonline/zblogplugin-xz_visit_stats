@@ -1,7 +1,7 @@
 # v3.0 全插件产品化 UI 与字段语义审查
 
 日期：2026-08-25
-状态：PASS（已于最终验收复查；Functional Product Gate 仍因真实 Chrome/Edge 识别验证阻断）
+状态：PASS（最终验收通过）
 
 ## 共用修复
 
@@ -47,7 +47,7 @@
 - 实际可见文本扫描未发现：`DurationMs`、`Path`、`PathKey`、`Referer`、`Browser`、`Device`、`Campaign`、`RUM`、`Beacon`、`P50/P75/P95`、`Keyset`、`OFFSET`、`cursor`、`migration`、`backfill`、`Header`、`CIDR`。
 - 访问记录与性能分析在本轮文案调整后可正常打开；“查看更多记录”、导出入口和服务器响应速度趋势均可见。
 
-UI Product Gate：**PASS**。仍须由 Functional Product Gate 与 CI 同时通过，才可创建 PR、合并、Tag、Release 或正式 ZIP。
+UI Product Gate：**PASS**。
 
 ## UI Terminology Gate
 
@@ -57,4 +57,4 @@ UI Product Gate：**PASS**。仍须由 Functional Product Gate 与 CI 同时通�
 - 本机执行 `php tools/check-ui-terminology.php`：PASS。
 - 已在 `code-check.yml` 加入无 `continue-on-error` 的 **UI Terminology Gate**。
 
-UI Terminology Gate：**LOCAL PASS / CI PENDING**。
+UI Terminology Gate：**LOCAL PASS / CI PASS**（GitHub CI run `32853304584`）。

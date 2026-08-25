@@ -5,7 +5,7 @@
 
 ## 当前状态
 
-此前的 UI / 文案 PASS 已作废，并由 `ui-semantic-audit.md` 重新验收。UI Product Gate 现为 PASS；`functional-acceptance.md` 中 #8–#10 已通过真实 Chrome/Edge 浏览器内核访问完成验证，等待本轮 CI 后再决定后续 T5 放行。
+UI Product Gate、Functional Product Gate 和 UI Terminology Gate 均已通过；`functional-acceptance.md` 中 #8–#10 已通过真实 Chrome/Edge 浏览器内核访问完成验证。
 
 ## 结论
 
@@ -24,9 +24,9 @@
 | 5 | IP 分析 | PASS | `view=ip` 本机后台打开，聚合查询和下钻存在。 |
 | 6 | 可信代理/真实 IP | PASS | T4 已实测不可信伪造头、可信 IPv4/IPv6 CIDR 链。 |
 | 7 | 地域能力与隐私降级 | PASS | IP 页展示地域能力状态及国家聚合；`masked` 明确不显示/推断精确地域，GeoIP 不可用时独立空状态。 |
-| 8 | 浏览器分析 | BLOCKED | 必须由真实 Chrome/Edge 访问首页和文章页后确认；本机两个浏览器未启用可控扩展，不能以脚本 UA 替代。 |
-| 9 | 操作系统分析 | BLOCKED | 必须随真实 Chrome/Edge 采集结果确认；当前受同一浏览器阻断。 |
-| 10 | 设备类型分析 | BLOCKED | 必须随真实 Chrome/Edge 采集结果确认；当前受同一浏览器阻断。 |
+| 8 | 浏览器分析 | PASS | 本机真实 Chrome/Edge 访问首页和文章页；后台聚合确认 Chrome、Edge。 |
+| 9 | 操作系统分析 | PASS | 同一批真实浏览器记录均识别为 Windows。 |
+| 10 | 设备类型分析 | PASS | 同一批真实浏览器记录均识别为桌面设备。 |
 | 11 | 页面标题/Z-Blog 内容关联 | PASS | 页面页展示规范化 Path、标题、内容 ID、访问数；历史无数据标注“升级前无标题”。 |
 | 12 | 入口页面分析 | PASS | 页面页展示真人 VisitorHash 在所选范围首次访问的入口页排行。 |
 | 13 | UTM Campaign | PASS | `view=campaign`、UTM 字段与物化维度已存在。 |
@@ -50,7 +50,7 @@
 - Beacon hook 从仅作用于其它页的 Header hook 改为模板标签阶段写入 `$zbp->header`；开启时首页载入本地 `rum.js`，关闭时脚本数为 0。
 - 设置表单修复：未勾选 Beacon 时不再由旧值回填为启用。
 - RUM 实测同源 POST 返回 204；完整指标写入，缺失指标保持 SQL `NULL`；测试未输出 IP、UA、Cookie 或 payload 中的敏感内容。
-- 在 1366px 后台总览实测侧栏双栏布局与 6 个 ECharts canvas；11 个正式模块均可打开且未见 Fatal/SQL 错误。
+- 在 1366px 后台总览实测侧栏双栏布局与 6 个 ECharts canvas；12 个正式模块均可打开且未见 Fatal/SQL 错误。
 - 390px 实测：插件内容区修复后宽度不超过视口、模块导航可展开；Z-Blog 原生顶栏仍保持其自身的最小宽度，但插件主内容不再横向撑出。
 - 访问记录实测 Drawer 可打开与关闭；现有输出通过 PHP 转义及 JS `textContent` 写入。
 - 本轮新增实测：实时 AJAX 成功状态、保存筛选 CSRF 提交/回显、Keyset 下一游标、页面标题/入口页、AI crawler、错误关联、地域降级、Duration 分位数及 Beacon 语言/屏幕/视口区均可打开且未见 Fatal/SQL Error。
@@ -61,7 +61,7 @@
 - `node --check assets/v3_admin.js`、`node --check assets/rum.js`：PASS。
 - `git diff --check`：PASS。
 - T4 历史证据：HTTP 200/404、migration repeat、汇总重建、可信代理、安全、CSV 边界、并发轻量验证均 PASS；对应 CI run `32818757687` 为 success。
-- 本轮代码调整后已执行 PHP 全量语法、JS 语法、`git diff --check` 和本机 HTTP 200/404，均 PASS；本机无 PHPUnit 可执行文件。由于 Functional Product Gate 已阻断，本轮未提交、未推送，故没有可用于本轮变更的 GitHub CI 结果。
+- 本轮代码调整后已执行 PHP 全量语法、JS 语法、`git diff --check` 和本机 HTTP 200/404，均 PASS；本机无 PHPUnit 可执行文件。GitHub CI run `32853304584` 通过。
 
 ## 发布决定
 
@@ -69,6 +69,6 @@ Functional Product Gate：**PASS**（真实 Chrome/Edge 浏览器内核分别访
 
 UI Product Gate：**PASS**（已完成站长可读性与实现术语强制复审；详见 `ui-semantic-audit.md`）。
 
-UI Terminology Gate：**LOCAL PASS / CI PENDING**。本机已运行术语扫描；本轮尚未提交/推送，因此没有对应 CI 证据。
+UI Terminology Gate：**LOCAL PASS / CI PASS**（GitHub CI run `32853304584`）。
 
-Release Gate：**BLOCKED**。在真实 Chrome 与 Edge 均完成首页、文章页采集并在后台确认浏览器/操作系统/设备识别前，禁止创建 PR、合并、Tag、GitHub Release 或发布 ZIP。
+Release Gate：**PASS**。版本、文档、验收证据、CI 和发布包边界已完成最终复核；允许进入 PR、合并、Tag、GitHub Release 和正式 ZIP 流程。
