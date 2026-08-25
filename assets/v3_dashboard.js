@@ -1,4 +1,4 @@
-(function () {
+document.addEventListener('DOMContentLoaded', function () {
   'use strict';
   var data = window.XZVS_DASHBOARD || {}, echarts = window.echarts;
   function tableRows(title) {
@@ -21,11 +21,15 @@
   function chart(id, option) {
     var node = document.getElementById(id);
     if (!node) return;
+    node.setAttribute('aria-live', 'polite');
+    node.textContent = '正在加载图表…';
+    node.className += ' xzvs-loading';
+    if (!echarts || typeof echarts.init !== 'function') { node.textContent = '图表资源加载失败，请刷新页面重试。'; node.className += ' xzvs-error'; return; }
     if (!option.series || !option.series.length || option.series.every(function (s) { return !s.data || !s.data.length; })) { node.textContent = '暂无数据'; node.className += ' xzvs-empty'; return; }
-    var instance = echarts.init(node); instance.setOption(option); window.addEventListener('resize', function () { instance.resize(); });
+    try { var instance = echarts.init(node); instance.setOption(option); node.className = node.className.replace(' xzvs-loading', ''); window.addEventListener('resize', function () { instance.resize(); }); } catch (error) { node.textContent = '图表加载失败，请刷新页面重试。'; node.className += ' xzvs-error'; }
   }
   var trend = data.trend || [], labels = trend.map(function (r) { return r.label; });
-  chart('xzvs-chart-trend', { tooltip: { trigger: 'axis' }, legend: { data: ['真人 PV', '蜘蛛 PV', '4xx', '5xx'] }, xAxis: { type: 'category', data: labels }, yAxis: { type: 'value' }, series: [{ name: '真人 PV', type: 'line', data: trend.map(function (r) { return r.human_pv || 0; }) }, { name: '蜘蛛 PV', type: 'line', data: trend.map(function (r) { return r.bot_pv || 0; }) }, { name: '4xx', type: 'line', data: trend.map(function (r) { return r.error_4xx || 0; }) }, { name: '5xx', type: 'line', data: trend.map(function (r) { return r.error_5xx || 0; }) }] });
+  chart('xzvs-chart-trend', { tooltip: { trigger: 'axis' }, legend: { data: ['PV', 'UV', 'IP'] }, xAxis: { type: 'category', data: labels }, yAxis: { type: 'value' }, series: [{ name: 'PV', type: 'line', data: trend.map(function (r) { return r.pv || r.human_pv || 0; }) }, { name: 'UV', type: 'line', data: trend.map(function (r) { return r.uv || 0; }) }, { name: 'IP', type: 'line', data: trend.map(function (r) { return r.ip || 0; }) }] });
   var hours = data.hours || [];
   chart('xzvs-chart-hours', { tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: hours.map(function (r) { return r.hour; }) }, yAxis: { type: 'value' }, series: [{ name: '真人 PV', type: 'bar', data: hours.map(function (r) { return r.human_pv || 0; }) }, { name: '蜘蛛 PV', type: 'bar', data: hours.map(function (r) { return r.bot_pv || 0; }) }] });
   function rows(items, name, value) { return (items || []).map(function (r) { return { name: r[name] || r.label || '-', value: Number(r[value] || r.visits || 0) }; }); }
@@ -34,4 +38,4 @@
   chart('xzvs-chart-spider', { tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: rows(data.spiders, 'bot_name', 'bot_pv').map(function (r) { return r.name; }) }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: rows(data.spiders, 'bot_name', 'bot_pv').map(function (r) { return r.value; }) }] });
   chart('xzvs-chart-errors', { tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: rows(data.errors, 'path', 'visits').map(function (r) { return r.name; }) }, yAxis: { type: 'value' }, series: [{ type: 'bar', data: rows(data.errors, 'path', 'visits').map(function (r) { return r.value; }) }] });
   chart('xzvs-chart-rum', { tooltip: { trigger: 'axis' }, xAxis: { type: 'category', data: (data.rum || []).map(function (r) { return r.path || '-'; }) }, yAxis: { type: 'value' }, series: [{ name: 'LCP P75', type: 'bar', data: (data.rum || []).map(function (r) { return r.lcp_p75 || 0; }) }, { name: 'FCP P75', type: 'bar', data: (data.rum || []).map(function (r) { return r.fcp_p75 || 0; }) }] });
-}());
+});
