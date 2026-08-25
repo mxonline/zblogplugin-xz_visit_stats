@@ -23,19 +23,6 @@ $GLOBALS['datainfo']['xz_visit_stats_log'] = array(
     'BotName'     => array('vs_BotName', 'string', 64, ''),
     'StatusCode'  => array('vs_StatusCode', 'integer', '', 200),
     'DurationMs'  => array('vs_DurationMs', 'integer', '', 0),
-    'SourceType'  => array('vs_SourceType', 'string', 24, ''),
-    'SourceDomain'=> array('vs_SourceDomain', 'string', 253, ''),
-    'AiSource'    => array('vs_AiSource', 'string', 32, ''),
-    'UtmSource'   => array('vs_UtmSource', 'string', 128, ''),
-    'UtmMedium'   => array('vs_UtmMedium', 'string', 128, ''),
-    'UtmCampaign' => array('vs_UtmCampaign', 'string', 255, ''),
-    'UtmContent'  => array('vs_UtmContent', 'string', 255, ''),
-    'UtmTerm'     => array('vs_UtmTerm', 'string', 255, ''),
-    'PageTitle'   => array('vs_PageTitle', 'string', 512, ''),
-    'PostID'      => array('vs_PostID', 'integer', 'bigint', 0),
-    'GeoCountry'  => array('vs_GeoCountry', 'string', 64, ''),
-    'GeoRegion'   => array('vs_GeoRegion', 'string', 128, ''),
-    'AiCrawler'   => array('vs_AiCrawler', 'string', 32, ''),
     'VisitedAt'   => array('vs_VisitedAt', 'integer', 'bigint', 0),
 );
 
@@ -133,7 +120,6 @@ function xz_visit_stats_install_indexes()
         'xzvs_bot_time'     => array('vs_IsBot', 'vs_VisitedAt'),
         'xzvs_ip_time'      => array('vs_IP', 'vs_VisitedAt'),
         'xzvs_status_time'  => array('vs_StatusCode', 'vs_VisitedAt'),
-        'xzvs_source_time'  => array('vs_SourceType', 'vs_VisitedAt'),
     );
     $rows = $zbp->db->Query('SHOW INDEX FROM ' . xz_visit_stats_quoted_table());
     $existing = array();
@@ -157,10 +143,7 @@ function xz_visit_stats_install_indexes()
             continue;
         }
         if (!empty($actual)) {
-            // Keep unknown or legacy index definitions. Migration never drops
-            // an existing index; a compatible replacement requires an explicit
-            // maintenance operation with a rollback plan.
-            continue;
+            $operations[] = 'DROP INDEX `' . $name . '`';
         }
         $operations[] = 'ADD INDEX `' . $name . '` (`' . implode('`, `', $columns) . '`)';
     }
