@@ -41,7 +41,7 @@ function xz_visit_stats_admin_submenu($view)
         '技术分析' => array('spider' => '蜘蛛分析', 'errors' => '错误分析', 'performance' => '性能分析'),
         '系统' => array('settings' => '设置与维护'),
     );
-    echo '<nav class="xzvs-sidebar" aria-label="访问分析模块">';
+    echo '<nav class="xzvs-nav" aria-label="访问分析模块">';
     foreach ($groups as $group => $items) {
         echo '<div class="xzvs-nav-group"><strong class="xzvs-nav-title">' . xz_visit_stats_admin_escape($group) . '</strong><div class="xzvs-nav-items">';
         foreach ($items as $key => $label) {
@@ -199,5 +199,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=1.3.1" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=3.0.2-ui2" type="text/css" />';
 }

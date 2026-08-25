@@ -1,5 +1,10 @@
 (function () {
   'use strict';
+  document.addEventListener('alpine:init', function () {
+    Alpine.data('xzvsApp', function () {
+      return { navOpen: false };
+    });
+  });
   function text(value) { return String(value || '').replace(/[<>]/g, ''); }
   var table = document.querySelector('.xz-visit-table');
   if (table) {

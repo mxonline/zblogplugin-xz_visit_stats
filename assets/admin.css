@@ -1,11 +1,36 @@
 .xz-filter { margin-bottom: 18px; padding: 14px; border: 1px solid #ddd; background: #fafafa; }
-.xzvs-sidebar { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; margin: 0 0 14px; padding: 10px; border: 1px solid #dfe3e8; background: #f7f9fb; }
+.xzvs-app { box-sizing: border-box; width: 100%; max-width: 1480px; min-width: 0; margin: 0 auto; overflow-x: hidden; }
+#divMain2.xzvs-app { box-sizing: border-box; max-width: 100%; overflow-x: hidden; }
+.xzvs-layout { display: grid; grid-template-columns: 210px minmax(0, 1fr); gap: 18px; align-items: start; min-width: 0; }
+.xzvs-sidebar { min-width: 0; margin: 0; }
+.xzvs-nav { position: sticky; top: 12px; display: flex; flex-direction: column; gap: 16px; margin: 0; padding: 12px; border: 1px solid #dfe3e8; background: #f7f9fb; }
+.xzvs-nav .xzvs-nav-group { min-width: 0; }
+.xzvs-nav .xzvs-nav-title { display: block; margin: 0 0 6px; color: #68727d; font-size: 12px; }
+.xzvs-nav .xzvs-nav-items { display: flex; flex-direction: column; gap: 3px; }
+.xzvs-nav .xzvs-nav-link { display: block; padding: 7px 9px; color: #3b4a59; border-radius: 3px; text-decoration: none; }
+.xzvs-nav .xzvs-nav-link:hover, .xzvs-nav .xzvs-nav-link.is-active { background: #3a6ea5; color: #fff; }
+.xzvs-main-content { min-width: 0; max-width: 100%; overflow-x: hidden; }
+#divMain2.xzvs-app .xzvs-main-content { min-width: 0; max-width: 100%; overflow-x: hidden; }
+.xz-overview-split > * { min-width: 0; }
+.xzvs-mobile-nav-toggle { display: none; margin: 0 0 10px; }
 .xzvs-dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 0 0 16px; }
 .xzvs-card { min-width: 0; padding: 14px; border: 1px solid #dfe3e8; background: #fff; }
 .xzvs-chart-wide { grid-column: 1 / -1; }
 .xzvs-chart-card h2 { margin: 0 0 8px; font-size: 15px; }
 .xzvs-chart { min-height: 280px; width: 100%; }
+.xzvs-overview-stack { display: flex; flex-direction: column; }
+.xzvs-overview-stack > .xzvs-dashboard-grid { order: 2; }
+.xzvs-overview-stack > .xzvs-overview-detail { order: 3; }
+.xzvs-overview-stack > .xz-overview-note { order: 4; }
+.xzvs-main-content:has(#xzvs-chart-trend) { display: flex; flex-direction: column; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-filter { order: 1; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-metric-grid { order: 2; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xzvs-dashboard-grid { order: 3; }
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-overview-section,
+.xzvs-main-content:has(#xzvs-chart-trend) > .xz-overview-split { order: 4; }
 .xzvs-empty { display: flex; align-items: center; justify-content: center; color: #777; border: 1px dashed #ccd3da; }
+.xzvs-loading, .xzvs-error { display: flex; align-items: center; justify-content: center; min-height: 280px; color: #68727d; border: 1px dashed #ccd3da; }
+.xzvs-error { color: #a32626; border-color: #e0aaaa; background: #fff7f7; }
 .xzvs-drawer { position: fixed; z-index: 100; top: 0; right: 0; bottom: 0; display: none; box-sizing: border-box; width: min(460px, 94vw); padding: 16px; overflow: auto; background: #fff; box-shadow: -5px 0 18px rgba(0,0,0,.2); }
 .xzvs-drawer.is-open { display: block; }
 .xzvs-drawer-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid #ddd; }
@@ -178,8 +203,11 @@
 @media (max-width: 680px) {
   .xzvs-dashboard-grid { grid-template-columns: 1fr; }
   .xzvs-chart-wide { grid-column: auto; }
-  .xzvs-sidebar { grid-template-columns: 1fr 1fr; }
-  .xzvs-nav-group:last-child { grid-column: 1 / -1; }
+  .xzvs-layout { display: block; }
+  .xzvs-mobile-nav-toggle { display: inline-block; }
+  .xzvs-sidebar { display: none; }
+  .xzvs-sidebar.is-open { display: block; margin-bottom: 14px; }
+  .xzvs-nav { position: static; }
   .xz-filter { padding: 10px; }
   .xz-filter-grid, .xz-filter-grid-time { grid-template-columns: 1fr; }
   .xz-filter-panel { width: auto; }
