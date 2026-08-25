@@ -34,7 +34,7 @@ function xz_visit_stats_v3_where($filters, $range)
 function xz_visit_stats_v3_dimension_rows($field, $filters, $limit = 20)
 {
     global $zbp;
-    $allowed = array('vs_Browser' => 'browser', 'vs_Os' => 'os', 'vs_Device' => 'device', 'vs_SourceType' => 'source_type', 'vs_SourceDomain' => 'source_domain', 'vs_AiSource' => 'ai_source', 'vs_UtmCampaign' => 'campaign', 'vs_GeoCountry' => 'country', 'vs_GeoRegion' => 'region');
+    $allowed = array('vs_Browser' => 'browser', 'vs_Os' => 'os', 'vs_Device' => 'device', 'vs_SourceType' => 'source_type', 'vs_SourceDomain' => 'source_domain', 'vs_AiSource' => 'ai_source', 'vs_AiCrawler' => 'ai_crawler', 'vs_UtmCampaign' => 'campaign', 'vs_GeoCountry' => 'country', 'vs_GeoRegion' => 'region');
     if (!isset($allowed[$field])) return array();
     $range = xz_visit_stats_v2_range($filters);
     $where = implode(' AND ', xz_visit_stats_v3_where($filters, $range));
@@ -54,7 +54,7 @@ function xz_visit_stats_v3_ip_rows($filters, $limit = 50)
     $range = xz_visit_stats_v2_range($filters);
     $where = implode(' AND ', xz_visit_stats_v3_where($filters, $range));
     $limit = max(1, min(100, (int) $limit));
-    $sql = 'SELECT vs_IP AS ip, COUNT(*) AS visits, COUNT(DISTINCT vs_PathKey) AS pages, MIN(vs_VisitedAt) AS first_visit, MAX(vs_VisitedAt) AS last_visit, AVG(vs_DurationMs) AS avg_ms, SUM(vs_StatusCode=404) AS not_found, SUM(vs_StatusCode BETWEEN 400 AND 499) AS error_4xx, SUM(vs_StatusCode BETWEEN 500 AND 599) AS error_5xx FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' AND vs_IP <> \'\' GROUP BY vs_IP ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
+    $sql = 'SELECT vs_IP AS ip, MAX(vs_GeoCountry) AS geo_country, MAX(vs_GeoRegion) AS geo_region, COUNT(*) AS visits, COUNT(DISTINCT vs_PathKey) AS pages, MIN(vs_VisitedAt) AS first_visit, MAX(vs_VisitedAt) AS last_visit, AVG(vs_DurationMs) AS avg_ms, SUM(vs_StatusCode=404) AS not_found, SUM(vs_StatusCode BETWEEN 400 AND 499) AS error_4xx, SUM(vs_StatusCode BETWEEN 500 AND 599) AS error_5xx FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' AND vs_IP <> \'\' GROUP BY vs_IP ORDER BY visits DESC, last_visit DESC LIMIT ' . $limit;
     return (array) $zbp->db->Query($sql);
 }
 
@@ -238,4 +238,79 @@ function xz_visit_stats_v3_save_filter($view, $name, $filters)
     $sql = "INSERT INTO `{$table}` (sf_UserID,sf_Name,sf_View,sf_Filters,sf_CreatedAt,sf_UpdatedAt) VALUES ({$userId}," . xz_visit_stats_v2_quote($name) . ',' . xz_visit_stats_v2_quote($view) . ',' . xz_visit_stats_v2_quote($json) . ",{$now},{$now})";
     $zbp->db->Query($sql);
     return true;
+}
+
+function xz_visit_stats_v3_page_context_rows($filters, $limit = 100)
+{
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $where = implode(' AND ', xz_visit_stats_v3_where($filters, $range));
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT vs_PathKey AS path_key, MAX(vs_Path) AS path, MAX(vs_PageTitle) AS page_title, MAX(vs_PostID) AS post_id, COUNT(*) AS visits, MAX(vs_VisitedAt) AS last_visit FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' GROUP BY vs_PathKey ORDER BY visits DESC LIMIT ' . $limit;
+    return (array) $zbp->db->Query($sql);
+}
+
+function xz_visit_stats_v3_entry_rows($filters, $limit = 50)
+{
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $where = implode(' AND ', xz_visit_stats_v3_where($filters, $range));
+    $table = xz_visit_stats_v2_table();
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT l.vs_PathKey AS path_key,MAX(l.vs_Path) AS path,MAX(l.vs_PageTitle) AS page_title,COUNT(*) AS entries FROM ' . $table . ' l INNER JOIN (SELECT vs_VisitorHash,MIN(vs_VisitedAt) AS first_at FROM ' . $table . ' WHERE ' . $where . " AND vs_IsBot=0 AND vs_VisitorHash<>'' GROUP BY vs_VisitorHash) e ON e.vs_VisitorHash=l.vs_VisitorHash AND e.first_at=l.vs_VisitedAt WHERE " . $where . ' AND l.vs_IsBot=0 GROUP BY l.vs_PathKey ORDER BY entries DESC LIMIT ' . $limit;
+    return (array) $zbp->db->Query($sql);
+}
+
+function xz_visit_stats_v3_ai_crawler_rows($filters, $limit = 50)
+{
+    return xz_visit_stats_v3_dimension_rows('vs_AiCrawler', array_merge($filters, array('visit_type' => 'bot')), $limit);
+}
+
+function xz_visit_stats_v3_error_associations($filters, $limit = 30)
+{
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $where = xz_visit_stats_v3_where($filters, $range);
+    $where[] = 'vs_StatusCode>=400';
+    $where = implode(' AND ', $where);
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT vs_PathKey AS path_key,MAX(vs_Path) AS path,MAX(vs_SourceDomain) AS source_domain,MAX(vs_BotName) AS bot_name,MAX(vs_AiCrawler) AS ai_crawler,SUM(vs_StatusCode=404) AS not_found,COUNT(*) AS errors FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' GROUP BY vs_PathKey,vs_SourceDomain,vs_BotName,vs_AiCrawler ORDER BY errors DESC LIMIT ' . $limit;
+    return (array) $zbp->db->Query($sql);
+}
+
+function xz_visit_stats_v3_duration_summary($filters)
+{
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $where = implode(' AND ', xz_visit_stats_v3_where($filters, $range)) . ' AND vs_DurationMs>=0';
+    $table = xz_visit_stats_v2_table();
+    $row = (array) $zbp->db->Query('SELECT COUNT(*) AS samples,AVG(vs_DurationMs) AS average,SUM(vs_DurationMs>=1000) AS slow FROM ' . $table . ' WHERE ' . $where);
+    $result = !empty($row) ? $row[0] : array('samples' => 0, 'average' => 0, 'slow' => 0);
+    foreach (array(50,75,95) as $p) $result['p' . $p] = xz_visit_stats_v3_duration_percentile($where, $p / 100);
+    return $result;
+}
+
+function xz_visit_stats_v3_duration_percentile($where, $quantile)
+{
+    global $zbp;
+    $table = xz_visit_stats_v2_table();
+    $rows = (array) $zbp->db->Query('SELECT COUNT(*) AS n FROM ' . $table . ' WHERE ' . $where);
+    $count = empty($rows) ? 0 : (int) $rows[0]['n'];
+    if ($count === 0) return null;
+    $offset = max(0, (int) ceil($count * $quantile) - 1);
+    $rows = (array) $zbp->db->Query('SELECT vs_DurationMs AS value FROM ' . $table . ' WHERE ' . $where . ' ORDER BY vs_DurationMs ASC LIMIT ' . $offset . ',1');
+    return empty($rows) ? null : (float) $rows[0]['value'];
+}
+
+function xz_visit_stats_v3_rum_dimension_rows($filters, $field, $limit = 50)
+{
+    global $zbp;
+    $allowed = array('rum_Language' => 'language', 'rum_Screen' => 'screen', 'rum_Viewport' => 'viewport');
+    if (!isset($allowed[$field])) return array();
+    $table = xz_visit_stats_rum_table();
+    if (!$zbp->db->ExistTable($table)) return array();
+    $range = xz_visit_stats_v2_range($filters);
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT ' . $field . ' AS name,COUNT(*) AS samples FROM `' . $table . '` WHERE rum_VisitedAt>=' . (int) $range['start'] . ' AND rum_VisitedAt<' . (int) $range['end'] . ' AND ' . $field . "<>'' GROUP BY " . $field . ' ORDER BY samples DESC,name ASC LIMIT ' . $limit;
+    return (array) $zbp->db->Query($sql);
 }
