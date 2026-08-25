@@ -15,8 +15,9 @@
     if (sent) return;
     sent = true;
     var body = JSON.stringify(data), url = location.origin + '/zb_users/plugin/xz_visit_stats/rum.php';
-    if (navigator.sendBeacon) { navigator.sendBeacon(url, new Blob([body], { type: 'application/json' })); }
-    else if (window.fetch) { fetch(url, { method: 'POST', body: body, headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', keepalive: true }); }
+    var accepted = false;
+    try { if (navigator.sendBeacon) accepted = navigator.sendBeacon(url, new Blob([body], { type: 'application/json' })); } catch (e) {}
+    if (!accepted && window.fetch) { try { fetch(url, { method: 'POST', body: body, headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', keepalive: true }).catch(function () {}); } catch (e) {} }
   }
   addEventListener('pagehide', send, { once: true });
   document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') send(); });

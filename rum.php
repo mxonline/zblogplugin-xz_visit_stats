@@ -22,7 +22,7 @@ if (strpos($contentType, 'application/json') !== 0) xz_visit_stats_rum_reject();
 
 $origin = xz_visit_stats_server_value('HTTP_ORIGIN');
 $host = xz_visit_stats_server_value('HTTP_HOST');
-if ($origin !== '' && parse_url($origin, PHP_URL_HOST) !== $host) xz_visit_stats_rum_reject();
+if ($origin !== '' && !xz_visit_stats_rum_same_origin($origin, $host)) xz_visit_stats_rum_reject();
 $settings = xz_visit_stats_settings_values();
 if ((int) $settings['beacon_enabled'] !== 1) xz_visit_stats_rum_reject();
 $raw = file_get_contents('php://input');
@@ -39,6 +39,20 @@ function xz_visit_stats_rum_number($payload, $key, $max, $decimals = 2)
 function xz_visit_stats_rum_text($payload, $key, $length)
 {
     return isset($payload[$key]) && !is_array($payload[$key]) ? xz_visit_stats_limit($payload[$key], $length) : '';
+}
+
+function xz_visit_stats_rum_same_origin($origin, $host)
+{
+    $originParts = parse_url($origin);
+    if (!is_array($originParts) || empty($originParts['scheme']) || empty($originParts['host'])) return false;
+    $requestParts = parse_url('http://' . ltrim((string) $host, '/'));
+    if (!is_array($requestParts) || empty($requestParts['host'])) return false;
+    $originScheme = strtolower((string) $originParts['scheme']);
+    $requestScheme = strtolower(xz_visit_stats_server_value('HTTPS')) === 'on' || xz_visit_stats_server_value('SERVER_PORT') === '443' ? 'https' : 'http';
+    if ($originScheme !== $requestScheme || strtolower((string) $originParts['host']) !== strtolower((string) $requestParts['host'])) return false;
+    $originPort = isset($originParts['port']) ? (int) $originParts['port'] : ($originScheme === 'https' ? 443 : 80);
+    $requestPort = isset($requestParts['port']) ? (int) $requestParts['port'] : ($requestScheme === 'https' ? 443 : 80);
+    return $originPort === $requestPort;
 }
 
 $path = xz_visit_stats_normalize_path(xz_visit_stats_rum_text($payload, 'path', 2048));
@@ -59,6 +73,6 @@ foreach (array('lcp' => array('rum_LCP', 120000, 2), 'inp' => array('rum_INP', 1
 try {
     $sql = $zbp->db->sql->Insert(xz_visit_stats_rum_table(), $data);
     $zbp->db->Query($sql);
-} catch (Exception $exception) {
+} catch (Throwable $exception) {
     // RUM is best-effort and must never affect the page response.
 }
