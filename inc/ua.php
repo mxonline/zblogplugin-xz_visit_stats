@@ -45,7 +45,14 @@ function xz_visit_stats_detect_browser($userAgent)
         }
     }
 
-    return '';
+    if ($userAgent === '') {
+        return '未提供客户端信息';
+    }
+    if (preg_match('/(?:curl|wget|python-requests|python-urllib|postmanruntime)/i', $userAgent)) {
+        return 'HTTP 客户端';
+    }
+
+    return '未识别客户端';
 }
 
 function xz_visit_stats_detect_os($userAgent)

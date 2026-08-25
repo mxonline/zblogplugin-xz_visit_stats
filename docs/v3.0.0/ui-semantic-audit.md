@@ -1,7 +1,7 @@
 # v3.0 全插件产品化 UI 与字段语义审查
 
 日期：2026-08-25
-状态：PASS（暂停 V3-T5 放行，等待完整回归）
+状态：PASS（已于最终验收复查；Functional Product Gate 仍因真实 Chrome/Edge 识别验证阻断）
 
 ## 共用修复
 
@@ -30,4 +30,31 @@
 
 ## 发布门禁
 
-UI Semantic Audit Gate：**PASS**。仍须完成完整 V3-T5 回归、CI 和发布前检查，才可创建 PR、合并、Tag、Release 或正式 ZIP。
+## 最终复查补充
+
+- 本机后台逐页复查了总览、实时分析、访问记录、页面、来源、推广活动与 AI 来源、IP、访客环境、蜘蛛、错误、性能和设置与维护。
+- 可见文本未发现“字段 N”、裸 `DurationMs`、`Referer`、`Browser`、`Device`、`AI crawler` 或 Unix 时间戳。
+- 访问记录的详情按钮、Drawer、游标连续读取和 CSV 入口均可见；Drawer 仅传递展示所需字段，不再将整行原始记录输出到页面脚本。
+- 当前 1366px 实测插件内容区和普通表格无横向溢出；此前同一 CSS 布局规则已实测 1024px、768px、390px，且本轮只改文案、数据字段和分页可见性，不改变断点布局。
+
+## 强制复审：站长可读性与实现术语
+
+此前 UI PASS 结论已由本次复审覆盖。已在本机逐页扫描总览、实时分析、访问记录、页面、来源、推广活动与 AI 来源、IP、访客环境、蜘蛛、错误、性能和设置与维护的实际可见文本。
+
+- 性能分析主界面使用“服务器响应耗时”“页面加载体验”“主要内容显示速度”“操作响应速度”“页面稳定性”“首字节响应时间”“首屏内容出现时间”；分位数不再作为主标题。“服务端响应变化”改为“服务器响应速度趋势”。
+- 访问记录底部改为“常用筛选”，说明为保存筛选条件的业务用途，按钮为“查看更多记录”；不显示游标、Keyset、OFFSET、cursor 或按 ID 读取等实现说明。
+- 本机开发测试记录和 T5 验收筛选在普通后台中静默隐藏，不提供普通用户可见的测试开关或提示。
+- 实际可见文本扫描未发现：`DurationMs`、`Path`、`PathKey`、`Referer`、`Browser`、`Device`、`Campaign`、`RUM`、`Beacon`、`P50/P75/P95`、`Keyset`、`OFFSET`、`cursor`、`migration`、`backfill`、`Header`、`CIDR`。
+- 访问记录与性能分析在本轮文案调整后可正常打开；“查看更多记录”、导出入口和服务器响应速度趋势均可见。
+
+UI Product Gate：**PASS**。仍须由 Functional Product Gate 与 CI 同时通过，才可创建 PR、合并、Tag、Release 或正式 ZIP。
+
+## UI Terminology Gate
+
+- 已接入 `tools/check-ui-terminology.php` 与 `config/ui-terminology.json`，规则来源为 `xinzhou-code-standard` 的 Z-Blog UI 术语门禁模板并按本插件正式 UI 入口适配。
+- 扫描仅覆盖 `main.php`、后台导航和实际写入 DOM 的插件脚本；显式排除第三方压缩库、数据库/升级实现、测试、文档和依赖目录。
+- PHP 模板文案按 `v3_admin.js` 的实际可见转换规则规范化后检查，避免将内部变量或已经产品化的渲染前文本误判为普通用户 UI。
+- 本机执行 `php tools/check-ui-terminology.php`：PASS。
+- 已在 `code-check.yml` 加入无 `continue-on-error` 的 **UI Terminology Gate**。
+
+UI Terminology Gate：**LOCAL PASS / CI PENDING**。

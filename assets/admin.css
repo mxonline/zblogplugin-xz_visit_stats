@@ -40,8 +40,6 @@
 .xzvs-drawer-body h3 { margin: 16px 0 6px; color: #3b4a59; font-size: 14px; }
 .xzvs-drawer-body section:first-child h3 { margin-top: 0; }
 .xzvs-test-row { display: none; }
-.xzvs-show-test-data .xzvs-test-row { display: table-row; }
-.xzvs-test-data-note { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0 0 12px; padding: 8px 10px; border-left: 3px solid #8aa3b8; background: #f4f7f9; color: #51606d; font-size: 12px; }
 .xzvs-nav-group { min-width: 0; }
 .xzvs-nav-title { display: block; margin: 0 0 6px; color: #68727d; font-size: 12px; }
 .xzvs-nav-items { display: flex; flex-wrap: wrap; gap: 4px; }
@@ -74,6 +72,7 @@
 .xzvs-app .tableFull { box-sizing: border-box; width: 100%; max-width: 100%; table-layout: fixed; }
 .xzvs-app .tableFull th, .xzvs-app .tableFull td { overflow: hidden; text-overflow: ellipsis; overflow-wrap: anywhere; vertical-align: top; }
 .xz-visit-table { width: 100%; min-width: 0; margin: 0; border: 0; }
+.xzvs-app .xz-pagination { display: none; }
 .xz-visit-table thead th { position: sticky; top: 0; z-index: 4; background: #e9e9e9; box-shadow: 0 1px 0 #ccc; white-space: nowrap; }
 .xz-visit-table td { vertical-align: top; }
 .xz-visit-table th:first-child, .xz-data-row > td:first-child { box-sizing: border-box; width: 155px; min-width: 155px; white-space: nowrap; }

@@ -6,21 +6,32 @@
     'Path': '页面路径', 'Referer': '来源地址', 'Referer 排行': '来源地址排行', 'Browser': '浏览器', 'Device': '设备类型', 'AI crawler': 'AI 爬虫',
     '页面分析（规范化 Path）': '页面访问分析', '高频错误 Path': '常见错误页面', 'UTM Campaign': 'UTM 推广活动', 'Campaign': '推广活动', 'RUM 性能': '用户体验性能',
     'DurationMs 分位数与慢请求': '服务器处理耗时分位数与慢请求', '真实用户体验 RUM': '真实用户体验（RUM）',
-    '本地 GeoIP 数据源不可用或暂无地域数据': '本地地域库不可用，暂不显示地域数据。', 'complete': '正常', 'PathKey': '页面路径索引'
+    '本地 GeoIP 数据源不可用或暂无地域数据': '本地地域库不可用，暂不显示地域数据。', 'complete': '正常', 'PathKey': '页面路径索引',
+    '关键词仅在 Referer 实际携带且可解析时可见；不承诺完整关键词排名。': '关键词仅在来源地址实际携带且可解析时显示。',
+    '暂无 AI crawler 数据': '当前没有识别到 AI 爬虫访问', '错误关联（来源 / 蜘蛛 / AI crawler）': '错误关联（来源、蜘蛛与 AI 爬虫）',
+    'DurationMs 仅表示服务端处理耗时，不代表前端页面加载性能。': '服务器响应耗时仅反映服务器处理，不代表访客的页面加载体验。',
+    '仅展示 Beacon 启用后产生的数据；LCP / INP / CLS / TTFB / FCP 与服务器 DurationMs 分开统计。': '页面加载体验仅统计开启体验采集后的新访问，并与服务器响应耗时分开查看。',
+    '保存 Referer': '保存来源地址', '保存 UA / Browser / OS / Device': '保存浏览器、操作系统与设备信息',
+    'RUM 性能': '页面加载体验', '真实用户体验 RUM': '页面加载体验', 'Beacon 访客环境聚合': '访客环境',
+    'LCP P75': '主要内容显示速度', 'INP P75': '操作响应速度', 'CLS P75': '页面稳定性', 'TTFB P75': '首字节响应时间', 'FCP P75': '首屏内容出现时间',
+    '服务端响应变化': '服务器响应速度趋势',
+    'Path': '页面路径', 'PathKey': '页面路径标识', 'Campaign': '推广活动', 'UTM Campaign': 'UTM 推广活动'
   };
   function localize(node) {
-    if (node.nodeType === 3 && labels[node.nodeValue.trim()]) node.nodeValue = node.nodeValue.replace(node.nodeValue.trim(), labels[node.nodeValue.trim()]);
+    if (node.nodeType !== 3) return;
+    var value = node.nodeValue;
+    if (labels[value.trim()]) value = value.replace(value.trim(), labels[value.trim()]);
+    [['DurationMs', '服务器响应耗时'], ['PathKey', '页面数据状态'], ['Campaign', '推广活动'], ['Beacon', '页面加载体验采集'], ['RUM', '页面加载体验'], ['CIDR', '地址范围'], ['Header', '转发字段'], ['REMOTE_ADDR', '访问来源地址'], ['complete', '正常']].forEach(function (pair) { value = value.split(pair[0]).join(pair[1]); });
+    node.nodeValue = value;
   }
   document.querySelectorAll('.xzvs-app *').forEach(function (element) { Array.prototype.forEach.call(element.childNodes, localize); });
   var testRows = Array.prototype.filter.call(document.querySelectorAll('.xzvs-app tbody tr'), function (row) { return /\/(?:_+xz|xz_t5|v3-)/i.test(row.textContent); });
   if (testRows.length) {
     testRows.forEach(function (row) { row.classList.add('xzvs-test-row'); });
-    var note = document.createElement('p'), toggle = document.createElement('button');
-    note.className = 'xzvs-test-data-note'; note.textContent = '已暂时隐藏 ' + testRows.length + ' 条本机开发测试记录，避免干扰日常查看。';
-    toggle.type = 'button'; toggle.className = 'button'; toggle.textContent = '显示测试记录';
-    toggle.addEventListener('click', function () { document.body.classList.toggle('xzvs-show-test-data'); toggle.textContent = document.body.classList.contains('xzvs-show-test-data') ? '隐藏测试记录' : '显示测试记录'; });
-    var target = document.querySelector('.xzvs-main-content'); if (target) target.insertBefore(note, target.firstChild), note.appendChild(toggle);
   }
+  Array.prototype.forEach.call(document.querySelectorAll('.xzvs-v3-extension ul li'), function (item) {
+    if (/\b(?:t5|xz_t5|v3[-_]?test)\b/i.test(item.textContent)) item.classList.add('xzvs-test-row');
+  });
   document.addEventListener('alpine:init', function () {
     Alpine.data('xzvsApp', function () {
       return { navOpen: false };

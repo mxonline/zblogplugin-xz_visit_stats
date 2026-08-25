@@ -263,7 +263,13 @@ function xz_visit_stats_v3_entry_rows($filters, $limit = 50)
 
 function xz_visit_stats_v3_ai_crawler_rows($filters, $limit = 50)
 {
-    return xz_visit_stats_v3_dimension_rows('vs_AiCrawler', array_merge($filters, array('visit_type' => 'bot')), $limit);
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $botFilters = array_merge($filters, array('visit_type' => 'bot'));
+    $where = implode(' AND ', xz_visit_stats_v3_where($botFilters, $range));
+    $limit = max(1, min(100, (int) $limit));
+    $sql = 'SELECT vs_AiCrawler AS name,COUNT(*) AS visits,SUM(vs_StatusCode>=400 AND vs_StatusCode<500) AS error_4xx,SUM(vs_StatusCode>=500) AS error_5xx FROM ' . xz_visit_stats_v2_table() . " WHERE " . $where . " AND vs_AiCrawler<>'' GROUP BY vs_AiCrawler ORDER BY visits DESC,name ASC LIMIT " . $limit;
+    return (array) $zbp->db->Query($sql);
 }
 
 function xz_visit_stats_v3_error_associations($filters, $limit = 30)
@@ -288,6 +294,15 @@ function xz_visit_stats_v3_duration_summary($filters)
     $result = !empty($row) ? $row[0] : array('samples' => 0, 'average' => 0, 'slow' => 0);
     foreach (array(50,75,95) as $p) $result['p' . $p] = xz_visit_stats_v3_duration_percentile($where, $p / 100);
     return $result;
+}
+
+function xz_visit_stats_v3_duration_trend($filters)
+{
+    global $zbp;
+    $range = xz_visit_stats_v2_range($filters);
+    $where = implode(' AND ', xz_visit_stats_v3_where($filters, $range)) . ' AND vs_DurationMs>=0';
+    $sql = 'SELECT DATE(FROM_UNIXTIME(vs_VisitedAt)) AS day,COUNT(*) AS samples,AVG(vs_DurationMs) AS average,SUM(vs_DurationMs>=1000) AS slow FROM ' . xz_visit_stats_v2_table() . ' WHERE ' . $where . ' GROUP BY day ORDER BY day ASC';
+    return (array) $zbp->db->Query($sql);
 }
 
 function xz_visit_stats_v3_duration_percentile($where, $quantile)

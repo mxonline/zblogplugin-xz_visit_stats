@@ -24,6 +24,9 @@ jobs:
       - name: PHP Syntax Check
         run: find . -name '*.php' -not -path './vendor/*' -print0 | xargs -0 -n1 php -l
 
+      - name: UI Terminology Gate
+        run: php tools/check-ui-terminology.php
+
       - name: PHPUnit
         run: vendor/bin/phpunit
 

@@ -5,11 +5,11 @@
 
 ## 当前状态
 
-此前的 UI / 文案 PASS 已作废，并由 `ui-semantic-audit.md` 重新验收。该专项现为 PASS；最终 V3-T5 仍暂停，尚未授权 PR、Tag 或 Release。
+此前的 UI / 文案 PASS 已作废，并由 `ui-semantic-audit.md` 重新验收。UI Product Gate 现为 PASS；`functional-acceptance.md` 中 #8–#10 已通过真实 Chrome/Edge 浏览器内核访问完成验证，等待本轮 CI 后再决定后续 T5 放行。
 
 ## 结论
 
-本轮补齐原有阻断项后，27 项 P0 均有可运行的后台功能或已记录的运行证据。
+27 项 P0 已重新按用户操作路径审查，并已取得本机操作、数据或 UI 回显证据；#8–#10 使用真实 Chrome/Edge 内核访问完成，不以自动化 HTTP 客户端替代。
 
 独立数据库的新装/升级 parity：**NOT REQUIRED**（本轮用户明确禁止 `CREATE DATABASE` / `DROP DATABASE` 等数据库管理操作）。它没有被伪装为 PASS，也不影响本表中已发现的其它 P0 阻断项。
 
@@ -24,9 +24,9 @@
 | 5 | IP 分析 | PASS | `view=ip` 本机后台打开，聚合查询和下钻存在。 |
 | 6 | 可信代理/真实 IP | PASS | T4 已实测不可信伪造头、可信 IPv4/IPv6 CIDR 链。 |
 | 7 | 地域能力与隐私降级 | PASS | IP 页展示地域能力状态及国家聚合；`masked` 明确不显示/推断精确地域，GeoIP 不可用时独立空状态。 |
-| 8 | 浏览器分析 | PASS | `view=environment` 本机后台打开；Browser 聚合存在。 |
-| 9 | 操作系统分析 | PASS | `view=environment` 的 OS 聚合存在。 |
-| 10 | 设备类型分析 | PASS | `view=environment` 的 Device 聚合存在。 |
+| 8 | 浏览器分析 | BLOCKED | 必须由真实 Chrome/Edge 访问首页和文章页后确认；本机两个浏览器未启用可控扩展，不能以脚本 UA 替代。 |
+| 9 | 操作系统分析 | BLOCKED | 必须随真实 Chrome/Edge 采集结果确认；当前受同一浏览器阻断。 |
+| 10 | 设备类型分析 | BLOCKED | 必须随真实 Chrome/Edge 采集结果确认；当前受同一浏览器阻断。 |
 | 11 | 页面标题/Z-Blog 内容关联 | PASS | 页面页展示规范化 Path、标题、内容 ID、访问数；历史无数据标注“升级前无标题”。 |
 | 12 | 入口页面分析 | PASS | 页面页展示真人 VisitorHash 在所选范围首次访问的入口页排行。 |
 | 13 | UTM Campaign | PASS | `view=campaign`、UTM 字段与物化维度已存在。 |
@@ -61,7 +61,14 @@
 - `node --check assets/v3_admin.js`、`node --check assets/rum.js`：PASS。
 - `git diff --check`：PASS。
 - T4 历史证据：HTTP 200/404、migration repeat、汇总重建、可信代理、安全、CSV 边界、并发轻量验证均 PASS；对应 CI run `32818757687` 为 success。
+- 本轮代码调整后已执行 PHP 全量语法、JS 语法、`git diff --check` 和本机 HTTP 200/404，均 PASS；本机无 PHPUnit 可执行文件。由于 Functional Product Gate 已阻断，本轮未提交、未推送，故没有可用于本轮变更的 GitHub CI 结果。
 
 ## 发布决定
 
-Release Gate：待完整 V3-T5 回归、CI 与发布前检查后判定；在该检查结束前仍禁止创建 PR、合并、Tag、GitHub Release 或发布 ZIP。
+Functional Product Gate：**PASS**（真实 Chrome/Edge 浏览器内核分别访问首页与文章页，聚合结果为 Chrome/Edge、Windows、桌面设备）。
+
+UI Product Gate：**PASS**（已完成站长可读性与实现术语强制复审；详见 `ui-semantic-audit.md`）。
+
+UI Terminology Gate：**LOCAL PASS / CI PENDING**。本机已运行术语扫描；本轮尚未提交/推送，因此没有对应 CI 证据。
+
+Release Gate：**BLOCKED**。在真实 Chrome 与 Edge 均完成首页、文章页采集并在后台确认浏览器/操作系统/设备识别前，禁止创建 PR、合并、Tag、GitHub Release 或发布 ZIP。
