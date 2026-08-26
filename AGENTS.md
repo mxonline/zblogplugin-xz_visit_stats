@@ -9,6 +9,9 @@ The desired workflow is:
 ```text
 User requirement
 → ChatGPT requirements / PRD / acceptance criteria
+→ project state / task-specific knowledge
+→ GitHub + official ecosystem search when a reusable subsystem decision is involved
+→ Reuse Gate: USE / REUSE / FORK / BUILD
 → Codex opens the real project workspace
 → reads this file and current repository state
 → loads only the required project knowledge
@@ -45,13 +48,27 @@ For every non-trivial task:
 4. Follow `knowledge/INDEX.md` to load only the documents relevant to the task.
 5. Search `knowledge/KNOWN-FAILURES.md` before inventing a new fix for a repeated failure.
 6. Use `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md` for reusable project engineering rules.
-7. After verified work, update project state/knowledge and the corresponding Notion record.
+7. When a new reusable subsystem/library/algorithm decision is involved, read and execute `knowledge/REUSE-GATE.md` before implementation.
+8. After verified work, update project state/knowledge and the corresponding Notion record.
 
 Authority order is real Git/runtime/CI evidence first, then `PROJECT-STATE.md`, current PRD/design/task handoff, this file, project knowledge, Notion, and historical/external references.
 
 The legacy `.codex-state.json` belongs to an older controller/task chain and is not the authoritative v4 project-state source unless a future migration explicitly makes it so and tests that controller behavior.
 
 Do not load all project/history/reference documents by default. Keep context task-specific.
+
+## Reuse Gate hard rule
+
+`knowledge/REUSE-GATE.md` is a prospective pre-implementation decision gate. It does not replace the v4 PRD, current `.codex-tasks/`, local runtime checks, CI or release gates.
+
+- Do not rewind, delete or redo completed v4/T2/T3 work merely because this rule was added after development had started.
+- Existing verified data/schema/runtime evidence remains authoritative.
+- Apply the gate to unresolved T3/T4 implementation choices and future non-trivial subsystem decisions.
+- Search Z-Blog official resources first, then maintained GitHub projects/libraries, before custom-building a generic capability.
+- Evaluate license, maintenance, CI/tests, security/dependencies, PHP/Z-Blog/MySQL compatibility, hot-path performance, package size, privacy and maintenance cost.
+- Star count is supporting evidence only.
+- No explicit `USE / REUSE / FORK / BUILD` decision means no new reusable subsystem implementation should begin.
+- A gate may conclude `BUILD + SELECTIVE REUSE`; large analytics systems may be architecture references without being imported or forked.
 
 ## Expected local development environment
 
@@ -111,17 +128,18 @@ For every non-trivial task:
 1. Read the real current code and repository status.
 2. Load the task-specific project knowledge via `knowledge/INDEX.md`.
 3. Determine the affected Hook, database, configuration and compatibility surface.
-4. Make the smallest coherent implementation.
-5. Run fast local checks.
-6. If the change depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
-7. On failure, read the actual error/output, check `knowledge/KNOWN-FAILURES.md`, fix the cause and re-run the relevant checks.
-8. Inspect the final diff for unrelated edits, generated junk and secrets.
-9. Update documentation/version metadata only when the task or release state requires it.
-10. Commit/push the development branch when the requested workflow includes Git delivery.
-11. Evaluate the Release Gate even when the current phase is not ready to publish.
-12. Update `knowledge/PROJECT-STATE.md`; add reusable knowledge/failure entries only when supported by observed evidence.
-13. Ensure the controller has written the real result back to Notion.
-14. Emit the mandatory six-gate completion report.
+4. If the task introduces/selects a reusable subsystem, run `knowledge/REUSE-GATE.md` and record `USE / REUSE / FORK / BUILD` before production implementation.
+5. Make the smallest coherent implementation.
+6. Run fast local checks.
+7. If the change depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
+8. On failure, read the actual error/output, check `knowledge/KNOWN-FAILURES.md`, fix the cause and re-run the relevant checks.
+9. Inspect the final diff for unrelated edits, generated junk and secrets.
+10. Update documentation/version metadata only when the task or release state requires it.
+11. Commit/push the development branch when the requested workflow includes Git delivery.
+12. Evaluate the Release Gate even when the current phase is not ready to publish.
+13. Update `knowledge/PROJECT-STATE.md`; add reusable knowledge/failure entries only when supported by observed evidence.
+14. Ensure the controller has written the real result back to Notion.
+15. Emit the mandatory six-gate completion report.
 
 ## When local Z-Blog runtime verification is mandatory
 
@@ -224,6 +242,7 @@ Every completed task report must contain:
 - checks actually executed and their results;
 - local Z-Blog/runtime checks actually executed when required;
 - Git branch/commit/CI state when applicable;
+- Reuse Gate decision when the task involved a reusable subsystem;
 - Release Gate result;
 - Notion context/writeback evidence for a complete-flow task;
 - knowledge/state writeback evidence for non-trivial tasks;
