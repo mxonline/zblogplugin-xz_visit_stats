@@ -11,6 +11,7 @@ User requirement
 → ChatGPT requirements / PRD / acceptance criteria
 → Codex opens the real project workspace
 → reads this file and current repository state
+→ loads only the required project knowledge
 → edits the real source tree
 → runs local automated checks
 → runs local Z-Blog runtime verification when required
@@ -18,6 +19,7 @@ User requirement
 → Git commit / push / CI
 → release documentation and release gates
 → Notion writeback
+→ project knowledge/state writeback
 → mandatory six-gate completion report
 ```
 
@@ -29,20 +31,43 @@ Routine development must not require the user to copy commands, edit task files,
 - Repository: `mxonline/zblogplugin-xz_visit_stats`.
 - Current formal baseline is the version recorded by `plugin.xml`, `docs/VERSION.md`, Git tags/releases and the current branch. Never trust a stale version written in this file over the real repository state.
 - Before starting a task, inspect `git status`, current branch, `plugin.xml`, relevant PRD/version documents and the affected code.
-- A 2.0 task is a major-version task and requires local Z-Blog runtime verification before it can be called complete.
+- Major-version work requires local Z-Blog runtime verification before it can be called complete.
+
+## Knowledge loading protocol
+
+The project knowledge router is `knowledge/INDEX.md`.
+
+For every non-trivial task:
+
+1. Read this `AGENTS.md`.
+2. Read `knowledge/PROJECT-STATE.md`.
+3. Inspect the real current Git state and reconcile any difference before execution.
+4. Follow `knowledge/INDEX.md` to load only the documents relevant to the task.
+5. Search `knowledge/KNOWN-FAILURES.md` before inventing a new fix for a repeated failure.
+6. Use `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md` for reusable project engineering rules.
+7. After verified work, update project state/knowledge and the corresponding Notion record.
+
+Authority order is real Git/runtime/CI evidence first, then `PROJECT-STATE.md`, current PRD/design/task handoff, this file, project knowledge, Notion, and historical/external references.
+
+The legacy `.codex-state.json` belongs to an older controller/task chain and is not the authoritative v4 project-state source unless a future migration explicitly makes it so and tests that controller behavior.
+
+Do not load all project/history/reference documents by default. Keep context task-specific.
 
 ## Expected local development environment
 
-The current Windows test environment is expected to expose the plugin inside a real Z-Blog installation. Typical paths are:
+The v4 Windows audit most recently verified this local environment:
 
 ```text
-Z-Blog root:   D:\wwwroot\xinzhao_net
-Plugin root:   D:\wwwroot\xinzhao_net\zb_users\plugin\xz_visit_stats
+Z-Blog root:   D:\wwwroot\www.xzhao.net
+Plugin root:   D:\wwwroot\www.xzhao.net\zb_users\plugin\xz_visit_stats
 Local site:    http://127.0.0.1
 PHP CLI:       D:\BtSoft\php\83\php.exe
+PHP:           8.3.8
+Z-BlogPHP:     173540
+MySQL:         5.7.38-log
 ```
 
-Do not blindly hard-code these values into runtime plugin code. Local scripts may use them as defaults but must allow overrides. If the real workspace differs, detect the actual paths before testing.
+Do not blindly hard-code these values into runtime plugin code. Local scripts may use verified values as defaults but must allow overrides. If the real workspace differs, detect the actual paths/versions before testing and update project state after verification.
 
 ## Direct execution policy
 
@@ -84,23 +109,25 @@ Pause only when an operation requires credentials that are not available, touche
 For every non-trivial task:
 
 1. Read the real current code and repository status.
-2. Determine the affected Hook, database, configuration and compatibility surface.
-3. Make the smallest coherent implementation.
-4. Run fast local checks.
-5. If the change depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
-6. On failure, read the actual error/output, fix the cause and re-run the relevant checks.
-7. Inspect the final diff for unrelated edits, generated junk and secrets.
-8. Update documentation/version metadata only when the task or release state requires it.
-9. Commit/push the development branch when the requested workflow includes Git delivery.
-10. Evaluate the Release Gate even when the current phase is not ready to publish.
-11. Ensure the controller has written the real result back to Notion.
-12. Emit the mandatory six-gate completion report.
+2. Load the task-specific project knowledge via `knowledge/INDEX.md`.
+3. Determine the affected Hook, database, configuration and compatibility surface.
+4. Make the smallest coherent implementation.
+5. Run fast local checks.
+6. If the change depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
+7. On failure, read the actual error/output, check `knowledge/KNOWN-FAILURES.md`, fix the cause and re-run the relevant checks.
+8. Inspect the final diff for unrelated edits, generated junk and secrets.
+9. Update documentation/version metadata only when the task or release state requires it.
+10. Commit/push the development branch when the requested workflow includes Git delivery.
+11. Evaluate the Release Gate even when the current phase is not ready to publish.
+12. Update `knowledge/PROJECT-STATE.md`; add reusable knowledge/failure entries only when supported by observed evidence.
+13. Ensure the controller has written the real result back to Notion.
+14. Emit the mandatory six-gate completion report.
 
 ## When local Z-Blog runtime verification is mandatory
 
 Runtime verification is a release blocker for changes involving any of the following:
 
-- major-version work such as v2.0;
+- major-version work;
 - plugin install, enable, disable, uninstall or upgrade behavior;
 - database schema, indexes, migrations or stored configuration;
 - Z-Blog Hooks and request lifecycle behavior;
@@ -199,6 +226,7 @@ Every completed task report must contain:
 - Git branch/commit/CI state when applicable;
 - Release Gate result;
 - Notion context/writeback evidence for a complete-flow task;
+- knowledge/state writeback evidence for non-trivial tasks;
 - remaining limitations or external blockers;
 - the mandatory six-gate block when complete flow was requested.
 
