@@ -130,7 +130,7 @@ powershell -ExecutionPolicy Bypass -File .\scripts\v4-schema-audit.ps1 `
 | 表前缀 | `zbp_` |
 | 插件 | `xz_visit_stats`，`3.0.0` |
 
-真实表摘要（列定义、NULL、默认值、Extra 和索引完整内容见同目录 JSON）：
+真实表摘要（共 9 张表；列定义、NULL、默认值、Extra 和索引完整内容见同目录 JSON）：
 
 | 表 | 行数 | 结构摘要 | 主要索引 |
 | --- | ---: | --- | --- |
