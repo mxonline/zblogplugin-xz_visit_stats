@@ -20,6 +20,9 @@ function xz_visit_stats_collect()
     $collected = true;
 
     $ip = xz_visit_stats_client_ip();
+    if (xz_visit_stats_v4_ip_is_filtered($ip)) {
+        return;
+    }
     $userAgent = xz_visit_stats_limit(xz_visit_stats_server_value('HTTP_USER_AGENT'), 8192);
     $bot = xz_visit_stats_detect_bot($userAgent);
     if ($bot['is_bot'] && !xz_visit_stats_settings_record_bot($bot['name'], $settings)) {
@@ -71,6 +74,7 @@ function xz_visit_stats_collect()
     try {
         $sql = $zbp->db->sql->Insert($GLOBALS['table']['xz_visit_stats_log'], $data);
         $zbp->db->Query($sql);
+        xz_visit_stats_v4_track_page(array('visitor_hash' => $data['vs_VisitorHash'], 'path_key' => $data['vs_PathKey'], 'path' => $data['vs_Path'], 'source_type' => $data['vs_SourceType'], 'source_domain' => $data['vs_SourceDomain'], 'visited_at' => $data['vs_VisitedAt']));
 
     } catch (Exception $exception) {
     }

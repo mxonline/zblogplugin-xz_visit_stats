@@ -19,7 +19,7 @@ function xz_visit_stats_upgrade_run()
     }
 
     try {
-        $result = xz_visit_stats_upgrade_migrate_to_30();
+        $result = xz_visit_stats_upgrade_migrate_to_40();
     } catch (Exception $exception) {
         return false;
     }
@@ -42,7 +42,8 @@ function xz_visit_stats_upgrade_schema_ready()
     return xz_visit_stats_upgrade_column_exists(xz_visit_stats_physical_table(), 'vs_PathKey')
         && xz_visit_stats_upgrade_column_exists(xz_visit_stats_physical_table(), 'vs_SourceType')
         && xz_visit_stats_upgrade_rum_metrics_nullable(xz_visit_stats_rum_table())
-        && xz_visit_stats_upgrade_v30_schema_compatible();
+        && xz_visit_stats_upgrade_v30_schema_compatible()
+        && xz_visit_stats_upgrade_v4_schema_compatible();
 }
 
 function xz_visit_stats_upgrade_mark_complete($version)

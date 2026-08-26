@@ -1,0 +1,9 @@
+/.phpunit.result.cache
+/vendor/*
+!/vendor/mlocati/
+!/vendor/mlocati/ip-lib/
+/vendor/mlocati/ip-lib/*
+!/vendor/mlocati/ip-lib/ip-lib.php
+!/vendor/mlocati/ip-lib/src/
+!/vendor/mlocati/ip-lib/src/**
+!/vendor/mlocati/ip-lib/LICENSE.txt

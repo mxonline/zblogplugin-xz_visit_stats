@@ -13,7 +13,7 @@ Do not treat a commit hash in this file as proof that it is still the branch HEA
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T3 — session, page lifecycle and event collection foundation`
-- Phase status: `IN PROGRESS / CODEX HANDOFF READY`
+- Phase status: `IMPLEMENTED / VERIFIED LOCALLY / GIT DELIVERY PENDING`
 - Release Gate: `NOT READY`
 - PR/Merge/Tag/Release: not authorized for the current T3 phase
 
@@ -109,6 +109,20 @@ Read and execute:
 - `docs/v4.0.0/MIGRATION-DESIGN-v1.0.md`
 - `.codex-tasks/07-v4-t3-foundation.md`
 
+## T3 implementation and local runtime verification — 2026-08-27
+
+- Development Git worktree: `D:\wwwroot\xinzhao_net\zb_users\plugin\xz_visit_stats\source`; runtime deployment copy: `D:\wwwroot\www.xzhao.net\zb_users\plugin\xz_visit_stats`. The former is the only Git worktree; the latter is a local IIS/Z-Blog test deployment.
+- The runtime copy was backed up before deployment to `D:\wwwroot\www.xzhao.net\zb_users\plugin\xz_visit_stats.t3-backup-20260827-012911` (59 files, 1,571,651 bytes), then only the plugin was synchronized. No Z-Blog core or other plugin was touched.
+- Two earlier deployment attempts created no process and made no file change because Codex execution approval timed out. That was an execution-approval boundary, not a Windows ACL, PHP, database, Composer or plugin-code failure. The authorized deployment subsequently completed; source/target hashes were verified for the incrementally changed files.
+- T3-A through T3-F are implemented with the recorded `BUILD + SELECTIVE REUSE` decision. `mlocati/ip-lib` `1.22.0` is pinned in `composer.json`/`composer.lock`; only its runtime source plus `LICENSE.txt` are packaged, and the IP adapter loads it without requiring Composer on the runtime host.
+- Automated evidence: PHPUnit `21 tests / 93 assertions` PASS with no warning; all non-vendor PHP files PASS syntax check; `assets/rum.js` PASS Node syntax check. `tests/UpgradeFrameworkTest.php` now accurately declares its MySQL test-double driver type, removing the prior `XzVisitStatsTestDb::$type` warning. `scripts/local-verify.ps1` was corrected to run the configured test suite instead of the nonexistent `default` suite.
+- Runtime migration evidence: upgrade ran twice with `true` results and stored `db_version=4.0.0`. Read-only schema audit report `C:\Users\chenz\AppData\Local\Temp\schema-audit-20260827-014357.json` observed all six v4 tables and required indexes: sessions, session pages, events, directory rules, export tasks and IP filters.
+- v3 protection evidence: the original 9 plugin tables remain. The main raw log baseline was 288 rows and is now 297 only from explicit local verification requests; no historical row was deleted or cleared. Existing `keywords`, `page_uv`, and `pages` tables remain present.
+- Runtime behavior observed: homepage `200`, 404 probe `404`, and Baiduspider/referer probe `200`. A two-page identifiable test session reused one Session, produced sequence 1 then 2 and PageCount 2. Without an exit Beacon dwell remained `NULL`; a lifecycle Beacon set a 1250 ms v4 dwell value while `vs_DurationMs` remained outside visitor-dwell logic. Expired single-page session became bounce; multi-page session did not. A valid event stored only allowlisted params. Cross-origin events returned 204 but did not persist; same-origin events persisted. Beacon setting was restored to its original `0` after tests.
+- IPv4 single, IPv4 CIDR, IPv6 single and IPv6 CIDR rules were each tested against the local host. Each request returned normally but did not increase main-log, Session, Page or Event counts; the exact temporary test rule was then removed.
+- Runtime log review: IIS worker was active, no Nginx process was active, the unauthenticated plugin-admin request reached the normal Z-Blog permission page rather than a PHP Fatal/Error, and no xz_visit_stats Fatal/SQL error was found in available PHP/Z-Blog logs. A CLI-only deprecation from unrelated plugin `TCad` (`include.php:17`) was observed and not changed.
+- Git commit/push, GitHub CI confirmation and controller-side Notion writeback remain pending; do not treat this checkpoint as final delivery evidence.
+
 ## Important current constraints
 
 - Preserve v3 raw logs and historical tables.
@@ -127,14 +141,12 @@ Read and execute:
 
 Local Codex should continue T3 from `.codex-tasks/07-v4-t3-foundation.md` without step-by-step user prompts:
 
-1. reconcile local Git/worktree with the current remote branch and load `docs/v4.0.0/REUSE-GATE-T3-v1.0.md`;
-2. run T3 with TDD, the recorded Reuse Gate decision and the migration safety rules;
-3. perform required real Windows Z-Blog runtime verification;
-4. fix failures and re-test;
-5. push the T3 implementation branch work and verify CI;
-6. keep Release Gate `NOT READY` unless explicitly authorized otherwise;
-7. update this file with the real implementation commit, runtime evidence, CI run and next phase;
-8. write the same verified result back to the T3 Notion task.
+1. inspect the final staged diff, secrets and generated-file boundary;
+2. commit and push verified T3 work to `feature/visit-stats-4.0`;
+3. inspect the resulting GitHub Actions run and repair/retest/re-push if necessary;
+4. update this file with the delivery commit and CI evidence;
+5. write the same verified result back to the T3 Notion task through the controller;
+6. keep Release Gate `NOT READY`; do not merge, tag or release.
 
 ## Update discipline
 

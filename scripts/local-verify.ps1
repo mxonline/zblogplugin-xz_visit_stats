@@ -103,17 +103,18 @@ if (-not $SkipPhpUnit) {
     Write-Step 'PHPUnit'
     $phpUnitBat = Join-Path $PluginRoot 'vendor\bin\phpunit.bat'
     $phpUnitPhar = Join-Path $PluginRoot 'phpunit.phar'
+    $phpUnitArgs = @('--testsuite', 'Plugin Test Suite')
 
     if (Test-Path -LiteralPath $phpUnitBat -PathType Leaf) {
-        Invoke-CheckedCommand -FilePath 'cmd.exe' -Arguments @('/d', '/c', $phpUnitBat, '--testsuite', 'default')
+        Invoke-CheckedCommand -FilePath 'cmd.exe' -Arguments (@('/d', '/c', $phpUnitBat) + $phpUnitArgs)
     }
     elseif (Test-Path -LiteralPath $phpUnitPhar -PathType Leaf) {
-        Invoke-CheckedCommand -FilePath $phpExeResolved -Arguments @($phpUnitPhar)
+        Invoke-CheckedCommand -FilePath $phpExeResolved -Arguments (@($phpUnitPhar) + $phpUnitArgs)
     }
     else {
         $phpUnitCommand = Get-Command phpunit -ErrorAction SilentlyContinue
         if ($null -ne $phpUnitCommand) {
-            Invoke-CheckedCommand -FilePath $phpUnitCommand.Source
+            Invoke-CheckedCommand -FilePath $phpUnitCommand.Source -Arguments $phpUnitArgs
         }
         else {
             Write-Host 'PHPUnit: SKIP (no local executable found)'

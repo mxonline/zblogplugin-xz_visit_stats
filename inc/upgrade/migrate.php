@@ -366,3 +366,48 @@ function xz_visit_stats_upgrade_v30_schema_compatible()
         return false;
     }
 }
+
+function xz_visit_stats_v4_schema_definitions()
+{
+    return array(
+        'sessions' => array('table' => 'xz_visit_stats_sessions', 'sql' => "se_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,se_SessionKey CHAR(64) NOT NULL,se_VisitorHash CHAR(64) NOT NULL,se_StartedAt BIGINT UNSIGNED NOT NULL,se_LastSeenAt BIGINT UNSIGNED NOT NULL,se_EntryPathKey CHAR(64) NOT NULL DEFAULT '',se_ExitPathKey CHAR(64) NOT NULL DEFAULT '',se_PageCount BIGINT UNSIGNED NOT NULL DEFAULT 0,se_DurationMs BIGINT UNSIGNED NULL DEFAULT NULL,se_IsBounce TINYINT(1) NOT NULL DEFAULT 0,se_SourceType VARCHAR(24) NOT NULL DEFAULT '',se_SourceDomain VARCHAR(253) NOT NULL DEFAULT '',se_UpdatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,PRIMARY KEY (se_ID),UNIQUE KEY xzvs_session_key (se_SessionKey),KEY xzvs_session_visitor_time (se_VisitorHash,se_LastSeenAt),KEY xzvs_session_time (se_StartedAt,se_LastSeenAt),KEY xzvs_session_entry_time (se_EntryPathKey,se_StartedAt)", 'columns' => array('se_SessionKey' => 'char(64)', 'se_VisitorHash' => 'char(64)', 'se_StartedAt' => 'bigint', 'se_LastSeenAt' => 'bigint', 'se_DurationMs' => 'bigint'), 'indexes' => array('xzvs_session_key' => array('se_SessionKey'), 'xzvs_session_visitor_time' => array('se_VisitorHash', 'se_LastSeenAt'))),
+        'session_pages' => array('table' => 'xz_visit_stats_session_pages', 'sql' => "sp_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,sp_SessionID BIGINT UNSIGNED NOT NULL,sp_LogID BIGINT UNSIGNED NULL DEFAULT NULL,sp_Sequence BIGINT UNSIGNED NOT NULL,sp_PathKey CHAR(64) NOT NULL,sp_Path VARCHAR(2048) NOT NULL DEFAULT '/',sp_EnteredAt BIGINT UNSIGNED NOT NULL,sp_LeftAt BIGINT UNSIGNED NULL DEFAULT NULL,sp_DurationMs BIGINT UNSIGNED NULL DEFAULT NULL,sp_ExitReason VARCHAR(24) NOT NULL DEFAULT '',sp_UpdatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,PRIMARY KEY (sp_ID),UNIQUE KEY xzvs_page_sequence (sp_SessionID,sp_Sequence),KEY xzvs_page_session_time (sp_SessionID,sp_EnteredAt),KEY xzvs_page_path_time (sp_PathKey,sp_EnteredAt),KEY xzvs_page_log (sp_LogID)", 'columns' => array('sp_SessionID' => 'bigint', 'sp_Sequence' => 'bigint', 'sp_PathKey' => 'char(64)', 'sp_DurationMs' => 'bigint'), 'indexes' => array('xzvs_page_sequence' => array('sp_SessionID', 'sp_Sequence'), 'xzvs_page_session_time' => array('sp_SessionID', 'sp_EnteredAt'))),
+        'events' => array('table' => 'xz_visit_stats_events', 'sql' => "ev_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,ev_SessionID BIGINT UNSIGNED NULL DEFAULT NULL,ev_VisitorHash CHAR(64) NOT NULL DEFAULT '',ev_Name VARCHAR(128) NOT NULL,ev_Params TEXT NOT NULL,ev_PathKey CHAR(64) NOT NULL,ev_TriggeredAt BIGINT UNSIGNED NOT NULL,ev_UpdatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,PRIMARY KEY (ev_ID),KEY xzvs_event_name_time (ev_Name,ev_TriggeredAt),KEY xzvs_event_session_time (ev_SessionID,ev_TriggeredAt),KEY xzvs_event_visitor_time (ev_VisitorHash,ev_TriggeredAt),KEY xzvs_event_path_time (ev_PathKey,ev_TriggeredAt)", 'columns' => array('ev_Name' => 'varchar(128)', 'ev_VisitorHash' => 'char(64)', 'ev_Params' => 'text', 'ev_TriggeredAt' => 'bigint'), 'indexes' => array('xzvs_event_name_time' => array('ev_Name', 'ev_TriggeredAt'), 'xzvs_event_visitor_time' => array('ev_VisitorHash', 'ev_TriggeredAt'))),
+        'directory_rules' => array('table' => 'xz_visit_stats_directory_rules', 'sql' => "dr_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,dr_Name VARCHAR(128) NOT NULL,dr_MatchType VARCHAR(24) NOT NULL,dr_Pattern VARCHAR(2048) NOT NULL,dr_Action VARCHAR(16) NOT NULL,dr_Enabled TINYINT(1) NOT NULL DEFAULT 1,dr_SortOrder INT NOT NULL DEFAULT 0,dr_CreatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,dr_UpdatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,PRIMARY KEY (dr_ID),KEY xzvs_directory_enabled_sort (dr_Enabled,dr_SortOrder)", 'columns' => array('dr_Name' => 'varchar(128)', 'dr_Pattern' => 'varchar(2048)', 'dr_Enabled' => 'tinyint'), 'indexes' => array('xzvs_directory_enabled_sort' => array('dr_Enabled', 'dr_SortOrder'))),
+        'export_tasks' => array('table' => 'xz_visit_stats_export_tasks', 'sql' => "ex_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,ex_UserID BIGINT UNSIGNED NOT NULL DEFAULT 0,ex_Status VARCHAR(24) NOT NULL,ex_Filters TEXT NOT NULL,ex_FileName VARCHAR(255) NOT NULL DEFAULT '',ex_RequestedAt BIGINT UNSIGNED NOT NULL,ex_StartedAt BIGINT UNSIGNED NULL DEFAULT NULL,ex_FinishedAt BIGINT UNSIGNED NULL DEFAULT NULL,ex_RowCount BIGINT UNSIGNED NOT NULL DEFAULT 0,ex_ErrorCode VARCHAR(64) NOT NULL DEFAULT '',ex_UpdatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,PRIMARY KEY (ex_ID),KEY xzvs_export_user_time (ex_UserID,ex_RequestedAt),KEY xzvs_export_status_time (ex_Status,ex_RequestedAt)", 'columns' => array('ex_UserID' => 'bigint', 'ex_Status' => 'varchar(24)', 'ex_Filters' => 'text', 'ex_RequestedAt' => 'bigint'), 'indexes' => array('xzvs_export_user_time' => array('ex_UserID', 'ex_RequestedAt'), 'xzvs_export_status_time' => array('ex_Status', 'ex_RequestedAt'))),
+        'ip_filters' => array('table' => 'xz_visit_stats_ip_filters', 'sql' => "if_ID BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,if_RuleType VARCHAR(8) NOT NULL,if_Value VARCHAR(128) NOT NULL,if_ValueHash CHAR(64) NOT NULL,if_Enabled TINYINT(1) NOT NULL DEFAULT 1,if_Note VARCHAR(255) NOT NULL DEFAULT '',if_CreatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,if_UpdatedAt BIGINT UNSIGNED NOT NULL DEFAULT 0,PRIMARY KEY (if_ID),UNIQUE KEY xzvs_ip_rule (if_RuleType,if_ValueHash),KEY xzvs_ip_enabled_type (if_Enabled,if_RuleType)", 'columns' => array('if_RuleType' => 'varchar(8)', 'if_Value' => 'varchar(128)', 'if_ValueHash' => 'char(64)', 'if_Enabled' => 'tinyint'), 'indexes' => array('xzvs_ip_rule' => array('if_RuleType', 'if_ValueHash'), 'xzvs_ip_enabled_type' => array('if_Enabled', 'if_RuleType'))),
+    );
+}
+
+function xz_visit_stats_upgrade_create_v4_table($definition)
+{
+    global $zbp;
+    $name = $zbp->db->dbpre . $definition['table'];
+    if ($zbp->db->ExistTable($name)) {
+        xz_visit_stats_migration_assert_columns($name, $definition['columns']);
+        foreach ($definition['indexes'] as $index => $columns) xz_visit_stats_migration_assert_index($name, $index, $columns);
+        return;
+    }
+    $zbp->db->Query('CREATE TABLE ' . xz_visit_stats_upgrade_quote_table($name) . ' (' . $definition['sql'] . ') ENGINE=MyISAM DEFAULT CHARSET=utf8mb4');
+}
+
+function xz_visit_stats_upgrade_migrate_to_40()
+{
+    xz_visit_stats_upgrade_migrate_to_30();
+    foreach (xz_visit_stats_v4_schema_definitions() as $definition) xz_visit_stats_upgrade_create_v4_table($definition);
+    return true;
+}
+
+function xz_visit_stats_upgrade_v4_schema_compatible()
+{
+    global $zbp;
+    try {
+        foreach (xz_visit_stats_v4_schema_definitions() as $definition) {
+            $name = $zbp->db->dbpre . $definition['table'];
+            if (!$zbp->db->ExistTable($name)) return false;
+            xz_visit_stats_migration_assert_columns($name, $definition['columns']);
+            foreach ($definition['indexes'] as $index => $columns) xz_visit_stats_migration_assert_index($name, $index, $columns);
+        }
+        return true;
+    } catch (Exception $exception) { return false; }
+}
