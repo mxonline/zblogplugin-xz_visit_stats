@@ -28,8 +28,11 @@ For every non-trivial task:
 2. Read `knowledge/PROJECT-STATE.md`.
 3. Inspect real Git state: branch, HEAD, worktree changes and current version metadata.
 4. Use the routing table below to load only the required domain knowledge and task documents.
-5. If the observed Git/runtime state differs from `PROJECT-STATE.md`, trust the observed state and update `PROJECT-STATE.md` before calling the task complete.
-6. Before inventing a new fix for a repeated failure, search `knowledge/KNOWN-FAILURES.md`.
+5. If the task selects or introduces a reusable subsystem/library/algorithm, read and execute `knowledge/REUSE-GATE.md` before production implementation.
+6. If the observed Git/runtime state differs from `PROJECT-STATE.md`, trust the observed state and update `PROJECT-STATE.md` before calling the task complete.
+7. Before inventing a new fix for a repeated failure, search `knowledge/KNOWN-FAILURES.md`.
+
+The Reuse Gate is prospective. It does not rewind or invalidate completed v4/T2/T3 evidence.
 
 ## Routing table
 
@@ -38,6 +41,7 @@ For every non-trivial task:
 Read:
 
 - `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md`
+- `knowledge/REUSE-GATE.md` when the task involves a reusable subsystem decision
 - current PRD under `docs/`
 - current implementation/migration design under `docs/`
 - current `.codex-tasks/` handoff
@@ -50,6 +54,19 @@ For v4.0 T3 specifically, also read:
 - `docs/v4.0.0/SCHEMA-AUDIT-v1.0.md`
 - `docs/v4.0.0/MIGRATION-DESIGN-v1.0.md`
 - `.codex-tasks/07-v4-t3-foundation.md`
+
+Do not redo completed T2/T3 work because the Reuse Gate was added later. Apply it to unresolved implementation choices and future additions.
+
+### Reusable subsystem / library selection
+
+Read:
+
+- `knowledge/REUSE-GATE.md`
+- `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md`
+- current PRD/design constraints
+- affected source and tests
+
+Search Z-Blog official resources first, then maintained GitHub libraries/projects. End with `USE / REUSE / FORK / BUILD` before adding a new dependency or generic custom subsystem.
 
 ### Database, schema, migration or upgrade work
 
@@ -68,6 +85,7 @@ Hard rule: never infer production schema from repository assumptions when a real
 Read:
 
 - `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md`
+- `knowledge/REUSE-GATE.md` when selecting generic parsers/libraries/algorithms
 - current collector/session/event PRD sections
 - affected Hooks and collector code
 - runtime testing rules in `AGENTS.md`
@@ -82,6 +100,7 @@ Read:
 - schema and index design
 - existing rollup/query code
 - `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md`
+- `knowledge/REUSE-GATE.md` when introducing external charting/query/export components
 
 Never reinterpret `vs_DurationMs` as visitor dwell time.
 
@@ -125,6 +144,7 @@ After a task produces verified new knowledge:
 - update `PROJECT-STATE.md` for branch, phase, verified commit, gates and next action;
 - update `KNOWN-FAILURES.md` only for a confirmed failure pattern with an observed root cause and validated resolution;
 - update `ZBLOG-DEVELOPMENT-KNOWLEDGE.md` only for reusable engineering rules, not one-off task notes;
+- write any material `USE / REUSE / FORK / BUILD` decision into the active task/design evidence and corresponding Notion record;
 - write the result back to the corresponding Notion task/project page.
 
 Do not write guesses, planned commands or unexecuted verification results as project knowledge.
