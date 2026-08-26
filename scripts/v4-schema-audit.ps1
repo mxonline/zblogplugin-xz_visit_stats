@@ -45,6 +45,7 @@ $outputFile = Join-Path $OutputDir "schema-audit-$stamp.json"
 $tempPhp = Join-Path ([System.IO.Path]::GetTempPath()) "xzvs-v4-schema-audit-$([Guid]::NewGuid().ToString('N')).php"
 $stdoutFile = Join-Path ([System.IO.Path]::GetTempPath()) "xzvs-v4-schema-audit-$([Guid]::NewGuid().ToString('N')).out"
 $stderrFile = Join-Path ([System.IO.Path]::GetTempPath()) "xzvs-v4-schema-audit-$([Guid]::NewGuid().ToString('N')).err"
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
 
 $phpAudit = @'
 <?php
@@ -68,8 +69,8 @@ if (!is_file($bootstrap) || !is_file($pluginXml)) {
     exit(3);
 }
 
-// Critical safety boundary: prevent themes/plugins from loading while Z-Blog
-// initializes its database connection and system configuration.
+// Safety boundary: initialize Z-Blog in safe mode so no theme/plugin include,
+// activation hook, collector, migration or maintenance code can run.
 defined('ZBP_SAFEMODE') || define('ZBP_SAFEMODE', true);
 defined('ZBP_OBSTART') || define('ZBP_OBSTART', false);
 require $bootstrap;
@@ -143,7 +144,6 @@ $xml = @simplexml_load_file($pluginXml);
 if ($xml !== false && isset($xml->version)) {
     $pluginVersion = trim((string) $xml->version);
 }
-
 $runtime['plugin_id'] = $pluginId;
 $runtime['plugin_version'] = $pluginVersion;
 
@@ -238,19 +238,21 @@ echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNES
 '@
 
 try {
-    Set-Content -LiteralPath $tempPhp -Value $phpAudit -Encoding UTF8
+    [System.IO.File]::WriteAllText($tempPhp, $phpAudit, $utf8NoBom)
 
     $env:XZVS_ZBLOG_ROOT = $ZBlogRoot
     $env:XZVS_PLUGIN_ID = $PluginId
 
-    $process = Start-Process \
-        -FilePath $PhpPath \
-        -ArgumentList @($tempPhp) \
-        -NoNewWindow \
-        -Wait \
-        -PassThru \
-        -RedirectStandardOutput $stdoutFile \
-        -RedirectStandardError $stderrFile
+    $startArgs = @{
+        FilePath = $PhpPath
+        ArgumentList = @($tempPhp)
+        NoNewWindow = $true
+        Wait = $true
+        PassThru = $true
+        RedirectStandardOutput = $stdoutFile
+        RedirectStandardError = $stderrFile
+    }
+    $process = Start-Process @startArgs
 
     $stderr = if (Test-Path -LiteralPath $stderrFile) {
         Get-Content -LiteralPath $stderrFile -Raw -ErrorAction SilentlyContinue
@@ -273,7 +275,8 @@ try {
         throw "Audit PHP returned invalid JSON. STDERR: $stderr`nSTDOUT:`n$raw"
     }
 
-    $parsed | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $outputFile -Encoding UTF8
+    $normalizedJson = $parsed | ConvertTo-Json -Depth 30
+    [System.IO.File]::WriteAllText($outputFile, $normalizedJson, $utf8NoBom)
 
     Write-Host 'xz_visit_stats v4 schema audit completed.'
     Write-Host 'Database mode: READ ONLY'
