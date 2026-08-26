@@ -35,6 +35,19 @@ T3 handoff baseline:
 
 A documentation-only knowledge-layer bootstrap was added after the T3 handoff. At the start of any new execution, inspect the actual current branch HEAD rather than assuming either baseline above is still HEAD.
 
+## T3 Reuse Gate — 2026-08-27
+
+The prospective Reuse Gate required by `AGENTS.md` has been completed for the unresolved T3 subsystem decisions.
+
+- Decision: `BUILD + SELECTIVE REUSE`.
+- Evidence: `docs/v4.0.0/REUSE-GATE-T3-v1.0.md`.
+- Gate commit: `2151da072d9748e61d8489f795835be935c9a8ac` (the branch may have advanced after this commit; always inspect real HEAD).
+- USE: existing Z-BlogPHP hooks/config/database APIs and current `inc/upgrade/` framework.
+- BUILD: project-specific v4 session identity, page lifecycle/dwell/bounce semantics, code events and session/event rollups.
+- REUSE: `mlocati/ip-lib` `1.22.0` only for normalized IPv4/IPv6/CIDR parsing and matching, behind the plugin's IP-filter adapter; pin/bundle the library and MIT license so production does not require Composer.
+- REFERENCE ONLY: Matomo analytics architecture/semantics; do not import, fork or copy Matomo code.
+- This gate does not mark T3 implementation or Windows runtime verification complete.
+
 ## T2 verified runtime environment
 
 ```text
@@ -88,6 +101,8 @@ Read and execute:
 - `knowledge/INDEX.md`
 - `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md`
 - `knowledge/KNOWN-FAILURES.md`
+- `knowledge/REUSE-GATE.md`
+- `docs/v4.0.0/REUSE-GATE-T3-v1.0.md`
 - `docs/v4.0.0/PRD-v1.0.md`
 - `docs/v4.0.0/GAP-ANALYSIS-v1.0.md`
 - `docs/v4.0.0/SCHEMA-AUDIT-v1.0.md`
@@ -112,8 +127,8 @@ Read and execute:
 
 Local Codex should continue T3 from `.codex-tasks/07-v4-t3-foundation.md` without step-by-step user prompts:
 
-1. reconcile local Git/worktree with the current remote branch;
-2. run T3 with TDD and the migration safety rules;
+1. reconcile local Git/worktree with the current remote branch and load `docs/v4.0.0/REUSE-GATE-T3-v1.0.md`;
+2. run T3 with TDD, the recorded Reuse Gate decision and the migration safety rules;
 3. perform required real Windows Z-Blog runtime verification;
 4. fix failures and re-test;
 5. push the T3 implementation branch work and verify CI;
