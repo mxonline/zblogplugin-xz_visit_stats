@@ -13,7 +13,7 @@ Do not treat a commit hash in this file as proof that it is still the branch HEA
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T3 — session, page lifecycle and event collection foundation`
-- Phase status: `IMPLEMENTED / VERIFIED LOCALLY / GIT DELIVERY PENDING`
+- Phase status: `T3 COMPLETE / LOCAL RUNTIME AND IMPLEMENTATION CI PASS`
 - Release Gate: `NOT READY`
 - PR/Merge/Tag/Release: not authorized for the current T3 phase
 
@@ -123,6 +123,13 @@ Read and execute:
 - Runtime log review: IIS worker was active, no Nginx process was active, the unauthenticated plugin-admin request reached the normal Z-Blog permission page rather than a PHP Fatal/Error, and no xz_visit_stats Fatal/SQL error was found in available PHP/Z-Blog logs. A CLI-only deprecation from unrelated plugin `TCad` (`include.php:17`) was observed and not changed.
 - Git commit/push, GitHub CI confirmation and controller-side Notion writeback remain pending; do not treat this checkpoint as final delivery evidence.
 
+## T3 delivery evidence — 2026-08-27
+
+- Implementation commit: `521d68b0d4e67d07b3e7657c502f292295c366f3` (`feat(v4): add visit session collection foundation`) on `feature/visit-stats-4.0`.
+- GitHub Actions: run `33005202172` (`Code Quality Check`) for that exact SHA completed `success`. Checkout, PHP setup/dependencies, PHP syntax, UI terminology, PHPUnit, Semgrep and PHPStan report steps all completed successfully.
+- T3 is complete. This does not authorize T4 work, a merge, a tag or a release. Release Gate remains `NOT READY` pending the separately scoped T4/final-release work.
+- The ChatGPT controller has recorded T3-G progress in Notion. Local Codex has no Notion connector; final controller-side Notion writeback remains the authorized handoff after this delivery chain.
+
 ## Important current constraints
 
 - Preserve v3 raw logs and historical tables.
@@ -141,12 +148,9 @@ Read and execute:
 
 Local Codex should continue T3 from `.codex-tasks/07-v4-t3-foundation.md` without step-by-step user prompts:
 
-1. inspect the final staged diff, secrets and generated-file boundary;
-2. commit and push verified T3 work to `feature/visit-stats-4.0`;
-3. inspect the resulting GitHub Actions run and repair/retest/re-push if necessary;
-4. update this file with the delivery commit and CI evidence;
-5. write the same verified result back to the T3 Notion task through the controller;
-6. keep Release Gate `NOT READY`; do not merge, tag or release.
+1. let the ChatGPT controller complete the final T3 Notion writeback;
+2. keep Release Gate `NOT READY`; do not merge, tag or release;
+3. begin T4 only through a separately authorized T4 task after reviewing this T3 evidence.
 
 ## Update discipline
 
