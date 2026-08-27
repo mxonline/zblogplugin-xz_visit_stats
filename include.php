@@ -18,6 +18,7 @@ require_once __DIR__ . '/inc/rollup.php';
 require_once __DIR__ . '/inc/query.php';
 require_once __DIR__ . '/inc/query_v2.php';
 require_once __DIR__ . '/inc/v3_query.php';
+require_once __DIR__ . '/inc/v4_report_filters.php';
 require_once __DIR__ . '/inc/session.php';
 require_once __DIR__ . '/inc/page_lifecycle.php';
 require_once __DIR__ . '/inc/events.php';
