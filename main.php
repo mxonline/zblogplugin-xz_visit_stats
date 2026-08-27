@@ -9,6 +9,10 @@ if (!$zbp->CheckPlugin('xz_visit_stats')) { $zbp->ShowError(48); exit; }
 require_once __DIR__ . '/inc/query.php';
 require_once __DIR__ . '/inc/query_v2.php';
 require_once __DIR__ . '/inc/v3_query.php';
+require_once __DIR__ . '/inc/v4_report_filters.php';
+require_once __DIR__ . '/inc/session.php';
+require_once __DIR__ . '/inc/v4_sessions_query.php';
+require_once __DIR__ . '/inc/v4_reports.php';
 require_once __DIR__ . '/inc/realtime.php';
 require_once __DIR__ . '/inc/admin.php';
 require_once __DIR__ . '/inc/settings.php';
@@ -45,9 +49,10 @@ function xz_visit_stats_t3_status($code)
 }
 
 $view = xz_visit_stats_query_text(GetVars('view', 'GET', 'overview'), 16);
-$views = array('overview', 'records', 'pages', 'source', 'spider', 'errors', 'realtime', 'ip', 'environment', 'campaign', 'performance', 'settings');
+$views = array('overview', 'trend', 'records', 'pages', 'source', 'spider', 'errors', 'realtime', 'ip', 'environment', 'campaign', 'performance', 'settings');
 if (!in_array($view, $views, true)) $view = 'overview';
 $filters = xz_visit_stats_v3_filters($_GET);
+if ($view === 'overview' || $view === 'trend') $filters = xz_visit_stats_v4_report_filters($_GET);
 $postResult = array('type' => '', 'message' => '');
 
 if (isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'POST' && ($view === 'settings' || xz_visit_stats_query_value($_POST, 't3_action', '') === 'save_filter')) {
@@ -116,7 +121,19 @@ if (isset($_GET['export']) && $_GET['export'] === 'csv') {
     }
     exit;
 }
-if ($view === 'overview') $data = array('summary' => xz_visit_stats_v2_summary($filters), 'trend' => xz_visit_stats_v3_daily_trend($filters), 'comparison' => xz_visit_stats_v3_comparison($filters), 'hours' => xz_visit_stats_v3_hour_rows($filters), 'active' => xz_visit_stats_v3_active_summary(xz_visit_stats_settings_values()['realtime_window']), 'environments' => array('browser' => xz_visit_stats_v3_dimension_rows('vs_Browser', $filters, 8), 'os' => xz_visit_stats_v3_dimension_rows('vs_Os', $filters, 8), 'device' => xz_visit_stats_v3_dimension_rows('vs_Device', $filters, 8)), 'sources' => xz_visit_stats_v2_source_summary($filters, 10), 'paths' => xz_visit_stats_v2_path_summary($filters, 10), 'spiders' => xz_visit_stats_v2_spider_summary($filters, 10), 'errors' => xz_visit_stats_v2_error_summary($filters, 10), 'states' => xz_visit_stats_v2_state_snapshot());
+if ($view === 'overview') {
+    $data = xz_visit_stats_v4_overview($filters);
+    $data['summary'] = $data['traffic'];
+    $data['trend'] = xz_visit_stats_v4_trend_report($filters, 'day')['rows'];
+    $data['hours'] = xz_visit_stats_v3_hour_rows($filters);
+    $data['active'] = xz_visit_stats_v3_active_summary(xz_visit_stats_settings_values()['realtime_window']);
+    $data['environments'] = array('browser' => $data['browser'], 'os' => $data['os'], 'device' => $data['device']);
+    $data['paths'] = $data['popular_pages'];
+    $data['spiders'] = xz_visit_stats_v2_spider_summary($filters, 10);
+    $data['errors'] = xz_visit_stats_v2_error_summary($filters, 10);
+    $data['states'] = xz_visit_stats_v2_state_snapshot();
+}
+if ($view === 'trend') $data = xz_visit_stats_v4_trend_report($filters, xz_visit_stats_query_text(GetVars('grain', 'GET', 'day'), 8));
 if ($view === 'records') { $data['count'] = xz_visit_stats_v2_count($filters); $data['rows'] = xz_visit_stats_v3_keyset_records($filters, $filters['cursor'], $filters['page_size']); $data['next_cursor'] = !empty($data['rows']) ? (string) end($data['rows'])['vs_ID'] : ''; $data['saved_filters'] = xz_visit_stats_v3_saved_filters('records'); }
 if ($view === 'pages') { $data['rows'] = xz_visit_stats_v2_path_summary($filters, 100); $data['trend'] = xz_visit_stats_v2_trend($filters); $data['contexts'] = xz_visit_stats_v3_page_context_rows($filters, 100); $data['entries'] = xz_visit_stats_v3_entry_rows($filters, 50); }
 if ($view === 'source') { $data['rows'] = xz_visit_stats_v2_source_summary($filters, 50); $data['domains'] = xz_visit_stats_v2_source_domains($filters, 30); $data['referers'] = xz_visit_stats_v2_referers($filters, 30); $data['trend'] = xz_visit_stats_v2_trend($filters); }

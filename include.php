@@ -21,6 +21,7 @@ require_once __DIR__ . '/inc/v3_query.php';
 require_once __DIR__ . '/inc/v4_report_filters.php';
 require_once __DIR__ . '/inc/session.php';
 require_once __DIR__ . '/inc/v4_sessions_query.php';
+require_once __DIR__ . '/inc/v4_reports.php';
 require_once __DIR__ . '/inc/page_lifecycle.php';
 require_once __DIR__ . '/inc/events.php';
 require_once __DIR__ . '/inc/v4_events_query.php';
