@@ -4,7 +4,8 @@
   "target_version": "4.0.0",
   "development_branch": "feature/visit-stats-4.0",
   "controller": {
-    "model": "gpt-5.4",
+    "model": "gpt-5.6-sol",
+    "reasoning_effort": "high",
     "api_base": "https://api.openai.com/v1",
     "request_timeout_seconds": 180,
     "max_http_retries": 3,
