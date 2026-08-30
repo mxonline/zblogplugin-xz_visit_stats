@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GPT Codex Bridge Controller Decision",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "action": {
+      "type": "string",
+      "enum": [
+        "CONTINUE_CODEX",
+        "REPAIR",
+        "RUN_GATE",
+        "ADVANCE_PHASE",
+        "PREPARE_RELEASE",
+        "EXECUTE_RELEASE",
+        "BLOCKED",
+        "COMPLETE"
+      ]
+    },
+    "phase": {"type": ["string", "null"]},
+    "next_prompt": {"type": ["string", "null"]},
+    "gate": {"type": ["string", "null"]},
+    "blocker": {"type": ["string", "null"]},
+    "reason": {"type": "string"},
+    "confidence": {"type": "number", "minimum": 0, "maximum": 1}
+  },
+  "required": ["action", "phase", "next_prompt", "gate", "blocker", "reason", "confidence"]
+}
