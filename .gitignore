@@ -7,3 +7,6 @@
 !/vendor/mlocati/ip-lib/src/
 !/vendor/mlocati/ip-lib/src/**
 !/vendor/mlocati/ip-lib/LICENSE.txt
+/bridge/config.json
+/bridge/runtime/
+/.env.bridge
