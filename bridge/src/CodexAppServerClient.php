@@ -197,32 +197,39 @@ final class CodexAppServerClient
         $id = $this->nextId++;
         $this->send(array('id' => $id, 'method' => $method, 'params' => $params));
         $deadline = microtime(true) + ($timeoutMs / 1000);
+        $deferred = array();
 
-        while (true) {
-            $remainingMs = (int)max(1, ceil(($deadline - microtime(true)) * 1000));
-            if ($remainingMs <= 1 && microtime(true) >= $deadline) {
-                throw new RuntimeException('Timed out waiting for Codex App Server response to ' . $method . '.');
-            }
-
-            $message = $this->nextMessage(min($remainingMs, 1000));
-            if ($message === null) {
-                $this->assertStillRunning();
-                continue;
-            }
-
-            if (($message['id'] ?? null) === $id && !isset($message['method'])) {
-                return $message;
-            }
-
-            if ($this->isServerRequest($message)) {
-                $result = $this->handleServerRequest($message);
-                if ($result === 'user_input') {
-                    throw new RuntimeException('Codex requested operator input; Bridge run is blocked and resumable.');
+        try {
+            while (true) {
+                $remainingMs = (int)max(1, ceil(($deadline - microtime(true)) * 1000));
+                if ($remainingMs <= 1 && microtime(true) >= $deadline) {
+                    throw new RuntimeException('Timed out waiting for Codex App Server response to ' . $method . '.');
                 }
-                continue;
-            }
 
-            $this->queuedMessages[] = $message;
+                $message = $this->nextMessageDirect(min($remainingMs, 1000));
+                if ($message === null) {
+                    $this->assertStillRunning();
+                    continue;
+                }
+
+                if (($message['id'] ?? null) === $id && !isset($message['method'])) {
+                    return $message;
+                }
+
+                if ($this->isServerRequest($message)) {
+                    $result = $this->handleServerRequest($message);
+                    if ($result === 'user_input') {
+                        throw new RuntimeException('Codex requested operator input; Bridge run is blocked and resumable.');
+                    }
+                    continue;
+                }
+
+                $deferred[] = $message;
+            }
+        } finally {
+            if ($deferred !== array()) {
+                $this->queuedMessages = array_merge($deferred, $this->queuedMessages);
+            }
         }
     }
 
@@ -253,7 +260,11 @@ final class CodexAppServerClient
         if ($this->queuedMessages !== array()) {
             return array_shift($this->queuedMessages);
         }
+        return $this->nextMessageDirect($timeoutMs);
+    }
 
+    private function nextMessageDirect(int $timeoutMs): ?array
+    {
         $line = $this->extractBufferedLine();
         if ($line !== null) {
             return $this->decodeLine($line);
@@ -332,7 +343,7 @@ final class CodexAppServerClient
     private function decodeLine(string $line): array
     {
         if ($line === '') {
-            return $this->nextMessage(1) ?? array();
+            return $this->nextMessageDirect(1) ?? array();
         }
         $decoded = json_decode($line, true);
         if (!is_array($decoded)) {
