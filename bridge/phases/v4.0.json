@@ -1,0 +1,31 @@
+{
+  "schema_version": "1.0",
+  "target_version": "4.0.0",
+  "initial_phase": "T4_ANALYTICS_ADMIN",
+  "phases": [
+    {
+      "id": "T4_ANALYTICS_ADMIN",
+      "task": ".codex-tasks/08-v4-t4-analytics-admin.md",
+      "next": "T5_FINAL_VERIFICATION_RELEASE_PREP",
+      "release_allowed": false,
+      "required_gates": ["CODEX_DEVELOPMENT", "LOCAL_RUNTIME", "GITHUB_CI"],
+      "expected_release_gate": "NOT READY"
+    },
+    {
+      "id": "T5_FINAL_VERIFICATION_RELEASE_PREP",
+      "task": ".codex-tasks/09-v4-t5-final-release.md",
+      "next": "RELEASE",
+      "release_allowed": false,
+      "required_gates": ["CODEX_DEVELOPMENT", "LOCAL_RUNTIME", "GITHUB_CI", "RELEASE_DRY_RUN"],
+      "expected_release_gate": "PASS"
+    },
+    {
+      "id": "RELEASE",
+      "task": ".codex-tasks/09-v4-t5-final-release.md",
+      "next": null,
+      "release_allowed": true,
+      "required_gates": ["LOCAL_RUNTIME", "GITHUB_CI", "RELEASE_GATE", "GITHUB_RELEASE", "NOTION_WRITEBACK"],
+      "expected_release_gate": "PASS"
+    }
+  ]
+}
