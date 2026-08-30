@@ -1,0 +1,110 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GPT Codex Bridge Codex Result",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "status": {"type": "string", "enum": ["PASS", "FAILED", "BLOCKED"]},
+    "phase": {"type": "string"},
+    "stage": {"type": "string"},
+    "summary": {"type": "string"},
+    "branch": {"type": ["string", "null"]},
+    "head_sha": {"type": ["string", "null"]},
+    "files_changed": {"type": "array", "items": {"type": "string"}},
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {"type": "string"},
+          "status": {"type": "string", "enum": ["PASS", "FAIL", "NOT_REQUIRED", "NOT_RUN"]},
+          "evidence": {"type": "string"}
+        },
+        "required": ["name", "status", "evidence"]
+      }
+    },
+    "local_runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"type": "string", "enum": ["PASS", "BLOCKED", "NOT_REQUIRED", "NOT_RUN"]},
+        "evidence": {"type": "string"}
+      },
+      "required": ["status", "evidence"]
+    },
+    "github_ci": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"type": "string", "enum": ["PASS", "BLOCKED", "NOT_REQUIRED", "NOT_RUN"]},
+        "sha": {"type": ["string", "null"]},
+        "run_id": {"type": ["string", "integer", "null"]},
+        "evidence": {"type": "string"}
+      },
+      "required": ["status", "sha", "run_id", "evidence"]
+    },
+    "release_gate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"type": "string", "enum": ["PASS", "NOT READY", "BLOCKED"]},
+        "evidence": {"type": "string"}
+      },
+      "required": ["status", "evidence"]
+    },
+    "release": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"type": "string", "enum": ["RELEASED", "NOT_RELEASED", "BLOCKED"]},
+        "tag": {"type": ["string", "null"]},
+        "release_url": {"type": ["string", "null"]},
+        "zip": {"type": ["string", "null"]},
+        "sha256": {"type": ["string", "null"]},
+        "evidence": {"type": "string"}
+      },
+      "required": ["status", "tag", "release_url", "zip", "sha256", "evidence"]
+    },
+    "notion": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "status": {"type": "string", "enum": ["PASS", "BLOCKED", "PENDING", "NOT_REQUIRED"]},
+        "evidence": {"type": "string"}
+      },
+      "required": ["status", "evidence"]
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "fingerprint": {"type": "string"},
+          "message": {"type": "string"},
+          "root_cause": {"type": ["string", "null"]}
+        },
+        "required": ["fingerprint", "message", "root_cause"]
+      }
+    },
+    "next_action": {"type": "string"}
+  },
+  "required": [
+    "status",
+    "phase",
+    "stage",
+    "summary",
+    "branch",
+    "head_sha",
+    "files_changed",
+    "checks",
+    "local_runtime",
+    "github_ci",
+    "release_gate",
+    "release",
+    "notion",
+    "failures",
+    "next_action"
+  ]
+}
