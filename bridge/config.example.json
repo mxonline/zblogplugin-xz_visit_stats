@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0",
+  "project": "xz_visit_stats",
+  "target_version": "4.0.0",
+  "development_branch": "feature/visit-stats-4.0",
+  "controller": {
+    "model": "gpt-5.4",
+    "api_base": "https://api.openai.com/v1",
+    "request_timeout_seconds": 180,
+    "max_http_retries": 3,
+    "max_repair_rounds": 6
+  },
+  "codex": {
+    "command": ["codex", "app-server"],
+    "fallback_exec_enabled": true,
+    "turn_timeout_seconds": 3600,
+    "max_protocol_line_bytes": 10485760,
+    "approval_policy": "never",
+    "sandbox": "workspace-write"
+  },
+  "runtime": {
+    "state_file": "bridge/runtime/state.json",
+    "request_file": "bridge/runtime/request.json",
+    "result_file": "bridge/runtime/result.json",
+    "runs_dir": "bridge/runtime/runs",
+    "snapshots_dir": "bridge/runtime/snapshots"
+  },
+  "phases_file": "bridge/phases/v4.0.json",
+  "notion": {
+    "required": true,
+    "api_base": "https://api.notion.com/v1",
+    "page_id_env": "NOTION_V4_PAGE_ID",
+    "token_env": "NOTION_TOKEN"
+  },
+  "release": {
+    "tag": "v4.0.0",
+    "zip": "xz_visit_stats-v4.0.0.zip",
+    "production_deploy": false,
+    "zblog_app_center_upload": false
+  }
+}
