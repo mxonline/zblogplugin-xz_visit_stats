@@ -29,6 +29,20 @@ final class CodexAppServerClientTest extends TestCase
         $this->assertSame(0, $result['approvals']);
     }
 
+    public function testNotificationBeforeRequestResponseDoesNotStarveMatchingResponse(): void
+    {
+        $client = $this->newClient();
+        $client->start();
+
+        $threadId = $client->initialize('NOTIFY_BEFORE_RESPONSE');
+        $result = $client->runTurn($threadId, 'NORMAL', dirname(__DIR__), 'notification ordering test');
+
+        $this->assertSame('thread-test', $threadId);
+        $this->assertSame('completed', $result['status']);
+        $methods = array_map(static fn(array $event): string => (string)($event['method'] ?? ''), $result['events']);
+        $this->assertContains('thread/started', $methods);
+    }
+
     public function testCommandApprovalIsAutoApprovedForAuthorizedDevelopmentTurn(): void
     {
         $client = $this->newClient();
