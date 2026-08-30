@@ -27,6 +27,10 @@ while (($line = fgets(STDIN)) !== false) {
     }
 
     if ($method === 'thread/start' && $id !== null) {
+        $cwd = (string)($msg['params']['cwd'] ?? '');
+        if (str_contains($cwd, 'NOTIFY_BEFORE_RESPONSE')) {
+            echo json_encode(array('method' => 'thread/started', 'params' => array('thread' => array('id' => 'thread-test')))) . PHP_EOL;
+        }
         echo json_encode(array('id' => $id, 'result' => array('thread' => array('id' => 'thread-test')))) . PHP_EOL;
         continue;
     }
