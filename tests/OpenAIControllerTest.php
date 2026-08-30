@@ -83,7 +83,7 @@ final class OpenAIControllerTest extends TestCase
     {
         [$controller, $requests] = $this->newController(array(
             array('status' => 500, 'body' => json_encode(array('error' => array('message' => 'temporary')))),
-            array('status' => 200, 'body' => json_encode(array('id' => 'resp_retry', 'output_text' => json_encode($this->validDecision('REPAIR')))),
+            array('status' => 200, 'body' => json_encode(array('id' => 'resp_retry', 'output_text' => json_encode($this->validDecision('REPAIR'))))),
         ), 3, static function (int $milliseconds): void {
         });
 
