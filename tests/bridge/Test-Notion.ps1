@@ -43,8 +43,8 @@ $payload = [pscustomobject]@{
 $result = Write-NotionStageUpdate -Payload $payload -Transport $transport
 Assert-Equal 'PASS' $result.status 'Notion write/read-back verified'
 Assert-True ($script:calls.Count -ge 2) 'write followed by read-back'
-Assert-True (($script:calls | Where-Object { $_.Method -eq 'PATCH' -and $_.Uri -match '/blocks/target-1/children$' }).Count -eq 1) 'write appends page block'
-Assert-True (($script:calls | Where-Object { $_.Method -eq 'GET' -and $_.Uri -match '/pages/target-1/markdown$' }).Count -eq 1) 'read-back uses page markdown'
+Assert-True (@($script:calls | Where-Object { $_.Method -eq 'PATCH' -and $_.Uri -match '/blocks/target-1/children$' }).Count -eq 1) 'write appends page block'
+Assert-True (@($script:calls | Where-Object { $_.Method -eq 'GET' -and $_.Uri -match '/pages/target-1/markdown$' }).Count -eq 1) 'read-back uses page markdown'
 Assert-NotContains (($script:calls | ConvertTo-Json -Depth 16)) 'unit-test-token-value' 'token must not enter body/loggable call payload'
 
 $retryTransport = {
