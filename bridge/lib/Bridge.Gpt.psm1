@@ -1,6 +1,9 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+Import-Module (Join-Path $PSScriptRoot 'Bridge.Quota.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'Bridge.Common.psm1') -Force
+
 function Get-BridgeControllerDecisionSchema {
     return [ordered]@{
         type = 'object'
@@ -42,6 +45,18 @@ function Get-ResponseOutputText {
         }
     }
     return ($parts -join '')
+}
+
+function Get-GptErrorText {
+    param([Parameter(Mandatory = $true)]$ErrorRecord)
+
+    $parts = New-Object System.Collections.Generic.List[string]
+    if ($null -ne $ErrorRecord.Exception) { [void]$parts.Add([string]$ErrorRecord.Exception.Message) }
+    if ($null -ne $ErrorRecord.ErrorDetails -and -not [string]::IsNullOrWhiteSpace([string]$ErrorRecord.ErrorDetails.Message)) {
+        [void]$parts.Add([string]$ErrorRecord.ErrorDetails.Message)
+    }
+    [void]$parts.Add(($ErrorRecord | Out-String))
+    return ($parts -join "`n")
 }
 
 function Invoke-GptBridgeDecision {
@@ -96,19 +111,28 @@ function Invoke-GptBridgeDecision {
         $body.previous_response_id = $PreviousResponseId
     }
 
-    if ($null -ne $Transport) {
-        $response = & $Transport $body
-    } else {
-        if ([string]::IsNullOrWhiteSpace($ApiKey)) {
-            throw 'OPENAI_API_KEY is required for GPT controller decisions.'
-        }
+    try {
+        if ($null -ne $Transport) {
+            $response = & $Transport $body
+        } else {
+            if ([string]::IsNullOrWhiteSpace($ApiKey)) {
+                throw 'OPENAI_API_KEY is required for GPT controller decisions.'
+            }
 
-        $headers = @{
-            Authorization = "Bearer $ApiKey"
-            'Content-Type' = 'application/json'
+            $headers = @{
+                Authorization = "Bearer $ApiKey"
+                'Content-Type' = 'application/json'
+            }
+            $json = $body | ConvertTo-Json -Depth 64
+            $response = Invoke-RestMethod -Method Post -Uri 'https://api.openai.com/v1/responses' -Headers $headers -Body $json
         }
-        $json = $body | ConvertTo-Json -Depth 64
-        $response = Invoke-RestMethod -Method Post -Uri 'https://api.openai.com/v1/responses' -Headers $headers -Body $json
+    } catch {
+        $errorText = Get-GptErrorText -ErrorRecord $_
+        if (Test-QuotaExhaustion -Text $errorText) {
+            $safe = Protect-BridgeEvidence $errorText
+            throw "BRIDGE_QUOTA_EXHAUSTED|openai_responses|$safe"
+        }
+        throw
     }
 
     if ($null -eq $response) {
