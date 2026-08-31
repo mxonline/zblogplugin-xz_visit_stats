@@ -34,6 +34,7 @@ $script:BridgeTransitions = @{
     'RELEASE'                    = @('NOTION_WRITEBACK', 'GPT_REVIEW', 'BLOCKED', 'FAILED')
     'NOTION_WRITEBACK'           = @('PROJECT_STATE_WRITEBACK', 'BLOCKED', 'FAILED')
     'PROJECT_STATE_WRITEBACK'    = @('PLUGIN_RELEASED', 'BLOCKED', 'FAILED')
+    'PAUSED_QUOTA'               = @('CONTEXT_SYNC', 'RESUME_GATE', 'FAILED')
     'PLUGIN_RELEASED'            = @()
     'BLOCKED'                    = @('CONTEXT_SYNC', 'RESUME_GATE', 'FAILED')
     'FAILED'                     = @()
@@ -45,6 +46,10 @@ function Test-BridgeTransition {
         [Parameter(Mandatory = $true)][string]$From,
         [Parameter(Mandatory = $true)][string]$To
     )
+
+    if ($To -eq 'PAUSED_QUOTA' -and $From -notin @('IDLE', 'PLUGIN_RELEASED', 'FAILED', 'PAUSED_QUOTA')) {
+        return $true
+    }
 
     if (-not $script:BridgeTransitions.ContainsKey($From)) { return $false }
     return ($script:BridgeTransitions[$From] -contains $To)
@@ -89,6 +94,10 @@ function Assert-ZeroTouchStateInvariant {
 
     if ([string]$State.status -eq 'CODEX_TURN_COMPLETED' -and [string]$State.next_action -match '(?i)user|manual|codex ui|copy|paste|continue') {
         throw 'Zero-touch invariant violated: Codex turn completion cannot hand control to the user.'
+    }
+
+    if ([string]$State.status -eq 'PAUSED_QUOTA' -and [string]$State.next_action -notmatch '(?i)resume|retry|quota') {
+        throw 'PAUSED_QUOTA must retain an automatic resume/retry action.'
     }
 
     if ([string]$State.status -eq 'PLUGIN_RELEASED' -and [string]$State.stage -notmatch '(?i)release|complete|released') {
