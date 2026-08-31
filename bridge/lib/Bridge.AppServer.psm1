@@ -22,7 +22,7 @@ function Write-AppServerMessage {
     $json = $Message | ConvertTo-Json -Depth 32 -Compress
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
     $bytes = $utf8NoBom.GetBytes($json + "`n")
-    $stream = $Client.Process.StandardInput.BaseStream
+    $stream = $Client.StandardInput.BaseStream
     $stream.Write($bytes, 0, $bytes.Length)
     $stream.Flush()
 }
@@ -136,12 +136,27 @@ function Start-CodexAppServer {
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $psi
-    if (-not $process.Start()) {
-        throw 'Failed to start Codex App Server process.'
+
+    # Windows PowerShell 5.1 runs on .NET Framework, where ProcessStartInfo has no
+    # StandardInputEncoding property. Process.StandardInput therefore inherits
+    # Console.InputEncoding when its StreamWriter is created. Bind that writer
+    # while Console.InputEncoding is explicitly UTF-8 without a BOM, then restore
+    # the parent console setting immediately.
+    $originalInputEncoding = [Console]::InputEncoding
+    $standardInput = $null
+    try {
+        [Console]::InputEncoding = $utf8NoBom
+        if (-not $process.Start()) {
+            throw 'Failed to start Codex App Server process.'
+        }
+        $standardInput = $process.StandardInput
+    } finally {
+        [Console]::InputEncoding = $originalInputEncoding
     }
 
     return [pscustomobject]@{
         Process = $process
+        StandardInput = $standardInput
         NextId = 0
         Initialized = $false
         ThreadId = $null
@@ -283,7 +298,7 @@ function Stop-CodexAppServer {
 
     try {
         if (-not $Client.Process.HasExited) {
-            $Client.Process.StandardInput.BaseStream.Close()
+            $Client.StandardInput.BaseStream.Close()
             if (-not $Client.Process.WaitForExit(1500)) {
                 $Client.Process.Kill()
                 [void]$Client.Process.WaitForExit(3000)
