@@ -9,8 +9,13 @@ while (($line = [Console]::In.ReadLine()) -ne $null) {
     try {
         $message = $line | ConvertFrom-Json
     } catch {
-        [Console]::Error.WriteLine('FAKE_APP_SERVER_INVALID_STDIN=' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($line)))
+        $encoded = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes([string]$line))
+        [Console]::Error.WriteLine('FAKE_APP_SERVER_INVALID_STDIN=' + $encoded)
         [Console]::Error.Flush()
+        if (-not [string]::IsNullOrWhiteSpace($env:GITHUB_WORKSPACE)) {
+            $diag = Join-Path $env:GITHUB_WORKSPACE 'tests/bridge/appserver-invalid-stdin.txt'
+            [IO.File]::WriteAllText($diag, $encoded, (New-Object Text.UTF8Encoding($false)))
+        }
         throw
     }
     $method = [string]$message.method
