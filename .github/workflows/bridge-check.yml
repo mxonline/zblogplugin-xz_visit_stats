@@ -55,8 +55,23 @@ jobs:
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Preflight.ps1
 
       - name: Test App Server transport
+        id: appserver_test
         shell: powershell
-        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-AppServer.ps1
+        run: |
+          $ErrorActionPreference = 'Continue'
+          powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-AppServer.ps1 *> appserver-test.log
+          $code = $LASTEXITCODE
+          Get-Content appserver-test.log
+          if ($code -ne 0) { exit $code }
+
+      - name: Upload App Server failure diagnostics
+        if: failure() && steps.appserver_test.outcome == 'failure'
+        uses: actions/upload-artifact@v4
+        with:
+          name: bridge-appserver-failure-${{ github.run_id }}
+          path: appserver-test.log
+          if-no-files-found: error
+          retention-days: 3
 
       - name: Test GPT controller
         shell: powershell
