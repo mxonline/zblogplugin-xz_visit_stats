@@ -64,7 +64,7 @@ function Protect-BridgeEvidence {
         '(?i)((?:api[_-]?key|access[_-]?token|refresh[_-]?token|token)\s*[:=]\s*)[^\s\r\n,;]+',
         '(?i)(Cookie\s*:\s*)[^\r\n]+',
         '(?i)(Set-Cookie\s*:\s*)[^\r\n]+',
-        '(?i)((?:cookie|session|session_id|sessionid)\s*[:=]\s*)[^\s\r\n,;"}]+''
+        '(?i)((?:cookie|session|session_id|sessionid)\s*[:=]\s*)[^\s\r\n,;"}]+'
     )
 
     foreach ($pattern in $patterns) {
