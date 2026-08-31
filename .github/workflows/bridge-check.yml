@@ -74,6 +74,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Watchdog.ps1
 
+      - name: Test continuous redispatch
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-ContinuousLoop.ps1
+
       - name: Test requirement gate
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Requirements.ps1
