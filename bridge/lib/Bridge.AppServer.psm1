@@ -122,6 +122,16 @@ function Start-CodexAppServer {
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.CreateNoWindow = $true
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    if ($null -ne $psi.PSObject.Properties['StandardInputEncoding']) {
+        $psi.StandardInputEncoding = $utf8NoBom
+    }
+    if ($null -ne $psi.PSObject.Properties['StandardOutputEncoding']) {
+        $psi.StandardOutputEncoding = $utf8NoBom
+    }
+    if ($null -ne $psi.PSObject.Properties['StandardErrorEncoding']) {
+        $psi.StandardErrorEncoding = $utf8NoBom
+    }
     $psi.Arguments = (($Arguments | ForEach-Object { Quote-ProcessArgument -Value ([string]$_) }) -join ' ')
 
     $process = New-Object System.Diagnostics.Process
