@@ -61,6 +61,7 @@ function Protect-BridgeEvidence {
         '(?i)(Bearer\s+)[A-Za-z0-9._~+\/-]+',
         '(?i)(NOTION_TOKEN\s*=\s*)[^\s\r\n]+',
         '(?i)(OPENAI_API_KEY\s*=\s*)[^\s\r\n]+',
+        '(?i)((?:api[_-]?key|access[_-]?token|refresh[_-]?token|token)\s*[:=]\s*)[^\s\r\n,;]+',
         '(?i)(Cookie\s*:\s*)[^\r\n]+',
         '(?i)(Set-Cookie\s*:\s*)[^\r\n]+'
     )
