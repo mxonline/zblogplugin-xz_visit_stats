@@ -82,7 +82,7 @@ function Get-EvidenceInvalidation {
     )
 
     if (-not (Test-Path -LiteralPath $EvidenceRoot)) { return $null }
-    $matches = Get-ChildItem -LiteralPath $EvidenceRoot -Filter ('INV-' + $EvidenceId + '-*.json') -File -ErrorAction SilentlyContinue
+    $matches = @(Get-ChildItem -LiteralPath $EvidenceRoot -Filter ('INV-' + $EvidenceId + '-*.json') -File -ErrorAction SilentlyContinue)
     if ($matches.Count -eq 0) { return $null }
     return (Read-BridgeJson -Path $matches[-1].FullName)
 }
@@ -138,7 +138,7 @@ function Invalidate-ShaDependentEvidence {
     }
 
     $count = 0
-    foreach ($file in Get-ChildItem -LiteralPath $EvidenceRoot -Filter 'EVD-*.json' -File) {
+    foreach ($file in @(Get-ChildItem -LiteralPath $EvidenceRoot -Filter 'EVD-*.json' -File)) {
         $record = Read-BridgeJson -Path $file.FullName
         if ([string]$record.head_sha -ne $OldSha) { continue }
 
