@@ -37,17 +37,22 @@ Assert-False $config.manual_gpt_codex_copy_paste 'manual relay must be disabled'
 Assert-False $config.codex_ui_dependency 'Codex UI dependency must be disabled'
 Assert-Equal 'env:OPENAI_CONTROLLER_MODEL' $config.controller_model 'controller model must be config driven'
 Assert-Equal 'env:CODEX_MODEL' $config.codex_model 'Codex model must be config driven'
+Assert-True $config.quota_checkpoint_on_exhaustion 'quota exhaustion must checkpoint state'
+Assert-True $config.quota_auto_resume 'quota recovery must resume automatically'
+Assert-True ($config.quota_retry_seconds -ge 60) 'quota retry interval must be bounded'
 
 $stateSchema = Get-Content (Join-Path $schemaDir 'state.schema.json') -Raw | ConvertFrom-Json
 $statusValues = @($stateSchema.properties.status.enum)
 Assert-Contains $statusValues 'CODEX_TURN_COMPLETED' 'turn-complete state required'
 Assert-Contains $statusValues 'GPT_REVIEW' 'GPT review state required'
 Assert-Contains $statusValues 'GPT_DECISION' 'GPT decision state required'
+Assert-Contains $statusValues 'PAUSED_QUOTA' 'quota pause state required'
 Assert-Contains $statusValues 'PLUGIN_RELEASED' 'release terminal state required'
 
 $resultSchema = Get-Content (Join-Path $schemaDir 'result.schema.json') -Raw | ConvertFrom-Json
 $resultValues = @($resultSchema.properties.result.enum)
 Assert-Contains $resultValues 'REPAIRABLE' 'repair result required'
 Assert-Contains $resultValues 'RETRYABLE_INFRA' 'infrastructure retry result required'
+Assert-Contains $resultValues 'QUOTA_EXHAUSTED' 'quota exhaustion result required'
 
-Write-Host 'PASS: bridge schema and zero-touch contract checks'
+Write-Host 'PASS: bridge schema, zero-touch and quota recovery contract checks'
