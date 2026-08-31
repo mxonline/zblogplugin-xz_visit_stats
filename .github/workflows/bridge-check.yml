@@ -50,6 +50,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Redaction.ps1
 
+      - name: Test quota checkpoint recovery
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Quota.ps1
+
       - name: Test preflight
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Preflight.ps1
