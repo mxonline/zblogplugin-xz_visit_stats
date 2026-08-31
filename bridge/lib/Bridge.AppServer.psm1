@@ -20,8 +20,11 @@ function Write-AppServerMessage {
     )
 
     $json = $Message | ConvertTo-Json -Depth 32 -Compress
-    $Client.Process.StandardInput.WriteLine($json)
-    $Client.Process.StandardInput.Flush()
+    $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+    $bytes = $utf8NoBom.GetBytes($json + "`n")
+    $stream = $Client.Process.StandardInput.BaseStream
+    $stream.Write($bytes, 0, $bytes.Length)
+    $stream.Flush()
 }
 
 function Read-AppServerMessage {
@@ -123,9 +126,6 @@ function Start-CodexAppServer {
     $psi.RedirectStandardError = $true
     $psi.CreateNoWindow = $true
     $utf8NoBom = New-Object System.Text.UTF8Encoding($false)
-    if ($null -ne $psi.PSObject.Properties['StandardInputEncoding']) {
-        $psi.StandardInputEncoding = $utf8NoBom
-    }
     if ($null -ne $psi.PSObject.Properties['StandardOutputEncoding']) {
         $psi.StandardOutputEncoding = $utf8NoBom
     }
@@ -283,7 +283,7 @@ function Stop-CodexAppServer {
 
     try {
         if (-not $Client.Process.HasExited) {
-            $Client.Process.StandardInput.Close()
+            $Client.Process.StandardInput.BaseStream.Close()
             if (-not $Client.Process.WaitForExit(1500)) {
                 $Client.Process.Kill()
                 [void]$Client.Process.WaitForExit(3000)
