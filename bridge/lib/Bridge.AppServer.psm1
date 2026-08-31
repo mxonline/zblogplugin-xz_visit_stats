@@ -7,6 +7,12 @@ function New-AppServerRequestId {
     return $Client.NextId
 }
 
+function Quote-ProcessArgument {
+    param([Parameter(Mandatory = $true)][string]$Value)
+    if ($Value -notmatch '[\s"]') { return $Value }
+    return '"' + ($Value -replace '(\\*)"', '$1$1\"' -replace '(\\+)$', '$1$1') + '"'
+}
+
 function Write-AppServerMessage {
     param(
         [Parameter(Mandatory = $true)]$Client,
@@ -25,22 +31,32 @@ function Read-AppServerMessage {
     )
 
     $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
-    while ([DateTime]::UtcNow -lt $deadline) {
-        if ($Client.Process.HasExited) {
-            $stderr = $Client.Process.StandardError.ReadToEnd()
-            throw "Codex App Server exited with code $($Client.Process.ExitCode): $stderr"
-        }
+    $task = $Client.Process.StandardOutput.ReadLineAsync()
 
-        $task = $Client.Process.StandardOutput.ReadLineAsync()
+    while ([DateTime]::UtcNow -lt $deadline) {
         if ($task.Wait(250)) {
             $line = $task.Result
-            if ($null -eq $line) { continue }
-            if ([string]::IsNullOrWhiteSpace($line)) { continue }
+            if ($null -eq $line) {
+                if ($Client.Process.HasExited) {
+                    $stderr = $Client.Process.StandardError.ReadToEnd()
+                    throw "Codex App Server exited with code $($Client.Process.ExitCode): $stderr"
+                }
+                continue
+            }
+            if ([string]::IsNullOrWhiteSpace($line)) {
+                $task = $Client.Process.StandardOutput.ReadLineAsync()
+                continue
+            }
             try {
                 return ($line | ConvertFrom-Json)
             } catch {
                 throw "Invalid JSONL from Codex App Server: $line"
             }
+        }
+
+        if ($Client.Process.HasExited) {
+            $stderr = $Client.Process.StandardError.ReadToEnd()
+            throw "Codex App Server exited with code $($Client.Process.ExitCode): $stderr"
         }
     }
 
@@ -106,9 +122,7 @@ function Start-CodexAppServer {
     $psi.RedirectStandardOutput = $true
     $psi.RedirectStandardError = $true
     $psi.CreateNoWindow = $true
-    foreach ($arg in $Arguments) {
-        [void]$psi.ArgumentList.Add($arg)
-    }
+    $psi.Arguments = (($Arguments | ForEach-Object { Quote-ProcessArgument -Value ([string]$_) }) -join ' ')
 
     $process = New-Object System.Diagnostics.Process
     $process.StartInfo = $psi
@@ -278,8 +292,14 @@ function Invoke-CodexExecFallback {
         [string]$Command = 'codex'
     )
 
-    $output = & $Command exec --json $Prompt 2>&1
-    $exitCode = $LASTEXITCODE
+    Push-Location $WorkingDirectory
+    try {
+        $output = & $Command exec --json $Prompt 2>&1
+        $exitCode = $LASTEXITCODE
+    } finally {
+        Pop-Location
+    }
+
     return [pscustomobject]@{
         executor_transport = 'codex_exec_fallback'
         exit_code = $exitCode
