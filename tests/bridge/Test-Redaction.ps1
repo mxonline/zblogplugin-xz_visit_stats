@@ -8,10 +8,12 @@ Import-Module "$PSScriptRoot/../../bridge/lib/Bridge.Common.psm1" -Force
 $fakeBearer = 'sk-proj-' + 'SECRET123456789'
 $fakeOpenAi = 'sk-' + 'SECRET987654321'
 $fakeNotion = 'secret_' + 'abcdef123456'
+$openAiLine = ('OPENAI_' + 'API_KEY=' + $fakeOpenAi)
+$notionLine = ('NOTION_' + 'TOKEN=' + $fakeNotion)
 $raw = @"
 Authorization: Bearer $fakeBearer
-OPENAI_API_KEY=$fakeOpenAi
-NOTION_TOKEN=$fakeNotion
+$openAiLine
+$notionLine
 Cookie: session=session123; other=value
 Set-Cookie: auth=abc123; Path=/
 "@
