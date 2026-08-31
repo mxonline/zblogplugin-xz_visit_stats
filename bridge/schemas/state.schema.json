@@ -15,6 +15,12 @@
     "infra_retry_round",
     "last_verified_gate",
     "next_action",
+    "last_event_at",
+    "last_progress_at",
+    "turn_started_at",
+    "executor_restart_count",
+    "executor_transport",
+    "watchdog_status",
     "updated_at"
   ],
   "properties": {
@@ -71,6 +77,12 @@
     "quota_reason": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
     "resume_after": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
     "quota_checkpoint_path": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+    "last_event_at": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "last_progress_at": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "turn_started_at": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "executor_restart_count": {"type": "integer", "minimum": 0, "maximum": 1000},
+    "executor_transport": {"enum": ["codex_app_server", "codex_exec_fallback", "not_started"]},
+    "watchdog_status": {"enum": ["IDLE", "HEALTHY", "RECOVER_EXECUTOR", "RECOVER_TURN", "WAIT_QUOTA", "RESUME_CHECKPOINT", "RECOVERED_EXECUTOR", "BLOCKED", "FAILED"]},
     "updated_at": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]}
   }
 }
