@@ -55,6 +55,12 @@ function Test-BridgeTransition {
     return ($script:BridgeTransitions[$From] -contains $To)
 }
 
+function Test-BridgeSuccessTerminal {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][string]$Status)
+    return ($Status -eq 'PLUGIN_RELEASED')
+}
+
 function Get-BridgeState {
     [CmdletBinding()]
     param([Parameter(Mandatory = $true)][string]$Path)
@@ -107,4 +113,4 @@ function Assert-ZeroTouchStateInvariant {
     return $true
 }
 
-Export-ModuleMember -Function Test-BridgeTransition, Get-BridgeState, Set-BridgeState, Assert-ZeroTouchStateInvariant
+Export-ModuleMember -Function Test-BridgeTransition, Test-BridgeSuccessTerminal, Get-BridgeState, Set-BridgeState, Assert-ZeroTouchStateInvariant
