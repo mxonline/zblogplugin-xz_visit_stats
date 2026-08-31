@@ -58,6 +58,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Preflight.ps1
 
+      - name: Test approval proxy
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Approval.ps1
+
       - name: Test requirement gate
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Requirements.ps1
