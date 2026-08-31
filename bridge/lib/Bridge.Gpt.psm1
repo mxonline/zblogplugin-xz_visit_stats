@@ -134,12 +134,17 @@ function Invoke-GptBridgeDecision {
         throw "Unsupported GPT controller decision: $($decision.decision)"
     }
 
-    if ([string]$decision.decision -in @('NEXT_STAGE', 'REPAIR', 'REVERIFY', 'RELEASE_READY') -and [string]::IsNullOrWhiteSpace([string]$decision.codex_prompt) -and [string]$decision.decision -ne 'RELEASE_READY') {
+    if ([string]$decision.decision -in @('NEXT_STAGE', 'REPAIR', 'REVERIFY') -and [string]::IsNullOrWhiteSpace([string]$decision.codex_prompt)) {
         throw "GPT controller decision '$($decision.decision)' requires a codex_prompt."
     }
 
+    $responseId = $null
+    if ($null -ne $response.PSObject.Properties['id']) {
+        $responseId = [string]$response.id
+    }
+
     return [pscustomobject]@{
-        response_id = if ($null -ne $response.PSObject.Properties['id']) { [string]$response.id } else { $null }
+        response_id = $responseId
         decision = [string]$decision.decision
         reason = [string]$decision.reason
         repair_instruction = $decision.repair_instruction
