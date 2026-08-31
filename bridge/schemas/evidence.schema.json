@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xzhao.net/schemas/bridge/evidence.schema.json",
+  "title": "GPT-Codex Bridge Evidence Record",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "schema_version",
+    "evidence_id",
+    "request_id",
+    "gate",
+    "stage",
+    "branch",
+    "head_sha",
+    "timestamp",
+    "environment",
+    "command",
+    "status",
+    "result"
+  ],
+  "properties": {
+    "schema_version": { "const": "1.0" },
+    "evidence_id": { "type": "string", "minLength": 1 },
+    "request_id": { "type": "string", "minLength": 1 },
+    "gate": { "type": "string", "minLength": 1 },
+    "stage": { "type": "string", "minLength": 1 },
+    "branch": { "type": "string", "minLength": 1 },
+    "head_sha": { "type": "string", "minLength": 1 },
+    "timestamp": { "type": "string", "minLength": 1 },
+    "environment": { "type": "string" },
+    "command": { "type": "string" },
+    "status": { "type": "string", "minLength": 1 },
+    "result": {},
+    "supersedes": { "type": ["string", "null"] }
+  }
+}
