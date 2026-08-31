@@ -73,4 +73,28 @@ Assert-Equal 'NEXT_STAGE' $next.decision 'next-stage decision'
 Assert-Equal 'resp_fixture_001' $script:secondCaptured.previous_response_id 'Responses API continuity'
 Assert-True ($next.codex_prompt -match 'runtime') 'next Codex prompt returned'
 
-Write-Host 'PASS: GPT controller structured decision and Codex re-dispatch contract'
+$quotaThrown = $false
+$quotaTransport = {
+    param($Body)
+    throw 'HTTP 429 insufficient_quota: remaining credits: 0'
+}
+try {
+    Invoke-GptBridgeDecision -Context $context -ExecutionResult $execution -Model 'gpt-test-model' -InstructionsPath $instructions -Transport $quotaTransport | Out-Null
+} catch {
+    $quotaThrown = ([string]$_ -match 'BRIDGE_QUOTA_EXHAUSTED\|openai_responses\|')
+}
+Assert-True $quotaThrown 'GPT quota exhaustion must surface as a recoverable Bridge quota signal'
+
+$rateLimitConverted = $false
+$rateLimitTransport = {
+    param($Body)
+    throw 'HTTP 429 rate_limit_exceeded: too many requests'
+}
+try {
+    Invoke-GptBridgeDecision -Context $context -ExecutionResult $execution -Model 'gpt-test-model' -InstructionsPath $instructions -Transport $rateLimitTransport | Out-Null
+} catch {
+    $rateLimitConverted = ([string]$_ -match 'BRIDGE_QUOTA_EXHAUSTED')
+}
+Assert-False $rateLimitConverted 'ordinary rate limit must not be misclassified as zero quota'
+
+Write-Host 'PASS: GPT controller structured decision, Codex re-dispatch and quota signal contract'
