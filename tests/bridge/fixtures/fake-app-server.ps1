@@ -1,5 +1,8 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+$utf8NoBom = New-Object System.Text.UTF8Encoding($false)
+[Console]::InputEncoding = $utf8NoBom
+[Console]::OutputEncoding = $utf8NoBom
 
 $threadId = 'thread-fixture-001'
 $turn = 0
