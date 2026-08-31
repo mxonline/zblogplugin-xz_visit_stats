@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0",
+  "request_id": "BRIDGE-T4-BOOTSTRAP",
+  "action": "RESUME",
+  "project": "xz_visit_stats",
+  "target_version": "4.0.0",
+  "branch": "feature/visit-stats-4.0",
+  "expected_head_sha": null,
+  "current_stage": "T4_ANALYTICS_ADMIN",
+  "task_file": ".codex-tasks/08-v4-t4-analytics-admin.md",
+  "resume_policy": "PRESERVE_VERIFIED",
+  "lane": "MAJOR_VERSION",
+  "required_gates": [
+    "UNIT_TEST",
+    "LOCAL_RUNTIME",
+    "SQL_EXPLAIN",
+    "GITHUB_CI"
+  ],
+  "forbidden_actions": [
+    "REWRITE_T2_T3",
+    "MERGE_T4_PREMATURELY",
+    "TAG_T4_PREMATURELY",
+    "RELEASE_T4_PREMATURELY",
+    "MANUAL_CODEX_UI_HANDOFF"
+  ],
+  "repair_context": null,
+  "max_repair_rounds": 3
+}
