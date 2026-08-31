@@ -25,7 +25,7 @@
     "schema_version": {"const": "1.0"},
     "request_id": {"type": "string", "minLength": 1},
     "stage": {"type": "string", "minLength": 1},
-    "result": {"enum": ["PASS", "REPAIRABLE", "RETRYABLE_INFRA", "BLOCKED", "FAILED"]},
+    "result": {"enum": ["PASS", "REPAIRABLE", "RETRYABLE_INFRA", "QUOTA_EXHAUSTED", "BLOCKED", "FAILED"]},
     "branch": {"type": "string", "minLength": 1},
     "head_sha": {"anyOf": [{"type": "string", "pattern": "^[0-9a-f]{40}$"}, {"type": "null"}]},
     "files_changed": {"type": "array", "items": {"type": "string"}},
@@ -38,6 +38,8 @@
     "release_gate": {"enum": ["NOT_READY", "PASS", "BLOCKED"]},
     "rollback_gate": {"enum": ["NOT_EVALUATED", "PASS", "PASS_FORWARD_ONLY", "NOT_REQUIRED", "BLOCKED"]},
     "executor_transport": {"enum": ["codex_app_server", "codex_exec_fallback", "not_started"]},
+    "quota_provider": {"anyOf": [{"type": "string", "enum": ["openai_responses", "codex", "unknown"]}, {"type": "null"}]},
+    "resume_after": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
     "evidence_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
     "next_action": {"type": "string", "minLength": 1}
   }
