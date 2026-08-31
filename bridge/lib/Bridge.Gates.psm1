@@ -1,7 +1,7 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
-Import-Module (Join-Path $PSScriptRoot 'Bridge.Evidence.psm1') -Force
+Import-Module (Join-Path $PSScriptRoot 'Bridge.Evidence.psm1')
 
 function Get-BridgeObjectProperty {
     param($Object, [Parameter(Mandatory = $true)][string]$Name, $Default = $null)
