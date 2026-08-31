@@ -67,6 +67,85 @@ function Get-BridgeState {
     return Read-BridgeJson -Path $Path
 }
 
+function Set-BridgeStateProperty {
+    param(
+        [Parameter(Mandatory = $true)]$State,
+        [Parameter(Mandatory = $true)][string]$Name,
+        $Value
+    )
+
+    if ($null -eq $State.PSObject.Properties[$Name]) {
+        Add-Member -InputObject $State -NotePropertyName $Name -NotePropertyValue $Value
+    } else {
+        $State.$Name = $Value
+    }
+}
+
+function Start-BridgeTurnLiveness {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)]$State,
+        [Parameter(Mandatory = $true)][ValidateSet('codex_app_server','codex_exec_fallback')][string]$Transport,
+        [string]$Timestamp = (Get-UtcIsoTimestamp)
+    )
+
+    Set-BridgeStateProperty -State $State -Name 'turn_started_at' -Value $Timestamp
+    Set-BridgeStateProperty -State $State -Name 'last_event_at' -Value $Timestamp
+    Set-BridgeStateProperty -State $State -Name 'last_progress_at' -Value $Timestamp
+    Set-BridgeStateProperty -State $State -Name 'executor_transport' -Value $Transport
+    Set-BridgeStateProperty -State $State -Name 'watchdog_status' -Value 'HEALTHY'
+    Set-BridgeStateProperty -State $State -Name 'executor_restart_count' -Value ([int]$State.executor_restart_count)
+    Set-BridgeStateProperty -State $State -Name 'updated_at' -Value $Timestamp
+    Write-BridgeJsonAtomic -Path $Path -Value $State
+    return $State
+}
+
+function Update-BridgeLiveness {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)]$State,
+        [string]$EventTimestamp,
+        [string]$ProgressTimestamp,
+        [ValidateSet('IDLE','HEALTHY','RECOVER_EXECUTOR','RECOVER_TURN','WAIT_QUOTA','RESUME_CHECKPOINT','RECOVERED_EXECUTOR','BLOCKED','FAILED')]
+        [string]$WatchdogStatus = 'HEALTHY'
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($EventTimestamp)) {
+        Set-BridgeStateProperty -State $State -Name 'last_event_at' -Value $EventTimestamp
+    }
+    if (-not [string]::IsNullOrWhiteSpace($ProgressTimestamp)) {
+        Set-BridgeStateProperty -State $State -Name 'last_progress_at' -Value $ProgressTimestamp
+    }
+    Set-BridgeStateProperty -State $State -Name 'watchdog_status' -Value $WatchdogStatus
+    Set-BridgeStateProperty -State $State -Name 'updated_at' -Value (Get-UtcIsoTimestamp)
+    Write-BridgeJsonAtomic -Path $Path -Value $State
+    return $State
+}
+
+function Register-BridgeExecutorRestart {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)][string]$Path,
+        [Parameter(Mandatory = $true)]$State,
+        [Parameter(Mandatory = $true)][ValidateSet('codex_app_server','codex_exec_fallback')][string]$Transport,
+        [string]$Timestamp = (Get-UtcIsoTimestamp)
+    )
+
+    $currentRestarts = 0
+    if ($null -ne $State.PSObject.Properties['executor_restart_count']) {
+        $currentRestarts = [int]$State.executor_restart_count
+    }
+    Set-BridgeStateProperty -State $State -Name 'executor_restart_count' -Value ($currentRestarts + 1)
+    Set-BridgeStateProperty -State $State -Name 'executor_transport' -Value $Transport
+    Set-BridgeStateProperty -State $State -Name 'watchdog_status' -Value 'RECOVERED_EXECUTOR'
+    Set-BridgeStateProperty -State $State -Name 'last_event_at' -Value $Timestamp
+    Set-BridgeStateProperty -State $State -Name 'updated_at' -Value $Timestamp
+    Write-BridgeJsonAtomic -Path $Path -Value $State
+    return $State
+}
+
 function Set-BridgeState {
     [CmdletBinding()]
     param(
@@ -113,4 +192,4 @@ function Assert-ZeroTouchStateInvariant {
     return $true
 }
 
-Export-ModuleMember -Function Test-BridgeTransition, Test-BridgeSuccessTerminal, Get-BridgeState, Set-BridgeState, Assert-ZeroTouchStateInvariant
+Export-ModuleMember -Function Test-BridgeTransition, Test-BridgeSuccessTerminal, Get-BridgeState, Set-BridgeState, Start-BridgeTurnLiveness, Update-BridgeLiveness, Register-BridgeExecutorRestart, Assert-ZeroTouchStateInvariant
