@@ -70,6 +70,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Handoff.ps1
 
+      - name: Test executor handoff violation detector
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-HandoffGuard.ps1
+
       - name: Test watchdog
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Watchdog.ps1
