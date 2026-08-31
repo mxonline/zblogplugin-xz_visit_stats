@@ -12,5 +12,15 @@
   "last_verified_gate": null,
   "next_action": "PREFLIGHT",
   "blocked_reason": null,
+  "quota_provider": null,
+  "quota_reason": null,
+  "resume_after": null,
+  "quota_checkpoint_path": null,
+  "last_event_at": null,
+  "last_progress_at": null,
+  "turn_started_at": null,
+  "executor_restart_count": 0,
+  "executor_transport": "not_started",
+  "watchdog_status": "IDLE",
   "updated_at": null
 }
