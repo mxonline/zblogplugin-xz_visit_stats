@@ -111,8 +111,13 @@ jobs:
         shell: powershell
         run: |
           $matches = git grep -n -E 'sk-(proj-)?[A-Za-z0-9_-]{12,}|NOTION_TOKEN=[^e]|OPENAI_API_KEY=sk-' -- bridge tests/bridge scripts 2>$null
-          if ($LASTEXITCODE -eq 0 -and $matches) {
+          $grepExit = $LASTEXITCODE
+          if ($grepExit -eq 0 -and $matches) {
             $matches | Write-Host
             throw 'Potential secret material found in Bridge paths.'
           }
+          if ($grepExit -gt 1) {
+            throw "git grep secret scan failed with exit code $grepExit."
+          }
+          $global:LASTEXITCODE = 0
           Write-Host 'PASS: no committed secret patterns detected'
