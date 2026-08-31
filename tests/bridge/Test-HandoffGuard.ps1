@@ -6,15 +6,21 @@ $ErrorActionPreference = 'Stop'
 Import-Module "$PSScriptRoot/../../bridge/lib/Bridge.HandoffGuard.psm1" -Force
 Import-Module "$PSScriptRoot/../../bridge/lib/Bridge.Orchestrator.psm1" -Force
 
-$ui = Test-ExecutorHandoffViolation -Text '请在 Codex UI 点击继续，然后再回来。'
+# Keep this test source ASCII-only for Windows PowerShell 5.1. Build the Chinese
+# responsibility-transfer fixtures from Unicode code points at runtime.
+$uiText = ([string]([char]0x8BF7) + [char]0x5728 + ' Codex UI ' + [char]0x70B9 + [char]0x51FB + [char]0x7EE7 + [char]0x7EED)
+$relayText = ([string]([char]0x628A) + [char]0x7ED3 + [char]0x679C + [char]0x53D1 + [char]0x7ED9 + ' GPT, ' + [char]0x518D + [char]0x51B3 + [char]0x5B9A + [char]0x4E0B + [char]0x4E00 + [char]0x6B65)
+$manualText = ([string]([char]0x8BF7) + [char]0x624B + [char]0x52A8 + [char]0x6267 + [char]0x884C + [char]0x547D + [char]0x4EE4 + ' php -l index.php')
+
+$ui = Test-ExecutorHandoffViolation -Text $uiText
 Assert-True $ui.has_violation 'Codex UI responsibility transfer detected'
 Assert-Contains @($ui.violation_types) 'CODEX_UI_HANDOFF' 'Codex UI violation classified'
 
-$relay = Test-ExecutorHandoffViolation -Text '把结果发给 GPT，再决定下一步。'
+$relay = Test-ExecutorHandoffViolation -Text $relayText
 Assert-True $relay.has_violation 'manual result relay detected'
 Assert-Contains @($relay.violation_types) 'RESULT_RELAY_HANDOFF' 'result relay violation classified'
 
-$manual = Test-ExecutorHandoffViolation -Text '请手动执行命令 php -l index.php。'
+$manual = Test-ExecutorHandoffViolation -Text $manualText
 Assert-True $manual.has_violation 'manual command handoff detected'
 Assert-Contains @($manual.violation_types) 'MANUAL_COMMAND_HANDOFF' 'manual command violation classified'
 
@@ -29,7 +35,7 @@ $codex = {
     if ($script:guardCodexTurns -eq 1) {
         return [pscustomobject]@{
             completed = $true
-            output = '请在 Codex UI 点击继续'
+            output = $uiText
             head_sha = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
         }
     }
