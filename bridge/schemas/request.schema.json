@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xzhao.net/schemas/xz_visit_stats/bridge/request.schema.json",
+  "title": "GPT-Codex Bridge Request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "request_id",
+    "action",
+    "project",
+    "target_version",
+    "branch",
+    "current_stage",
+    "resume_policy",
+    "required_gates",
+    "forbidden_actions",
+    "max_repair_rounds"
+  ],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "request_id": {"type": "string", "minLength": 1},
+    "action": {
+      "enum": ["RESUME", "EXECUTE", "REPAIR", "REVERIFY", "VERIFY", "RELEASE"]
+    },
+    "project": {"const": "xz_visit_stats"},
+    "target_version": {"type": "string", "minLength": 1},
+    "branch": {"type": "string", "minLength": 1},
+    "expected_head_sha": {
+      "anyOf": [
+        {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        {"type": "null"}
+      ]
+    },
+    "current_stage": {"type": "string", "minLength": 1},
+    "task_file": {
+      "anyOf": [
+        {"type": "string", "minLength": 1},
+        {"type": "null"}
+      ]
+    },
+    "resume_policy": {"enum": ["PRESERVE_VERIFIED"]},
+    "lane": {
+      "enum": ["DOC_ONLY", "FAST_FIX", "NORMAL_FEATURE", "RUNTIME_FEATURE", "SCHEMA_CHANGE", "MAJOR_VERSION", "RELEASE"]
+    },
+    "required_gates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "forbidden_actions": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "repair_context": {
+      "anyOf": [
+        {"type": "object"},
+        {"type": "null"}
+      ]
+    },
+    "max_repair_rounds": {"type": "integer", "minimum": 1, "maximum": 10}
+  }
+}
