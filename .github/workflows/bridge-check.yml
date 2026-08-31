@@ -78,6 +78,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Watchdog.ps1
 
+      - name: Test persistent liveness state
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-LivenessState.ps1
+
       - name: Test executor adapter
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-ExecutorAdapter.ps1
