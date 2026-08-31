@@ -50,6 +50,7 @@
         "RELEASE",
         "NOTION_WRITEBACK",
         "PROJECT_STATE_WRITEBACK",
+        "PAUSED_QUOTA",
         "PLUGIN_RELEASED",
         "BLOCKED",
         "FAILED"
@@ -66,6 +67,10 @@
     "last_verified_gate": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
     "next_action": {"type": "string", "minLength": 1},
     "blocked_reason": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+    "quota_provider": {"anyOf": [{"type": "string", "enum": ["openai_responses", "codex", "unknown"]}, {"type": "null"}]},
+    "quota_reason": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
+    "resume_after": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+    "quota_checkpoint_path": {"anyOf": [{"type": "string", "minLength": 1}, {"type": "null"}]},
     "updated_at": {"anyOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]}
   }
 }
