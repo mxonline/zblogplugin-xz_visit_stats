@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0",
+  "request_id": "BRIDGE-T4-BOOTSTRAP",
+  "stage": "BRIDGE_BOOTSTRAP",
+  "result": "BLOCKED",
+  "branch": "feature/gpt-codex-bridge-v1",
+  "head_sha": null,
+  "files_changed": [],
+  "tests": [],
+  "runtime_checks": [],
+  "sql_explain": [],
+  "ci": {},
+  "failures": [],
+  "root_cause": null,
+  "release_gate": "NOT_READY",
+  "rollback_gate": "NOT_EVALUATED",
+  "executor_transport": "not_started",
+  "evidence_ids": [],
+  "next_action": "PREFLIGHT"
+}
