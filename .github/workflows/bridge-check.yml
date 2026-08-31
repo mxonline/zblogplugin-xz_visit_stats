@@ -25,7 +25,7 @@ permissions:
 jobs:
   bridge-tests:
     runs-on: windows-latest
-    timeout-minutes: 10
+    timeout-minutes: 12
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,7 +38,31 @@ jobs:
             Get-Content $_.FullName -Raw | ConvertFrom-Json | Out-Null
           }
 
-      - name: Run bridge tests
+      - name: Test schemas
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Schemas.ps1
+
+      - name: Test state machine
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-State.ps1
+
+      - name: Test redaction
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Redaction.ps1
+
+      - name: Test preflight
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Preflight.ps1
+
+      - name: Test App Server transport
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-AppServer.ps1
+
+      - name: Test GPT controller
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Gpt.ps1
+
+      - name: Run aggregate bridge tests
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Run-All.ps1
 
