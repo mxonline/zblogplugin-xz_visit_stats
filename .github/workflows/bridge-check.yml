@@ -1,0 +1,53 @@
+name: Bridge Control Plane Check
+
+on:
+  push:
+    branches:
+      - feature/gpt-codex-bridge-v1
+    paths:
+      - 'bridge/**'
+      - 'tests/bridge/**'
+      - 'scripts/bridge-*.ps1'
+      - '.github/workflows/bridge-check.yml'
+      - 'docs/ZBLOG-AUTONOMOUS-DEVELOPMENT-v2.*.md'
+      - 'docs/superpowers/specs/*bridge*.md'
+      - 'docs/superpowers/plans/*bridge*.md'
+  pull_request:
+    paths:
+      - 'bridge/**'
+      - 'tests/bridge/**'
+      - 'scripts/bridge-*.ps1'
+      - '.github/workflows/bridge-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  bridge-tests:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse committed JSON
+        shell: powershell
+        run: |
+          Get-ChildItem bridge -Recurse -Filter *.json | ForEach-Object {
+            Write-Host "Parsing $($_.FullName)"
+            Get-Content $_.FullName -Raw | ConvertFrom-Json | Out-Null
+          }
+
+      - name: Run bridge tests
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Run-All.ps1
+
+      - name: Check forbidden secret patterns
+        shell: powershell
+        run: |
+          $matches = git grep -n -E 'sk-(proj-)?[A-Za-z0-9_-]{12,}|NOTION_TOKEN=[^e]|OPENAI_API_KEY=sk-' -- bridge tests/bridge scripts 2>$null
+          if ($LASTEXITCODE -eq 0 -and $matches) {
+            $matches | Write-Host
+            throw 'Potential secret material found in Bridge paths.'
+          }
+          Write-Host 'PASS: no committed secret patterns detected'
