@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "status": "IDLE",
+  "stage": "BRIDGE_BOOTSTRAP",
+  "request_id": null,
+  "thread_id": null,
+  "controller_response_id": null,
+  "head_sha": null,
+  "candidate_sha": null,
+  "repair_round": 0,
+  "infra_retry_round": 0,
+  "last_verified_gate": null,
+  "next_action": "PREFLIGHT",
+  "blocked_reason": null,
+  "updated_at": null
+}
