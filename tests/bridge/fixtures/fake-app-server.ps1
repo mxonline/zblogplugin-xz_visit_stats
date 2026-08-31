@@ -6,7 +6,13 @@ $turn = 0
 
 while (($line = [Console]::In.ReadLine()) -ne $null) {
     if ([string]::IsNullOrWhiteSpace($line)) { continue }
-    $message = $line | ConvertFrom-Json
+    try {
+        $message = $line | ConvertFrom-Json
+    } catch {
+        [Console]::Error.WriteLine('FAKE_APP_SERVER_INVALID_STDIN=' + [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($line)))
+        [Console]::Error.Flush()
+        throw
+    }
     $method = [string]$message.method
 
     switch ($method) {
