@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "project": "xz_visit_stats",
+  "repository": "mxonline/zblogplugin-xz_visit_stats",
+  "development_branch": "feature/visit-stats-4.0",
+  "controller_model": "env:OPENAI_CONTROLLER_MODEL",
+  "codex_model": "env:CODEX_MODEL",
+  "max_repair_rounds": 3,
+  "infra_retry_limit": 8,
+  "poll_seconds": 30,
+  "heartbeat_seconds": 30,
+  "codex_silence_timeout_seconds": 300,
+  "success_terminal_state": "PLUGIN_RELEASED",
+  "autonomous_execution": true,
+  "manual_gpt_codex_copy_paste": false,
+  "codex_ui_dependency": false,
+  "local_zblog_root": "D:\\wwwroot\\www.xzhao.net",
+  "local_plugin_root": "D:\\wwwroot\\www.xzhao.net\\zb_users\\plugin\\xz_visit_stats",
+  "php_cli": "D:\\BtSoft\\php\\83\\php.exe",
+  "local_site": "http://127.0.0.1",
+  "notion": {
+    "enabled": true,
+    "token_source": "env:NOTION_TOKEN",
+    "target_source": "env:XZ_VISIT_STATS_NOTION_TARGET"
+  }
+}
