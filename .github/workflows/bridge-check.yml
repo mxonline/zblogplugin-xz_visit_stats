@@ -58,6 +58,10 @@ jobs:
         shell: powershell
         run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Preflight.ps1
 
+      - name: Test Notion adapter
+        shell: powershell
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File tests/bridge/Test-Notion.ps1
+
       - name: Test App Server transport
         id: appserver_test
         shell: powershell
