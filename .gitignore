@@ -7,3 +7,14 @@
 !/vendor/mlocati/ip-lib/src/
 !/vendor/mlocati/ip-lib/src/**
 !/vendor/mlocati/ip-lib/LICENSE.txt
+
+# GPT-Codex Bridge local/runtime state
+bridge/config.local.json
+bridge/runs/*
+!bridge/runs/.gitkeep
+bridge/evidence/runtime/*
+!bridge/evidence/runtime/.gitkeep
+bridge/*.log
+bridge/*.tmp
+.env
+.env.*
