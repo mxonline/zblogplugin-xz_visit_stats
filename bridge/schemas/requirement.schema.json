@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://xzhao.net/schemas/bridge/requirement.schema.json",
+  "title": "GPT-Codex Bridge Requirement Envelope",
+  "type": "object",
+  "additionalProperties": true,
+  "required": [
+    "business_goal",
+    "user_outcome",
+    "in_scope",
+    "out_of_scope",
+    "compatibility",
+    "schema_impact",
+    "security_privacy_impact",
+    "acceptance_criteria",
+    "release_target",
+    "reuse_gate",
+    "unresolved_business_decisions",
+    "safety_scope"
+  ],
+  "properties": {
+    "business_goal": { "type": "string", "minLength": 1 },
+    "user_outcome": { "type": "string", "minLength": 1 },
+    "in_scope": { "type": "array", "items": { "type": "string" } },
+    "out_of_scope": { "type": "array", "items": { "type": "string" } },
+    "compatibility": { "type": "string", "minLength": 1 },
+    "schema_impact": { "type": "string", "minLength": 1 },
+    "security_privacy_impact": { "type": "string", "minLength": 1 },
+    "acceptance_criteria": { "type": "array", "minItems": 1, "items": { "type": "string" } },
+    "release_target": { "type": "string", "minLength": 1 },
+    "reuse_gate": { "enum": ["NOT_REQUIRED", "REQUIRED", "COMPLETED"] },
+    "unresolved_business_decisions": { "type": "array", "items": { "type": "string" } },
+    "safety_scope": { "type": "string", "minLength": 1 }
+  }
+}
