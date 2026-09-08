@@ -8,6 +8,7 @@
 
 ```text
 需求 / PRD
+→ 恢复或创建 DEV-YYYYMMDD-NNN Runtime
 → Codex 打开真实工作区
 → 读取 AGENTS.md 与当前代码
 → 修改插件
@@ -17,7 +18,22 @@
 → Git diff / commit / push
 → GitHub CI
 → 发布文档与 Release gate
+→ Notion writeback
 ```
+
+## 无人值守 Runtime / Resume
+
+机器执行状态统一遵循 `docs/DEVELOPMENT-RUNTIME.md`。新任务或“继续开发”时，不从聊天历史、旧 `.codex-state.json` 或 `.codex/tasks.json` 猜测进度，而是先读取：
+
+```text
+.development/runtime/<execution_id>/state.json
+.development/runtime/<execution_id>/events.jsonl
+.development/runtime/<execution_id>/evidence/index.json
+```
+
+运行编号使用 `DEV-YYYYMMDD-NNN`；中断恢复继续使用原编号。Windows/Codex 可调用 `scripts/dev-flow.ps1 resume ...`，核心状态裁决始终由 `scripts/dev_runtime.py` 完成。
+
+恢复顺序固定为：Runtime 校验 → 当前 Git branch/head reconciliation → Notion/PRD 上下文恢复 → 执行唯一 next action → 写 evidence / revision / event。旧 CI 若不是当前 head SHA 的真实结果，不得复用。
 
 ## 项目定位
 
@@ -44,11 +60,12 @@ Codex 工作区最好直接打开插件 Git 工作树，且该工作树位于真
 
 Codex 必须先确认：
 
-1. `git status` 与当前分支。
-2. `plugin.xml` 和 `docs/VERSION.md` 的版本状态。
-3. 当前任务/PRD 与受影响模块。
-4. 相关 Hook、数据表、配置项和升级逻辑。
-5. 本地 Z-Blog、PHP、数据库是否需要参与本轮验收。
+1. 读取或创建当前 `DEV-YYYYMMDD-NNN` Runtime Bundle，并执行 `resume` / validation。
+2. `git status`、当前分支与真实 head SHA，并与 Runtime reconcile。
+3. `plugin.xml` 和 `docs/VERSION.md` 的版本状态。
+4. 当前任务/PRD 与受影响模块。
+5. 相关 Hook、数据表、配置项和升级逻辑。
+6. 本地 Z-Blog、PHP、数据库是否需要参与本轮验收。
 
 禁止在未读真实代码的情况下整体重写插件；禁止覆盖人工未提交修改。
 
@@ -114,7 +131,7 @@ inc/ip_stats.php      IP 分析
 inc/seo_report.php    SEO 报告
 assets/               后台 JS/CSS/图表资源
 tests/                PHPUnit 与轻量回归测试
-scripts/              本机自动验证、打包等开发脚本
+scripts/              本机自动验证、Runtime、打包等开发脚本
 ```
 
 实际文件结构发生变化时，以仓库为准。
@@ -131,6 +148,8 @@ Codex 应优先运行：
 
 该脚本负责标准化的 PHP 语法、现有 PHPUnit 和本地 HTTP Smoke Test。涉及数据库、Hook、采集、升级等任务时，Codex还必须按 `docs/TESTING.md` 执行对应的实机验收，并记录实际结果。
 
+Runtime State 只能保存上述真实结果的 evidence ref，不能自行把 Local Runtime Gate 标记为 PASS。
+
 ## 错误处理
 
 测试失败后不询问用户是否修复，普通可逆错误自动进入：
@@ -140,9 +159,10 @@ Codex 应优先运行：
 → 定位原因
 → 修改
 → 重跑相关测试
+→ 更新 Runtime evidence / state revision / event
 ```
 
-只有缺少关键凭据、无法访问必须的外部环境、涉及生产数据或不可逆操作时才暂停。
+只有缺少关键凭据、无法访问必须的外部环境、涉及生产数据或不可逆操作时才暂停，并以结构化 BLOCKED 记录证据与 next action。
 
 ## Git 与 CI
 
@@ -150,6 +170,7 @@ Codex 应优先运行：
 - 开发前检查工作树，不能覆盖未提交人工修改。
 - 通过本轮验收后检查最终 diff，再 Commit / Push。
 - CI 失败时读取真实日志，本机修复并复测，再 Push。
+- CI PASS 必须与当前 Runtime `head_sha` 精确一致；产生新 Commit 后旧 PASS 不可复用。
 - 普通开发无需用户逐项确认 Git 命令。
 - 合并、Tag 和 Release 只能在发布门槛满足后进行。
 
@@ -158,3 +179,5 @@ Codex 应优先运行：
 正式发布执行 `docs/RELEASE.md`。
 
 README、CHANGELOG、VERSION 和 Release Notes 必须按真实代码和真实验证结果撰写。没跑过的实机测试不能写“已通过”，仍存在的限制不能为了发布文案好看而隐藏。
+
+开发任务完成与正式发布分开判定：中间 Phase 的 Release Gate 可以合法为 `NOT READY`，但不得省略；只有真实 Tag + GitHub Release + 正式 ZIP 才能记录 `RELEASE: RELEASED`。

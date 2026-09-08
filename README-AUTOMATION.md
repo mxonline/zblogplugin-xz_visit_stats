@@ -1,65 +1,72 @@
-# xz_visit_stats v1.3 自动开发脚本（按当前进度续接）
+# xz_visit_stats 无人值守开发入口
 
-这版不是从 v1.2 重新开始，而是从你截图中的已完成状态继续。
+当前默认自动开发方式是 **Codex 真实工作区 + canonical development runtime**。详细合同见 `docs/DEVELOPMENT-RUNTIME.md`。
 
-## 已视为完成
-- 5 个页面常用筛选 + 高级筛选
-- 高级筛选展开/收起
-- 隐私设置 radio Bug 根因修复
-- `full` / `masked` 采集逻辑保持原样
-- `git diff --check` 已通过
+## 当前 canonical 状态
 
-## 新任务队列
-1. 验证当前 v1.3 已完成改动
-2. 来源 URL / Referer 识别与悬停详情
-3. 来源分析页面轻量 UI 收口
-4. 第一批快速回归
-5. 发布前文档整理
+新开发任务统一使用：
 
-## 安装
-把压缩包内所有文件复制到 `xz_visit_stats` Git 仓库根目录，与 `main.php` 同级。
-
-## 第一次运行
-
-```powershell
-codex --version
-.\dev-v1.3.ps1 status
-.\dev-v1.3.ps1 next
+```text
+DEV-YYYYMMDD-NNN
+.development/runtime/<execution_id>/state.json
+.development/runtime/<execution_id>/events.jsonl
+.development/runtime/<execution_id>/evidence/index.json
 ```
 
-以后不需要再复制长提示词。
+Runtime 负责跨中断恢复、state revision、append-only events、evidence 绑定、Git/CI reconciliation 和六 Gate 下一动作判断；真实 Git/CI/本机 Z-Blog/Release/Notion 结果仍是事实证据。
 
-## 每个任务完成后
+## Windows / Codex 入口
 
-本地需要人工验证时先验证，再执行：
+核心逻辑：
 
-```powershell
-.\dev-v1.3.ps1 approve
-.\dev-v1.3.ps1 next
+```text
+scripts/dev_runtime.py
 ```
 
-## 查看状态
+PowerShell 薄适配器的仓库规范路径是 `scripts/dev-flow.ps1`；在 Windows PowerShell 中可直接运行：
 
 ```powershell
-.\dev-v1.3.ps1 status
-.\dev-v1.3.ps1 list
-.\dev-v1.3.ps1 show
+.\scripts\dev-flow.ps1 new <参数>
+.\scripts\dev-flow.ps1 status --root . --execution-id DEV-20260909-001
+.\scripts\dev-flow.ps1 resume --root . --execution-id DEV-20260909-001
+.\scripts\dev-flow.ps1 reconcile --root . --execution-id DEV-20260909-001 --branch <branch> --head-sha <sha>
+.\scripts\dev-flow.ps1 git --root . --execution-id DEV-20260909-001 --branch <branch> --head-sha <new-sha> --time <ISO-8601>
+.\scripts\dev-flow.ps1 evaluate --root . --execution-id DEV-20260909-001
 ```
 
-## 单独运行指定任务
+`resume` 会把当前真实 Git branch/head/dirty state 交给 Runtime；发生漂移时返回 `RECONCILE_GIT`。确认新的 clean Commit 是本轮合法 checkpoint 后，用 `git` 接受新 head；此动作会自动使旧 CI snapshot 和 GitHub CI Gate 失效并回到 `PENDING`。
 
-```powershell
-.\dev-v1.3.ps1 run -Task "referer-url-hover"
+`dev-flow.ps1` 不维护第二份状态，只把命令交给同一个 Python Runtime。
+
+## 完整开发仍执行原六 Gate
+
+```text
+[1] Notion Context
+[2] Codex Development
+[3] Local Runtime
+[4] GitHub CI
+[5] Release Gate
+[6] Notion Writeback
 ```
 
-## 安全策略
-- 强制要求当前分支为 `feature/visit-stats-1.3`
-- 默认不 commit
-- 默认不 push
-- 默认不 merge
-- 默认不建新分支
-- PHPStan 不作为阻断条件
-- 只运行与当前改动相关的快速检查
+没有 evidence 的 PASS 无效；本应实机验证的任务不能用 CI 替代；Release Gate 即使是 `NOT READY` 也必须真实判断过。
 
-## 当前最重要的一点
-隐私设置 Bug 已经修复，不要再让 Codex重复开发。新的第一个任务只负责验证当前基线，然后直接进入 Referer 来源增强。
+## Legacy v1.3 compatibility
+
+仓库根目录下列内容继续保留，只服务历史 v1.3 任务链：
+
+- `dev-v1.3.ps1`
+- `.codex-state.json`
+- `.codex-tasks/`
+
+它们属于 **legacy compatibility**，不是新开发 Run 的 canonical state。`dev-v1.3.ps1 approve` 的人工队列机制不会被带入新的无人值守入口。
+
+`.codex/tasks.json` 同样只视为 legacy v2.0 规划输入，不具有运行状态裁决权。
+
+## 关键原则
+
+- 不要求用户为普通可逆开发动作逐步回复“下一步”。
+- 中断后先 `resume` 同一个 DEV Run，不重新创建同一任务。
+- CI PASS 必须绑定当前 `head_sha`；出现新 Commit 后旧 CI 自动视为 stale。
+- 普通测试失败自动读取真实错误、修复、复测；只有真实权限、生产数据、不可逆操作或缺失环境才允许 BLOCKED。
+- 完成开发任务与正式发布分开判定：`FINAL: COMPLETE` 可以与 `RELEASE: NOT RELEASED` 同时成立。

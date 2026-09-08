@@ -4,10 +4,16 @@ on:
   pull_request:
     paths:
       - 'AGENTS.md'
+      - 'README-AUTOMATION.md'
       - 'docs/DEVELOPMENT.md'
+      - 'docs/DEVELOPMENT-RUNTIME.md'
       - 'docs/TESTING.md'
       - 'docs/RELEASE.md'
       - 'scripts/*.ps1'
+      - 'scripts/*.py'
+      - 'tests/test_dev_*.py'
+      - '.codex/workflow.md'
+      - '.development/runtime/**'
       - '.github/workflows/codex-workspace-check.yml'
   workflow_dispatch:
 
@@ -16,17 +22,23 @@ jobs:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Parse local verification script
+      - name: Parse local PowerShell development scripts
         shell: powershell
         run: |
-          $errors = $null
-          [System.Management.Automation.Language.Parser]::ParseFile(
-            (Resolve-Path '.\scripts\local-verify.ps1'),
-            [ref]$null,
-            [ref]$errors
-          ) | Out-Null
-          if ($errors.Count -gt 0) {
-            $errors | Format-List | Out-String | Write-Error
-            exit 1
+          $files = @('.\scripts\local-verify.ps1', '.\scripts\dev-flow.ps1')
+          foreach ($file in $files) {
+            $errors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile(
+              (Resolve-Path $file),
+              [ref]$null,
+              [ref]$errors
+            ) | Out-Null
+            if ($errors.Count -gt 0) {
+              $errors | Format-List | Out-String | Write-Error
+              exit 1
+            }
+            Write-Host "$file syntax: PASS"
           }
-          Write-Host 'PowerShell syntax: PASS'
+      - name: Development runtime contracts on Windows
+        shell: powershell
+        run: python -m unittest discover -s tests -p 'test_dev_*.py' -v

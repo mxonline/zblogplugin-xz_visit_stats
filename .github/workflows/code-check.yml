@@ -30,6 +30,9 @@ jobs:
       - name: PHPUnit
         run: vendor/bin/phpunit
 
+      - name: Development Runtime Contracts
+        run: python3 -m unittest discover -s tests -p 'test_dev_*.py' -v
+
       - name: Semgrep
         uses: semgrep/semgrep-action@v1
         with:
