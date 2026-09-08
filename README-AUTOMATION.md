@@ -30,8 +30,11 @@ PowerShell 薄适配器的仓库规范路径是 `scripts/dev-flow.ps1`；在 Win
 .\scripts\dev-flow.ps1 status --root . --execution-id DEV-20260909-001
 .\scripts\dev-flow.ps1 resume --root . --execution-id DEV-20260909-001
 .\scripts\dev-flow.ps1 reconcile --root . --execution-id DEV-20260909-001 --branch <branch> --head-sha <sha>
+.\scripts\dev-flow.ps1 git --root . --execution-id DEV-20260909-001 --branch <branch> --head-sha <new-sha> --time <ISO-8601>
 .\scripts\dev-flow.ps1 evaluate --root . --execution-id DEV-20260909-001
 ```
+
+`resume` 会把当前真实 Git branch/head/dirty state 交给 Runtime；发生漂移时返回 `RECONCILE_GIT`。确认新的 clean Commit 是本轮合法 checkpoint 后，用 `git` 接受新 head；此动作会自动使旧 CI snapshot 和 GitHub CI Gate 失效并回到 `PENDING`。
 
 `dev-flow.ps1` 不维护第二份状态，只把命令交给同一个 Python Runtime。
 
