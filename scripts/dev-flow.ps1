@@ -1,6 +1,6 @@
 param(
     [Parameter(Position = 0)]
-    [ValidateSet('new', 'status', 'resume', 'transition', 'evidence', 'gate', 'ci', 'reconcile', 'evaluate')]
+    [ValidateSet('new', 'status', 'resume', 'transition', 'evidence', 'gate', 'ci', 'git', 'reconcile', 'evaluate')]
     [string]$Action = 'status',
 
     [Parameter(ValueFromRemainingArguments = $true)]
@@ -33,5 +33,26 @@ if (-not $Python) {
     throw 'Python 3 is required to run the canonical unattended development flow.'
 }
 
-& $Python $RuntimeScript $Action @Arguments
+$EffectiveArguments = @($Arguments)
+
+if ($Action -eq 'resume') {
+    $Git = Get-Command git -ErrorAction SilentlyContinue
+    if ($Git) {
+        $inside = (& git rev-parse --is-inside-work-tree 2>$null)
+        if ($LASTEXITCODE -eq 0 -and "$inside".Trim() -eq 'true') {
+            $branch = (& git rev-parse --abbrev-ref HEAD 2>$null).Trim()
+            $head = (& git rev-parse HEAD 2>$null).Trim()
+            $dirty = & git status --porcelain 2>$null
+
+            if ($branch -and $head) {
+                $EffectiveArguments += @('--branch', $branch, '--head-sha', $head)
+                if ($dirty) {
+                    $EffectiveArguments += '--dirty'
+                }
+            }
+        }
+    }
+}
+
+& $Python $RuntimeScript $Action @EffectiveArguments
 exit $LASTEXITCODE
