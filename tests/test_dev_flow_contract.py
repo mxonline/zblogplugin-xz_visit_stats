@@ -13,8 +13,16 @@ class DevFlowContractTests(unittest.TestCase):
         text = FLOW.read_text(encoding="utf-8")
         self.assertIn("dev_runtime.py", text)
         self.assertIn(".development", text)
-        for action in ("new", "status", "resume", "transition", "evidence", "gate", "reconcile", "evaluate"):
+        for action in ("new", "status", "resume", "transition", "evidence", "gate", "git", "reconcile", "evaluate"):
             self.assertIn(action, text.lower())
+
+    def test_resume_adapter_supplies_real_git_facts_to_runtime(self):
+        text = FLOW.read_text(encoding="utf-8")
+        self.assertIn("rev-parse --abbrev-ref HEAD", text)
+        self.assertIn("rev-parse HEAD", text)
+        self.assertIn("status --porcelain", text)
+        self.assertIn("--head-sha", text)
+        self.assertIn("--branch", text)
 
     def test_adapter_is_not_hardcoded_to_legacy_v13_or_manual_approval(self):
         text = FLOW.read_text(encoding="utf-8")
