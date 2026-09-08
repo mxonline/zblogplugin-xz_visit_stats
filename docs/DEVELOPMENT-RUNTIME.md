@@ -75,7 +75,7 @@ load state.json
 → load evidence/index.json
 → load events.jsonl
 → validate execution_id / revision / evidence / event sequence
-→ reconcile real Git branch + head SHA
+→ reconcile real Git branch + head SHA + dirty state
 → validate exact-head CI evidence
 → evaluate one next_action
 ```
@@ -93,6 +93,35 @@ load state.json
 - `COMPLETE`
 - `BLOCKED`
 
+## Git checkpoint reconciliation
+
+`resume` 不能只相信保存的 branch/head。Windows 入口会读取当前工作区的：
+
+```text
+git rev-parse --abbrev-ref HEAD
+git rev-parse HEAD
+git status --porcelain
+```
+
+并把真实 Git facts 交给 Runtime。出现 branch/head drift 或 dirty working tree 时，`resume` 返回 `RECONCILE_GIT`，不会继续猜测执行。
+
+当控制器确认新 Commit 是本轮合法 checkpoint 且工作树已 clean 后，使用 `git` 命令接受新 branch/head：
+
+```powershell
+.\scripts\dev-flow.ps1 git --root . --execution-id DEV-20260909-001 --branch feat/example --head-sha <new-40-char-sha> --time 2026-09-09T00:00:00Z
+```
+
+接受新 Git checkpoint 时：
+
+- `state_revision` 增加；
+- append `GIT_RECONCILED` event；
+- Runtime `branch/head_sha` 更新；
+- 原 GitHub CI snapshot 清为 `PENDING`；
+- GitHub CI Gate 清为 `PENDING`；
+- 旧 CI evidence 仍保留为历史证据，但不再能作为当前 head 的 PASS。
+
+Dirty working tree 不能直接被 `git` checkpoint 接受，必须先识别/处理未提交修改。
+
 ## CLI 与 Windows 入口
 
 核心实现：
@@ -107,7 +136,7 @@ Windows/Codex 薄适配器：
 scripts/dev-flow.ps1
 ```
 
-PowerShell 适配器不保存另一份状态，只把 `new / status / resume / transition / evidence / gate / ci / reconcile / evaluate` 转交给同一个 Python Runtime。
+PowerShell 适配器不保存另一份状态，只把 `new / status / resume / transition / evidence / gate / ci / git / reconcile / evaluate` 转交给同一个 Python Runtime。
 
 示例：
 
