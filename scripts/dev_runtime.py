@@ -236,6 +236,29 @@ def set_ci(
     return updated
 
 
+def accept_git_checkpoint(
+    state: dict[str, Any],
+    *,
+    branch: str,
+    head_sha: str,
+    dirty: bool,
+    updated_at: str,
+) -> dict[str, Any]:
+    if dirty:
+        raise ValueError("cannot accept Git checkpoint while working tree is dirty")
+    if not branch:
+        raise ValueError("branch is required")
+    if not isinstance(head_sha, str) or not SHA_RE.fullmatch(head_sha):
+        raise ValueError("head_sha must be a 40-character Git SHA")
+
+    changed = branch != state.get("branch") or head_sha != state.get("head_sha")
+    updated = next_state(state, updated_at=updated_at, branch=branch, head_sha=head_sha)
+    if changed:
+        updated["ci"] = {"status": "PENDING", "sha": None, "run_id": None, "evidence": None}
+        updated["gates"]["github_ci"] = {"status": "PENDING", "evidence": []}
+    return updated
+
+
 def new_event(
     state: dict[str, Any],
     *,
@@ -463,6 +486,8 @@ def reconcile_git(state: dict[str, Any], *, branch: str, head_sha: str, dirty: b
         conflicts.append(f"branch drift: state={state.get('branch')} actual={branch}")
     if head_sha != state.get("head_sha"):
         conflicts.append(f"head drift: state={state.get('head_sha')} actual={head_sha}")
+    if dirty:
+        conflicts.append("working tree is dirty")
     return {"action": "RECONCILE_GIT" if conflicts else "OK", "conflicts": conflicts, "dirty": bool(dirty)}
 
 
@@ -552,6 +577,12 @@ def _add_common_run_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--execution-id", required=True)
 
 
+def _add_git_fact_args(parser: argparse.ArgumentParser, *, required: bool) -> None:
+    parser.add_argument("--branch", required=required)
+    parser.add_argument("--head-sha", required=required)
+    parser.add_argument("--dirty", action="store_true")
+
+
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Canonical unattended Z-Blog development runtime")
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -569,8 +600,11 @@ def _build_parser() -> argparse.ArgumentParser:
     new.add_argument("--base-branch", required=True)
     new.add_argument("--head-sha", required=True)
     new.add_argument("--time", required=True)
-    for name in ("status", "resume", "evaluate"):
+    for name in ("status", "evaluate"):
         _add_common_run_args(subparsers.add_parser(name))
+    resume = subparsers.add_parser("resume")
+    _add_common_run_args(resume)
+    _add_git_fact_args(resume, required=False)
     transition = subparsers.add_parser("transition")
     _add_common_run_args(transition)
     transition.add_argument("--status")
@@ -599,11 +633,13 @@ def _build_parser() -> argparse.ArgumentParser:
     ci.add_argument("--run-id")
     ci.add_argument("--evidence-ref")
     ci.add_argument("--time", required=True)
+    git = subparsers.add_parser("git")
+    _add_common_run_args(git)
+    _add_git_fact_args(git, required=True)
+    git.add_argument("--time", required=True)
     reconcile = subparsers.add_parser("reconcile")
     _add_common_run_args(reconcile)
-    reconcile.add_argument("--branch", required=True)
-    reconcile.add_argument("--head-sha", required=True)
-    reconcile.add_argument("--dirty", action="store_true")
+    _add_git_fact_args(reconcile, required=True)
     return parser
 
 
@@ -619,7 +655,20 @@ def _run_cli(argv: list[str] | None = None) -> int:
         print(json.dumps(_status_payload(load_bundle(root, execution_id)), ensure_ascii=False))
         return 0
     bundle = load_bundle(root, args.execution_id)
-    if args.command in {"status", "resume", "evaluate"}:
+    if args.command in {"status", "evaluate"}:
+        print(json.dumps(_status_payload(bundle), ensure_ascii=False))
+        return 0
+    if args.command == "resume":
+        if (args.branch is None) != (args.head_sha is None):
+            raise ValueError("resume requires both --branch and --head-sha when Git facts are supplied")
+        if args.branch is not None and args.head_sha is not None:
+            decision = reconcile_git(bundle["state"], branch=args.branch, head_sha=args.head_sha, dirty=args.dirty)
+            if decision["action"] != "OK":
+                payload = _status_payload(bundle)
+                payload["action"] = decision["action"]
+                payload["decision"] = decision
+                print(json.dumps(payload, ensure_ascii=False))
+                return 0
         print(json.dumps(_status_payload(bundle), ensure_ascii=False))
         return 0
     if args.command == "reconcile":
@@ -642,6 +691,11 @@ def _run_cli(argv: list[str] | None = None) -> int:
     elif args.command == "ci":
         state = set_ci(state, status=args.status, sha=args.sha, run_id=args.run_id, evidence_ref=args.evidence_ref, updated_at=args.time)
         _persist_mutation(root, bundle, state, evidence_index, event_name="CI_UPDATED", time=args.time, data={"status": args.status, "sha": args.sha, "run_id": args.run_id})
+    elif args.command == "git":
+        old_branch = state["branch"]
+        old_head = state["head_sha"]
+        state = accept_git_checkpoint(state, branch=args.branch, head_sha=args.head_sha, dirty=args.dirty, updated_at=args.time)
+        _persist_mutation(root, bundle, state, evidence_index, event_name="GIT_RECONCILED", time=args.time, data={"old_branch": old_branch, "new_branch": args.branch, "old_head_sha": old_head, "new_head_sha": args.head_sha})
     else:
         raise AssertionError(f"unhandled command: {args.command}")
     print(json.dumps(_status_payload(load_bundle(root, args.execution_id)), ensure_ascii=False))
