@@ -23,7 +23,7 @@ Runtime 负责跨中断恢复、state revision、append-only events、evidence �
 scripts/dev_runtime.py
 ```
 
-PowerShell 薄适配器：
+PowerShell 薄适配器的仓库规范路径是 `scripts/dev-flow.ps1`；在 Windows PowerShell 中可直接运行：
 
 ```powershell
 .\scripts\dev-flow.ps1 new <参数>
