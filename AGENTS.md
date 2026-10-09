@@ -45,6 +45,13 @@ Machine execution state is persisted under:
 
 On `continue`, `resume`, or a restarted workspace, load the same Runtime Bundle first, validate it, reconcile the real branch/head SHA, restore Notion/PRD context, then execute exactly the returned next action. Do not create a second run for the same interrupted task.
 
+## Cross-session handoff continuity (2026-10-09)
+
+- Reuse the current `.development/runtime/<execution_id>/state.json`, `events.jsonl`, and `evidence/index.json` as the *only* accepted DEV execution state. This rule does not add another runner, second HANDOFF state, development stage, Release Gate, or human approval.
+- At an actually verified checkpoint, external BLOCKED, or voluntary long-session close, project the current execution_id / revision / branch HEAD / verified tests / first causal failure / remedies already attempted / next_action into the existing Notion project HANDOFF. Write and refetch before claiming synchronization. If Notion cannot be reached, preserve Git Runtime truth and mark the projection stale.
+- In a fresh Codex conversation, run the existing `scripts/dev_runtime.py`/Windows adapter validation, reconcile Git/CI and local Z-Blog evidence, and only then consume the Notion HANDOFF. Reuse stable verified stages, repair failed current work, and keep existing six-gate completion contract.
+- Do not equate a handoff summary or old Notion plan with actual Release; do not interrupt ordinary active work merely to request user “continue”. No secrets, session cookies, database contents or private credentials in handoff.
+
 ## Project baseline
 
 - Project: Z-BlogPHP plugin `xz_visit_stats`.
