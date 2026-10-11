@@ -39,6 +39,11 @@
 .xzvs-drawer-body strong { display: inline-block; min-width: 70px; color: #555; }
 .xzvs-drawer-body h3 { margin: 16px 0 6px; color: #3b4a59; font-size: 14px; }
 .xzvs-drawer-body section:first-child h3 { margin-top: 0; }
+.xzvs-session-table-wrap { overflow-x: auto; }
+.xzvs-session-table { min-width: 1040px; }
+.xzvs-session-detail { z-index: 110; }
+.xzvs-session-detail ol { margin: 0; padding-left: 24px; }
+.xzvs-session-detail li { padding: 7px 0; overflow-wrap: anywhere; }
 .xzvs-test-row { display: none; }
 .xzvs-nav-group { min-width: 0; }
 .xzvs-nav-title { display: block; margin: 0 0 6px; color: #68727d; font-size: 12px; }
@@ -252,6 +257,8 @@
   .xz-visit-table td:nth-child(10) { grid-column: 1; }
   .xz-visit-table td:nth-child(12) { grid-column: 2; grid-row: 2 / span 2; }
   .xzvs-app .tableFull:not(.xz-visit-table) th:nth-child(n+5):not(:last-child), .xzvs-app .tableFull:not(.xz-visit-table) td:nth-child(n+5):not(:last-child) { display: none; }
+  .xzvs-app .xzvs-session-table th, .xzvs-app .xzvs-session-table td { display: table-cell !important; }
+  .xzvs-session-table-wrap { overflow-x: auto !important; }
   .xz-overview-filter { align-items: stretch; flex-direction: column; }
   .xz-overview-filter input, .xz-overview-filter select { max-width: none; width: 100%; }
   .xz-metric-grid, .xz-overview-split { grid-template-columns: 1fr; }
