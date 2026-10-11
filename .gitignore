@@ -18,3 +18,7 @@ bridge/*.log
 bridge/*.tmp
 .env
 .env.*
+
+# Canonical local development runtime and reproducible candidate artifacts
+/.development/
+/dist/
