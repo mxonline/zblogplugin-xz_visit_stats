@@ -44,6 +44,8 @@
     container.appendChild(chart);
   }
   lineChart('xz-spider-trend-chart', data.trend.items || []);
-  verticalBars('xz-spider-hour-chart', data.hours || [], '24 小时蜘蛛抓取量');
+  if (Array.isArray(data.hours) && data.hours.length) {
+    verticalBars('xz-spider-hour-chart', data.hours, '24 小时蜘蛛抓取量');
+  }
   distribution('xz-spider-distribution-chart', data.distribution || []);
 }());
