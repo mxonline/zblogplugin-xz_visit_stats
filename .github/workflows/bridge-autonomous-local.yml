@@ -13,6 +13,15 @@ permissions:
   contents: read
   actions: read
 
+# Resolved only on the trusted Windows runner. Never commit credential values.
+env:
+  XZ_ZBLOG_WORKSPACE: ${{ vars.XZ_ZBLOG_WORKSPACE }}
+  XZ_VISIT_STATS_NOTION_TARGET: ${{ vars.XZ_VISIT_STATS_NOTION_TARGET }}
+  OPENAI_CONTROLLER_MODEL: ${{ vars.OPENAI_CONTROLLER_MODEL }}
+  OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+  NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+  GH_TOKEN: ${{ secrets.BRIDGE_GH_TOKEN }}
+
 concurrency:
   group: zblog-bridge-local
   cancel-in-progress: false
@@ -37,8 +46,19 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($env:OPENAI_API_KEY)) { throw 'BLOCKED_CREDENTIALS: GPT API key missing' }
           if ([string]::IsNullOrWhiteSpace($env:NOTION_TOKEN)) { throw 'BLOCKED_CREDENTIALS: Notion token missing' }
           if ([string]::IsNullOrWhiteSpace($env:OPENAI_CONTROLLER_MODEL)) { throw 'BLOCKED_CREDENTIALS: GPT controller model missing' }
+          if ([string]::IsNullOrWhiteSpace($env:GH_TOKEN)) { throw 'BLOCKED_CREDENTIALS: GitHub release token missing' }
+          if ([string]::IsNullOrWhiteSpace($env:XZ_VISIT_STATS_NOTION_TARGET)) { throw 'BLOCKED_CREDENTIALS: Notion target page missing' }
           if (-not (Test-Path -LiteralPath $env:XZ_ZBLOG_WORKSPACE)) { throw 'BLOCKED_LOCAL_EXECUTOR_ACCESS: real Windows workspace absent' }
           if (-not (Test-Path -LiteralPath 'D:\wwwroot\www.xzhao.net')) { throw 'BLOCKED_LOCAL_RUNTIME: Z-Blog testing site absent' }
+
+      - name: Configure Git credential helper
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh auth status
+          if ($LASTEXITCODE -ne 0) { throw 'BLOCKED_GITHUB_AUTH: gh auth status failed' }
+          gh auth setup-git
+          if ($LASTEXITCODE -ne 0) { throw 'BLOCKED_GITHUB_AUTH: cannot configure git credential helper' }
 
       - name: Execute one-goal autonomous development to release
         shell: powershell
