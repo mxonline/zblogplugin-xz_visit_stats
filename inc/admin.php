@@ -32,15 +32,48 @@ function xz_visit_stats_admin_status_class($status)
     return 'xz-status-' . $group . 'xx';
 }
 
+function xz_visit_stats_admin_primary_views()
+{
+    return array('overview', 'realtime', 'trend', 'records', 'source', 'content', 'visitors', 'spider', 'events', 'settings');
+}
+
+function xz_visit_stats_admin_legacy_views()
+{
+    return array('pages', 'ip', 'environment', 'campaign', 'errors', 'performance');
+}
+
+function xz_visit_stats_admin_availability_class($status)
+{
+    $classes = array(
+        'available' => 'xzvs-availability-available',
+        'partial' => 'xzvs-availability-partial',
+        'unavailable' => 'xzvs-availability-unavailable',
+    );
+
+    return isset($classes[$status]) ? $classes[$status] : $classes['unavailable'];
+}
+
+function xz_visit_stats_admin_availability_label($status)
+{
+    $labels = array(
+        'available' => '完整可用',
+        'partial' => '部分可用',
+        'unavailable' => '不可用（历史覆盖不足或无生命周期数据）',
+    );
+
+    return isset($labels[$status]) ? $labels[$status] : $labels['unavailable'];
+}
+
 function xz_visit_stats_admin_submenu($view)
 {
     $groups = array(
-        '概览' => array('overview' => '总览', 'realtime' => '实时分析'),
-        '流量分析' => array('records' => '访问记录', 'pages' => '页面分析', 'source' => '来源分析', 'content' => '内容分析', 'campaign' => '推广活动与 AI 来源'),
-        '访客分析' => array('visitors' => '访客分析', 'ip' => 'IP 分析', 'environment' => '访客环境'),
+        '概览' => array('overview' => '总览', 'realtime' => '实时分析', 'trend' => '趋势分析'),
+        '流量分析' => array('records' => '访问记录', 'source' => '来源分析', 'content' => '内容分析'),
+        '访客分析' => array('visitors' => '访客分析'),
         '行为分析' => array('events' => '事件分析'),
-        '技术分析' => array('spider' => '蜘蛛分析', 'errors' => '错误分析', 'performance' => '性能分析'),
+        '技术分析' => array('spider' => '蜘蛛分析'),
         '系统' => array('settings' => '设置与维护'),
+        '兼容页面' => array('pages' => '页面分析', 'ip' => 'IP 分析', 'environment' => '访客环境', 'campaign' => '推广活动与 AI 来源', 'errors' => '错误分析', 'performance' => '性能分析'),
     );
     echo '<nav class="xzvs-nav" aria-label="访问分析模块">';
     foreach ($groups as $group => $items) {
@@ -200,5 +233,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=4.0.0-task5" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=4.0.0-task8" type="text/css" />';
 }
