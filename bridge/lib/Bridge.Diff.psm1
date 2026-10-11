@@ -9,7 +9,7 @@ function Test-BridgeProtectedPath {
     param([Parameter(Mandatory=$true)][string]$Path)
     $p=ConvertTo-BridgeRelativePath $Path
     if ([string]::IsNullOrWhiteSpace($p)) { return $true }
-    if ($Path -match '^([/\\]|[A-Za-z]:)' -or $p -match '(^|/)\.\.(/|$)') { return $true }
+    if ($Path -match '^([/\\]|[A-Za-z]:)' -or $Path.Replace('\','/') -match '(^|/)\.\.(/|$)' -or $p -match '(^|/)\.\.(/|$)') { return $true }
     if ($p -match '(?i)(^|/)zb_system(/|$)|(^|/)zb_users/plugin/(?!xz_visit_stats/)|(^|/)(c_option\.php|\.env|id_rsa|credentials\.json)$') { return $true }
     return $false
 }
