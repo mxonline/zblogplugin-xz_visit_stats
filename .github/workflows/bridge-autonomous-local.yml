@@ -1,0 +1,47 @@
+name: Z-Blog Autonomous Local Bridge
+on:
+  push:
+    branches:
+      - feature/gpt-codex-bridge-v1
+    paths:
+      - 'bridge/request.json'
+  workflow_dispatch:
+
+# A GitHub-hosted runner cannot validate 127.0.0.1 on the owner's Windows box.
+# This workflow ONLY runs on a separately registered, trusted local Windows runner.
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: zblog-bridge-local
+  cancel-in-progress: false
+
+jobs:
+  autonomous-plugin-development:
+    if: github.ref == 'refs/heads/feature/gpt-codex-bridge-v1'
+    runs-on: [self-hosted, Windows, XZ-ZBLOG-LOCAL]
+    timeout-minutes: 360
+    steps:
+      - name: Checkout isolated Bridge control plane
+        uses: actions/checkout@v4
+        with:
+          ref: feature/gpt-codex-bridge-v1
+          persist-credentials: false
+
+      - name: Verify local executor configuration
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ([string]::IsNullOrWhiteSpace($env:XZ_ZBLOG_WORKSPACE)) { throw 'BLOCKED_LOCAL_EXECUTOR_ACCESS: workspace not configured' }
+          if ([string]::IsNullOrWhiteSpace($env:OPENAI_API_KEY)) { throw 'BLOCKED_CREDENTIALS: GPT API key missing' }
+          if ([string]::IsNullOrWhiteSpace($env:NOTION_TOKEN)) { throw 'BLOCKED_CREDENTIALS: Notion token missing' }
+          if ([string]::IsNullOrWhiteSpace($env:OPENAI_CONTROLLER_MODEL)) { throw 'BLOCKED_CREDENTIALS: GPT controller model missing' }
+          if (-not (Test-Path -LiteralPath $env:XZ_ZBLOG_WORKSPACE)) { throw 'BLOCKED_LOCAL_EXECUTOR_ACCESS: real Windows workspace absent' }
+          if (-not (Test-Path -LiteralPath 'D:\wwwroot\www.xzhao.net')) { throw 'BLOCKED_LOCAL_RUNTIME: Z-Blog testing site absent' }
+
+      - name: Execute one-goal autonomous development to release
+        shell: powershell
+        run: |
+          powershell -NoProfile -ExecutionPolicy Bypass -File scripts/bridge-host.ps1 -WorkspaceRoot $env:XZ_ZBLOG_WORKSPACE
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
