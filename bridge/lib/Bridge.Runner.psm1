@@ -71,7 +71,7 @@ function Invoke-BridgeAutonomousRun {
             pending_prompt=$InitialPrompt; last_execution=$null; last_decision=$null
             controller_response_id=$null; thread_id=$null
             codex_turns=0; gpt_reviews=0; user_followups=0; repair_round=0
-            verified_gates=@(); release_evidence=$null
+            verified_gates=@(); completed_stage_gates=@(); advance_to_stage=$null; release_evidence=$null
             reason=$null; next_action='DISPATCH_CODEX'; updated_at=$null
         }
         Save-BridgeRun -Path $CheckpointPath -State $state
@@ -145,8 +145,18 @@ function Invoke-BridgeAutonomousRun {
                     }
                     if ($decision -eq 'REPAIR') { $state.repair_round=[int]$state.repair_round+1 }
                     $state.pending_prompt=$prompt
-                    $state.phase='DISPATCH'
-                    $state.next_action='AUTO_REDISPATCH_CODEX'
+                    $nextStage=[string](Get-BridgeResultProperty $state.last_decision 'next_stage')
+                    if (-not [string]::IsNullOrWhiteSpace($nextStage) -and $nextStage -ne [string]$state.stage) {
+                        if ([string]$state.stage -match '(?i)^T4' -and $nextStage -notmatch '(?i)^T5') {
+                            return Set-BridgeRunBlocked -State $state -Path $CheckpointPath -Reason 'ILLEGAL_STAGE_SKIP_FROM_T4'
+                        }
+                        $state.advance_to_stage=$nextStage
+                        $state.phase='GATE_VERIFY'
+                        $state.next_action='VERIFY_STAGE_BEFORE_ADVANCE'
+                    } else {
+                        $state.phase='DISPATCH'
+                        $state.next_action='AUTO_REDISPATCH_CODEX'
+                    }
                     Save-BridgeRun -Path $CheckpointPath -State $state
                 } elseif ($decision -in @('REVERIFY','RELEASE_READY')) {
                     $state.phase='GATE_VERIFY'
@@ -182,8 +192,23 @@ function Invoke-BridgeAutonomousRun {
                     [void]$proofs.Add($gate)
                 }
                 $state.verified_gates=@($proofs)
-                $state.phase='RELEASE'
-                $state.next_action='PUBLISH_AFTER_VERIFIED_GATES'
+                if (-not [string]::IsNullOrWhiteSpace([string]$state.advance_to_stage)) {
+                    $completed=@($state.completed_stage_gates)
+                    $completed+= [pscustomobject]@{stage=$state.stage;head_sha=$state.head_sha;gates=@($proofs)}
+                    $state.completed_stage_gates=@($completed)
+                    $state.stage=[string]$state.advance_to_stage
+                    $state.advance_to_stage=$null
+                    $newGates=Get-BridgeResultProperty $state.last_decision 'required_gates'
+                    if ($null -ne $newGates -and @($newGates).Count -gt 0) {
+                        $state.required_gates=@($newGates)
+                    }
+                    $state.verified_gates=@()
+                    $state.phase='DISPATCH'
+                    $state.next_action='AUTO_DISPATCH_NEXT_STAGE'
+                } else {
+                    $state.phase='RELEASE'
+                    $state.next_action='PUBLISH_AFTER_VERIFIED_GATES'
+                }
                 Save-BridgeRun -Path $CheckpointPath -State $state
             }
             'RELEASE' {
