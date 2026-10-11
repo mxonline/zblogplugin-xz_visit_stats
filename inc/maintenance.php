@@ -34,11 +34,20 @@ function xz_visit_stats_maintenance_auto_cleanup()
     global $zbp;
 
     $settings = xz_visit_stats_settings_values();
+    $config = $zbp->Config('xz_visit_stats');
+    $today = strtotime('today');
+    if ((int) $config->last_export_cleanup_at < $today) {
+        try {
+            if (function_exists('xz_visit_stats_v4_export_cleanup')) xz_visit_stats_v4_export_cleanup(30 * 86400);
+            $config->last_export_cleanup_at = $today;
+            $zbp->SaveConfig('xz_visit_stats');
+        } catch (Exception $exception) {
+            // Export cleanup is isolated from page collection and legacy logs.
+        }
+    }
     if ($settings['auto_cleanup'] !== 1) {
         return;
     }
-    $config = $zbp->Config('xz_visit_stats');
-    $today = strtotime('today');
     if ((int) $config->last_cleanup_at >= $today) {
         return;
     }

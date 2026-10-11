@@ -19,6 +19,7 @@ require_once __DIR__ . '/inc/query.php';
 require_once __DIR__ . '/inc/query_v2.php';
 require_once __DIR__ . '/inc/v3_query.php';
 require_once __DIR__ . '/inc/v4_report_filters.php';
+require_once __DIR__ . '/inc/v4_export.php';
 require_once __DIR__ . '/inc/session.php';
 require_once __DIR__ . '/inc/v4_sessions_query.php';
 require_once __DIR__ . '/inc/v4_reports.php';
