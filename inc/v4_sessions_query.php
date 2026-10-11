@@ -40,6 +40,10 @@ function xz_visit_stats_v4_session_where(array $filters, array $range)
         $path = xz_visit_stats_v2_quote($filters['path_key']);
         $where[] = '(se_EntryPathKey = ' . $path . ' OR se_ExitPathKey = ' . $path . ')';
     }
+    if (isset($filters['new_returning']) && in_array($filters['new_returning'], array('new', 'returning'), true)) {
+        $prior = 'EXISTS (SELECT 1 FROM ' . xz_visit_stats_v4_session_query_table() . ' prior WHERE prior.se_VisitorHash=sessions.se_VisitorHash AND prior.se_StartedAt<' . (int) $range['start'] . ' LIMIT 1)';
+        $where[] = $filters['new_returning'] === 'new' ? 'NOT ' . $prior : $prior;
+    }
     return $where;
 }
 
@@ -83,16 +87,17 @@ function xz_visit_stats_v4_session_summary(array $filters): array
     $range = xz_visit_stats_v4_session_query_range($filters);
     $where = implode(' AND ', xz_visit_stats_v4_session_where($filters, $range));
     $completedAt = max(0, time() - xz_visit_stats_v4_session_timeout());
-    $sql = 'SELECT COUNT(*) AS session_count,COUNT(DISTINCT se_VisitorHash) AS unique_visitors,'
+    $sql = 'SELECT COUNT(*) AS session_count,COUNT(DISTINCT se_VisitorHash) AS unique_visitors,AVG(se_PageCount) AS average_page_depth,'
         . 'SUM(se_LastSeenAt<' . $completedAt . ') AS completed_sessions,'
         . 'SUM(se_LastSeenAt<' . $completedAt . ' AND se_IsBounce=1) AS bounce_sessions,'
         . 'COUNT(se_DurationMs) AS dwell_samples,COALESCE(SUM(se_DurationMs),0) AS dwell_sum_ms'
-        . ' FROM ' . xz_visit_stats_v4_session_query_table() . ' WHERE ' . $where;
+        . ' FROM ' . xz_visit_stats_v4_session_query_table() . ' sessions WHERE ' . $where;
     $rows = (array) $zbp->db->Query($sql);
     $row = !empty($rows) ? $rows[0] : array();
     $result = array(
         'session_count' => (int) (isset($row['session_count']) ? $row['session_count'] : 0),
         'unique_visitors' => (int) (isset($row['unique_visitors']) ? $row['unique_visitors'] : 0),
+        'average_page_depth' => isset($row['average_page_depth']) && $row['average_page_depth'] !== null ? round((float) $row['average_page_depth'], 2) : null,
         'completed_sessions' => (int) (isset($row['completed_sessions']) ? $row['completed_sessions'] : 0),
         'bounce_sessions' => (int) (isset($row['bounce_sessions']) ? $row['bounce_sessions'] : 0),
         'dwell_samples' => (int) (isset($row['dwell_samples']) ? $row['dwell_samples'] : 0),
@@ -125,7 +130,7 @@ function xz_visit_stats_v4_session_trend(array $filters, string $grain): array
         . 'COUNT(*) AS session_count,COUNT(DISTINCT se_VisitorHash) AS unique_visitors,'
         . 'SUM(se_LastSeenAt<' . $completedAt . ' AND se_IsBounce=1) AS bounce_sessions,'
         . 'COUNT(se_DurationMs) AS dwell_samples,COALESCE(SUM(se_DurationMs),0) AS dwell_sum_ms'
-        . ' FROM ' . xz_visit_stats_v4_session_query_table() . ' WHERE ' . $where
+        . ' FROM ' . xz_visit_stats_v4_session_query_table() . ' sessions WHERE ' . $where
         . ' GROUP BY trend_bucket ORDER BY trend_bucket ASC LIMIT ' . ($grain === 'hour' ? 744 : 366);
     $result = array();
     foreach ((array) $zbp->db->Query($sql) as $row) {
@@ -144,7 +149,7 @@ function xz_visit_stats_v4_session_rows(array $filters, string $cursor, int $lim
     $decoded = xz_visit_stats_v4_session_cursor($cursor);
     if ($decoded !== null) $where[] = '(se_StartedAt < ' . $decoded['started_at'] . ' OR (se_StartedAt = ' . $decoded['started_at'] . ' AND se_ID < ' . $decoded['id'] . '))';
     $limit = xz_visit_stats_v4_session_limit($limit);
-    $sql = 'SELECT ' . xz_visit_stats_v4_session_select() . ' FROM ' . xz_visit_stats_v4_session_query_table() . ' WHERE ' . implode(' AND ', $where) . ' ORDER BY se_StartedAt DESC,se_ID DESC LIMIT ' . $limit;
+    $sql = 'SELECT ' . xz_visit_stats_v4_session_select() . ' FROM ' . xz_visit_stats_v4_session_query_table() . ' sessions WHERE ' . implode(' AND ', $where) . ' ORDER BY se_StartedAt DESC,se_ID DESC LIMIT ' . $limit;
     $rows = array_map('xz_visit_stats_v4_session_public_row', (array) $zbp->db->Query($sql));
     $last = !empty($rows) ? $rows[count($rows) - 1] : null;
     return array('rows' => $rows, 'limit' => $limit, 'next_cursor' => $last === null ? '' : $last['started_at'] . ':' . $last['id']);
@@ -170,5 +175,5 @@ function xz_visit_stats_v4_session_explain(array $filters): array
     global $zbp;
     $range = xz_visit_stats_v4_session_query_range($filters);
     $where = implode(' AND ', xz_visit_stats_v4_session_where($filters, $range));
-    return (array) $zbp->db->Query('EXPLAIN SELECT se_ID FROM ' . xz_visit_stats_v4_session_query_table() . ' WHERE ' . $where . ' ORDER BY se_StartedAt DESC,se_ID DESC LIMIT 100');
+    return (array) $zbp->db->Query('EXPLAIN SELECT se_ID FROM ' . xz_visit_stats_v4_session_query_table() . ' sessions WHERE ' . $where . ' ORDER BY se_StartedAt DESC,se_ID DESC LIMIT 100');
 }

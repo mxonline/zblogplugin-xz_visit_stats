@@ -108,7 +108,7 @@ final class V4SessionDrilldownTest extends TestCase
     {
         $expectedCutoffs = array(5 => 1699999700, 15 => 1699999100, 30 => 1699998200);
         foreach ($expectedCutoffs as $minutes => $cutoff) {
-            $payload = xz_visit_stats_v4_realtime_session_rows($minutes, 50, 1700000000);
+            $payload = xz_visit_stats_v4_realtime_session_rows($minutes, 50, 1700000000, 'masked');
             $sql = $GLOBALS['zbp']->db->queries[count($GLOBALS['zbp']->db->queries) - 1];
 
             $this->assertSame($minutes, $payload['window_minutes']);
@@ -118,7 +118,8 @@ final class V4SessionDrilldownTest extends TestCase
             $this->assertSame('/latest', $payload['rows'][0]['latest_path']);
             $this->assertSame('Firefox', $payload['rows'][0]['browser']);
             $this->assertSame('desktop', $payload['rows'][0]['device']);
-            $this->assertSame('Hong Kong', $payload['rows'][0]['region']);
+            $this->assertSame('', $payload['rows'][0]['country']);
+            $this->assertSame('', $payload['rows'][0]['region']);
             $this->assertStringContainsString('se_LastSeenAt >= ' . $cutoff, $sql);
             $this->assertStringContainsString('ORDER BY s.se_LastSeenAt DESC,s.se_ID DESC', $sql);
             $this->assertStringNotContainsString('se_SessionKey', $sql);

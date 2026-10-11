@@ -298,3 +298,20 @@
 @media (max-width: 680px) {
   .xz-settings-options { display: block; margin-left: 0; }
 }
+
+.xzvs-record-columns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  margin: 0 0 14px;
+}
+
+.xzvs-record-columns > label { white-space: nowrap; }
+
+.xzvs-app .xzvs-records-table-wrap {
+  max-height: 68vh;
+  overflow-x: auto !important;
+  overflow-y: auto;
+}
+
+.xzvs-records-table-wrap .xzvs-v4-visit-table { min-width: 1500px; }

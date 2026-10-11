@@ -51,7 +51,7 @@ function xz_visit_stats_realtime_payload($filters)
     );
 }
 
-function xz_visit_stats_v4_realtime_session_rows(int $minutes = 15, int $limit = 50, ?int $now = null): array
+function xz_visit_stats_v4_realtime_session_rows(int $minutes = 15, int $limit = 50, ?int $now = null, string $ipMode = 'full'): array
 {
     global $zbp;
 
@@ -80,8 +80,8 @@ function xz_visit_stats_v4_realtime_session_rows(int $minutes = 15, int $limit =
 
     $rows = array();
     foreach ((array) $zbp->db->Query($sql) as $row) {
-        $country = trim((string) (isset($row['country']) ? $row['country'] : ''));
-        $region = trim((string) (isset($row['region']) ? $row['region'] : ''));
+        $country = $ipMode === 'masked' ? '' : trim((string) (isset($row['country']) ? $row['country'] : ''));
+        $region = $ipMode === 'masked' ? '' : trim((string) (isset($row['region']) ? $row['region'] : ''));
         $rows[] = array(
             'id' => (int) (isset($row['session_id']) ? $row['session_id'] : 0),
             'visitor_hash' => function_exists('xz_visit_stats_v4_query_mask_hash')
