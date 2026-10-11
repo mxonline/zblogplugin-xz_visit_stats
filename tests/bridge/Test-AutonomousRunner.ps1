@@ -66,5 +66,20 @@ try {
   $resumed=Invoke-BridgeAutonomousRun -BusinessGoal 'resume quota' -RequestId 'REQ-003' -Stage 'T5_RELEASE' -Branch 'feature/visit-stats-4.0' -HeadSha $sha -CheckpointPath $quotaPath -InitialPrompt 'run' -RequiredGates @('UNIT_TEST') -CodexExecutor $codex -GptReviewer $quotaGpt -GateVerifier $gates -ReleasePublisher $publish -MaxSteps 5
   Assert-Equal 'PLUGIN_RELEASED' $resumed.status 'quota resumes automatically to publish'
   Assert-Equal $savedTurns $script:turns 'resume does not rerun completed Codex turn'
+  $script:stageCount=0
+  $script:verifiedT4=$false
+  $stageGpt={param($r,$c)
+      $script:stageCount++
+      if ($script:stageCount -eq 1) { return [pscustomobject]@{decision='NEXT_STAGE';next_stage='T5_RELEASE';codex_prompt='T4 verified; continue T5';required_gates=@('UNIT_TEST','LOCAL_RUNTIME','SQL_EXPLAIN','GITHUB_CI')} }
+      return [pscustomobject]@{decision='RELEASE_READY';codex_prompt=$null}
+  }
+  $stageGates={param($gate,$ctx)
+     if ($ctx.stage -eq 'T4_ANALYTICS_ADMIN') { $script:verifiedT4=$true }
+     return [pscustomobject]@{status='PASS';observed_sha=$ctx.head_sha;evidence_id='stage-evidence'}
+  }
+  $stageResult=Invoke-BridgeAutonomousRun -BusinessGoal 'T4 to T5 and release' -RequestId 'REQ-STAGE-004' -Stage 'T4_ANALYTICS_ADMIN' -Branch 'feature/visit-stats-4.0' -HeadSha $sha -CheckpointPath (Join-Path $root 'stages.json') -InitialPrompt 'run T4' -RequiredGates @('UNIT_TEST','LOCAL_RUNTIME','SQL_EXPLAIN','GITHUB_CI') -CodexExecutor $codex -GptReviewer $stageGpt -GateVerifier $stageGates -ReleasePublisher $publish -MaxSteps 15
+  Assert-Equal 'PLUGIN_RELEASED' $stageResult.status 'T4 passes real gates before continuing T5 release'
+  Assert-True $script:verifiedT4 'T4 gates not skipped'
+  Assert-Equal 'T5_RELEASE' $stageResult.stage 'stage advanced only after T4 verification'
 } finally { Remove-Item -LiteralPath $root -Recurse -Force -ErrorAction SilentlyContinue }
 Write-Host 'PASS: autonomous checkpoint GPT-Codex release loop'
