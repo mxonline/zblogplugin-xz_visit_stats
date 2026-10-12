@@ -10,10 +10,10 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 - Target major version: `4.0.0`
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
-- Current phase: `T4 — analytics/admin reports, filters and session drill-down`
-- Phase status: `T4 COMPLETE / STOPPED BEFORE T5` (Tasks 1–10 complete; runtime, database, tests, push, exact-SHA CI and Notion status readback verified)
+- Current phase: `T5 — Windows local final acceptance and release preparation`
+- Phase status: `T5 IN PROGRESS` (T4 remains complete; T5 runtime, database, metrics, privacy, package and automated checks are complete; final exact-SHA CI and Notion readback are pending)
 - Release Gate: `NOT READY`
-- PR/Merge/Tag/Release: not authorized during T4
+- PR/Merge/Tag/Release: not authorized during T5; candidate preparation only
 
 ## Verified T2 baseline
 
@@ -69,7 +69,20 @@ Evidence: `docs/v4.0.0/REUSE-GATE-T4-v1.0.md`.
 - Final local automated gates: PHPUnit `69 tests / 494 assertions` PASS; all `66` non-vendor PHP files syntax PASS; all `16` asset JavaScript files syntax PASS; PowerShell verifier syntax PASS; UI Terminology PASS; `git diff --check` exit 0; secret-pattern scan of 12 changed/new files found no hits; no unexpected temp/log/backup/export artifacts are in the change set. PHPStan is configured report-only in CI: local run reports 67 existing diagnostics (including Z-Blog bootstrap/global stubs and unchanged legacy comparisons); no new diagnostic points to the Task 9 collector-link or page-size fix. Semgrep is delegated to the required GitHub CI workflow.
 - Task 10 delivery is complete at checkpoint `e39d3b318ccf4b258c0049a63da63cf024fd4ffa`. GitHub Actions Run `38295559861` (Code Quality Check, push event) has `status=completed`, `conclusion=success`, and exact `head_sha=e39d3b318ccf4b258c0049a63da63cf024fd4ffa`. PHPStan remains report-only; its observed diagnostics are documented above and did not fail CI.
 - Notion writeback: the implementation-plan overall status and T4 task status were updated; the T4 task acceptance checklist and status were read back successfully. The compact public delivery status and exact-SHA CI evidence were also read back. A detailed local-path/runtime payload was declined by the destination safety review and was not retried; detailed runtime/database evidence remains in this repository file.
-- T5 has not started. Release Gate remains `NOT READY`; no merge, tag, or release has occurred.
+- T5 began from authoritative baseline `af3cc7137555257c379877cb0d34ce7478220576`; exact baseline Actions Run `38296309009` succeeded. See the T5 acceptance record below for the local runtime, tests, data preservation, and candidate package evidence.
+
+## T5 local acceptance and release preparation — 2026-10-13
+
+- Reused the established Windows test site; no parallel runtime, reset/clean, force push, merge, tag, release, production deployment, database restore, or App Centre upload. IIS 10, PHP `8.3.8`, Z-BlogPHP `173540`, MySQL `5.7.38-log`.
+- Existing T2/T3/T4 plugin backups and the `6,993,139`-byte database backup remain preserved. Before installing the T5 ZIP, copied the prior runtime plugin tree to `D:\wwwroot\xz_visit_stats-runtime-backups\xz_visit_stats.backup-t5-candidate-20261013-041500` (92 files).
+- v3-to-v4 fresh install, synthetic v3-history migration, idempotent repeat, and deactivate/reactivate used the real MySQL 5.7 connection/adapter with isolated temporary tables; persistent DDL was zero. The current site was already on schema `4.0.0`, so no destructive downgrade was performed.
+- Real plugin-manager disable/enable completed successfully. Disabled front-end requests did not create visit rows; re-enable preserved historical data. The final v4.0.0 candidate ZIP was then installed into the existing local plugin path. A read-only schema audit after installation confirms the plugin remains enabled, Beacon remains disabled, and historical counts remain raw logs `313`, sessions `12`, session pages `25`, events `2`; no test export tasks or IP rules remain.
+- Isolated metric fixtures matched direct SQL and UI: total PV `5`, human PV `4`, UV `3`, IP `3`, spider PV `1`, 4xx `1`; session bounce `50%`, lifecycle dwell `20,000 ms`; event total `3`, unique visitors `2`, mean `1.50`. IP filter, drill-down, allowed event parameters, CSV permission/ownership, and privacy checks passed.
+- All ten v4 views rendered; responsive checks at 680/800/1100 px passed. Direct missing-path 404 is short-circuited by IIS before PHP; the report's 404 metric was verified with the isolated fixture. This collector-path limitation is documented in `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`.
+- Test rows and artifacts were removed by exact markers/IDs; the non-test raw-log count remained `313`. Existing history and all T2/T3/T4 backups remain.
+- Automated checks: PHPUnit `69 tests / 494 assertions`; all 16 asset JavaScript files passed Node syntax; `scripts/local-verify.ps1 -SkipHttp` passed PHP lint, PHPUnit, and diff checks. PHP logs are routed to syslog (no file configured); the Windows Application log had zero PHP/FastCGI/IIS warning/error events in the reviewed 24-hour window. The available IIS W3C log's historical 5xx routes are described in the acceptance record.
+- Candidate artifact: `dist/xz_visit_stats-v4.0.0.zip`, SHA-256 `03DA00ACED38BA77B2CA0C59DCC51422456DD0830A999FF777B4D930EC0748E1`; 95 allowlisted entries, 0 missing, 0 extra, source/archive hashes match. Required runtime library and licenses, Apache and IIS export protections are included; the exact ZIP is installed and its 95 file hashes match the source. Post-install Safe Mode/read-only audit confirms 313 logs, 12 sessions, 25 session pages, 2 events, 0 export tasks; no secrets or visitor-level rows were exported.
+- Exact candidate commit SHA / GitHub Actions Run ID and final Notion readback are pending. Release Gate remains `NOT READY` until exact-SHA CI and final writeback pass. Formal status remains `NOT RELEASED`.
 
 ## T4 scope
 

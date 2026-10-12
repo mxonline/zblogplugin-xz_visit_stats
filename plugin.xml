@@ -3,8 +3,8 @@
 <id>xz_visit_stats</id>
 <name>访问统计</name>
 <url></url>
-<note>站长访问分析中心，提供访问记录、页面、来源、蜘蛛与错误分析。</note>
-<description>提供访问总览、访问记录、页面分析、来源分析、蜘蛛分析、错误分析及数据维护功能。</description>
+<note>站长访问分析中心，提供实时访问、趋势、会话下钻、来源、内容、蜘蛛与事件分析。</note>
+<description>提供访问总览、实时访客、趋势、访问记录、来源、内容、访客、蜘蛛、事件、IP 过滤及受控导出。</description>
 <path>main.php</path>
 <include>include.php</include>
 <level>1</level>
@@ -19,11 +19,11 @@
   <url></url>
 </source>
 <adapted>173540</adapted>
-<version>3.0.0</version>
-<pubdate>2026-08-25</pubdate>
-<modified>2026-08-25</modified>
+<version>4.0.0</version>
+<pubdate>2026-10-13</pubdate>
+<modified>2026-10-13</modified>
 <price>0</price>
-<phpver>5.6</phpver>
+<phpver>7.1</phpver>
 <advanced>
   <dependency></dependency>
   <rewritefunctions></rewritefunctions>

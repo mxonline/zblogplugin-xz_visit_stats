@@ -1,4 +1,5 @@
 /.phpunit.result.cache
+/dist/
 /vendor/*
 !/vendor/mlocati/
 !/vendor/mlocati/ip-lib/
