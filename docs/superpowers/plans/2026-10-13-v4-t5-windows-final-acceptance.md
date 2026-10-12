@@ -80,15 +80,15 @@
 - [x] Document observed upgrade behavior, data preservation, prerequisites, privacy, compatibility and verified limitations.
 - [x] Build the install ZIP from an explicit allowlist, including the required `mlocati/ip-lib` runtime source and MIT license.
 - [x] Audit the archive for missing runtime files, dev/test/cache/config/backup files, secrets and unrelated dependencies.
-- [ ] Execute the final Release Dry Run; `Release Gate` may be `PASS` only after exact-SHA CI and final ZIP/readback checks pass.
+- [x] Execute the final Release Dry Run; `Release Gate` may be `PASS` only after exact-SHA CI and final ZIP/readback checks pass.
 
 ### Task 5: Final delivery and writeback
 
 **Files:**
 - Update: `knowledge/PROJECT-STATE.md`, Notion official T5 task, and existing implementation-plan status.
 
-- [ ] Re-run final repository checks and inspect the complete diff/package manifest for unrelated content or secrets.
-- [ ] Commit and push the completed T5 evidence on `feature/visit-stats-4.0`; do not merge, tag, release or upload to the Z-Blog application center.
-- [ ] Verify a successful GitHub Actions run whose `head_sha` exactly matches the final commit.
-- [ ] Write observed results and package hashes into the existing project state and Notion task; read both back.
-- [ ] Report the required six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, release gate, candidate artifacts, unreleased status and one next action.
+- [x] Re-run final repository checks and inspect the complete diff/package manifest for unrelated content or secrets.
+- [x] Commit and push the completed T5 evidence on `feature/visit-stats-4.0`; do not merge, tag, release or upload to the Z-Blog application center.
+- [x] Verify a successful GitHub Actions run whose `head_sha` exactly matches the candidate source commit.
+- [x] Write observed results and package hashes into the existing project state and Notion task; read both back.
+- [x] Report the required six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, release gate, candidate artifacts, unreleased status and one next action.

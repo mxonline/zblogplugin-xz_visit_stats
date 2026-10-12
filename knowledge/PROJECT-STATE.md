@@ -11,8 +11,8 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T5 — Windows local final acceptance and release preparation`
-- Phase status: `T5 IN PROGRESS` (T4 remains complete; T5 runtime, database, metrics, privacy, package and automated checks are complete; final exact-SHA CI and Notion readback are pending)
-- Release Gate: `NOT READY`
+- Phase status: `T5 COMPLETE` (T4 remains complete; T5 runtime, database, metrics, privacy, package, automated checks, exact-SHA CI and Notion readback are complete)
+- Release Gate: `PASS`
 - PR/Merge/Tag/Release: not authorized during T5; candidate preparation only
 
 ## Verified T2 baseline
@@ -69,7 +69,7 @@ Evidence: `docs/v4.0.0/REUSE-GATE-T4-v1.0.md`.
 - Final local automated gates: PHPUnit `69 tests / 494 assertions` PASS; all `66` non-vendor PHP files syntax PASS; all `16` asset JavaScript files syntax PASS; PowerShell verifier syntax PASS; UI Terminology PASS; `git diff --check` exit 0; secret-pattern scan of 12 changed/new files found no hits; no unexpected temp/log/backup/export artifacts are in the change set. PHPStan is configured report-only in CI: local run reports 67 existing diagnostics (including Z-Blog bootstrap/global stubs and unchanged legacy comparisons); no new diagnostic points to the Task 9 collector-link or page-size fix. Semgrep is delegated to the required GitHub CI workflow.
 - Task 10 delivery is complete at checkpoint `e39d3b318ccf4b258c0049a63da63cf024fd4ffa`. GitHub Actions Run `38295559861` (Code Quality Check, push event) has `status=completed`, `conclusion=success`, and exact `head_sha=e39d3b318ccf4b258c0049a63da63cf024fd4ffa`. PHPStan remains report-only; its observed diagnostics are documented above and did not fail CI.
 - Notion writeback: the implementation-plan overall status and T4 task status were updated; the T4 task acceptance checklist and status were read back successfully. The compact public delivery status and exact-SHA CI evidence were also read back. A detailed local-path/runtime payload was declined by the destination safety review and was not retried; detailed runtime/database evidence remains in this repository file.
-- T5 began from authoritative baseline `af3cc7137555257c379877cb0d34ce7478220576`; exact baseline Actions Run `38296309009` succeeded. See the T5 acceptance record below for the local runtime, tests, data preservation, and candidate package evidence.
+- T5 began from authoritative baseline `af3cc7137555257c379877cb0d34ce7478220576`; exact baseline Actions Run `38296309009` succeeded. Candidate source commit `13def711c5fbc52de223d260b0315a3596570f8e` was pushed and exact-SHA GitHub Actions Run `38304017846` completed successfully. The official T5 task and implementation-plan status were updated and read back. See the T5 acceptance record below for the local runtime, tests, data preservation, and candidate package evidence.
 
 ## T5 local acceptance and release preparation — 2026-10-13
 
@@ -82,7 +82,7 @@ Evidence: `docs/v4.0.0/REUSE-GATE-T4-v1.0.md`.
 - Test rows and artifacts were removed by exact markers/IDs; the non-test raw-log count remained `313`. Existing history and all T2/T3/T4 backups remain.
 - Automated checks: PHPUnit `69 tests / 494 assertions`; all 16 asset JavaScript files passed Node syntax; `scripts/local-verify.ps1 -SkipHttp` passed PHP lint, PHPUnit, and diff checks. PHP logs are routed to syslog (no file configured); the Windows Application log had zero PHP/FastCGI/IIS warning/error events in the reviewed 24-hour window. The available IIS W3C log's historical 5xx routes are described in the acceptance record.
 - Candidate artifact: `dist/xz_visit_stats-v4.0.0.zip`, SHA-256 `03DA00ACED38BA77B2CA0C59DCC51422456DD0830A999FF777B4D930EC0748E1`; 95 allowlisted entries, 0 missing, 0 extra, source/archive hashes match. Required runtime library and licenses, Apache and IIS export protections are included; the exact ZIP is installed and its 95 file hashes match the source. Post-install Safe Mode/read-only audit confirms 313 logs, 12 sessions, 25 session pages, 2 events, 0 export tasks; no secrets or visitor-level rows were exported.
-- Exact candidate commit SHA / GitHub Actions Run ID and final Notion readback are pending. Release Gate remains `NOT READY` until exact-SHA CI and final writeback pass. Formal status remains `NOT RELEASED`.
+- Exact candidate source SHA `13def711c5fbc52de223d260b0315a3596570f8e` / GitHub Actions Run `38304017846` are successful and `head_sha` matches. Release Dry Run result is `可发布`; no conflicting v4.0.0 tag or release record exists. Release Gate is `PASS`; formal status remains `NOT RELEASED`. Notion task and implementation-plan readbacks succeeded. No merge, tag, GitHub Release, production deployment, database restore, or App Centre upload occurred.
 
 ## T4 scope
 
