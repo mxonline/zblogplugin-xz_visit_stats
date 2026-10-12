@@ -79,6 +79,23 @@ final class V4AdminUiContractTest extends TestCase
         $this->assertSame('不可用（历史覆盖不足或无生命周期数据）', xz_visit_stats_admin_availability_label('unavailable'));
     }
 
+    public function testTrendTableRendersMetricsAndDoesNotInventMissingDwell(): void
+    {
+        $this->assertTrue(function_exists('xz_visit_stats_admin_trend_table'));
+        ob_start();
+        xz_visit_stats_admin_trend_table(array(
+            array('bucket' => '<script>', 'pv' => 3, 'uv' => 2, 'ip' => 1, 'session_count' => 2, 'bounce_sessions' => 1, 'average_visitor_dwell_ms' => null),
+            array('bucket' => '2026-10-12', 'pv' => 4, 'uv' => 3, 'ip' => 2, 'session_count' => 3, 'bounce_sessions' => 0, 'average_visitor_dwell_ms' => 1250),
+        ), 'partial');
+        $html = ob_get_clean();
+        $this->assertStringContainsString('&lt;script&gt;', $html);
+        $this->assertStringContainsString('<th>访客停留</th>', $html);
+        $this->assertStringContainsString('不可用', $html);
+        $this->assertStringContainsString('1,250 ms', $html);
+        $this->assertStringContainsString('部分可用', $html);
+        $this->assertStringNotContainsString('<script>', $html);
+    }
+
     public function testUpdatedAdminStylesheetUsesFreshCacheKey(): void
     {
         $GLOBALS['zbp'] = (object) array('host' => 'https://example.test/');

@@ -47,7 +47,7 @@
 
 建议列：`ev_ID`、`ev_SessionID`（可 NULL）、`ev_VisitorHash`、`ev_Name`（VARCHAR(128)）、`ev_Params`（受大小限制的 TEXT，白名单字段后再存储）、`ev_PathKey`、`ev_TriggeredAt`、`ev_UpdatedAt`。
 
-索引：`(ev_Name,ev_TriggeredAt)`；`(ev_SessionID,ev_TriggeredAt)`；`(ev_VisitorHash,ev_TriggeredAt)`；`(ev_PathKey,ev_TriggeredAt)`。事件参数禁止存 Cookie、Token、完整 UA、原始 IP 或未限制长度的用户输入。
+索引：`(ev_TriggeredAt,ev_ID)` 支持未按事件名筛选的时间倒序/keyset 报表；`(ev_Name,ev_TriggeredAt)`；`(ev_SessionID,ev_TriggeredAt)`；`(ev_VisitorHash,ev_TriggeredAt)`；`(ev_PathKey,ev_TriggeredAt)`。事件参数禁止存 Cookie、Token、完整 UA、原始 IP 或未限制长度的用户输入。
 
 ### 3.4 目录规则表：`xz_visit_stats_directory_rules`
 

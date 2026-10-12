@@ -64,6 +64,23 @@ function xz_visit_stats_admin_availability_label($status)
     return isset($labels[$status]) ? $labels[$status] : $labels['unavailable'];
 }
 
+function xz_visit_stats_admin_trend_table(array $rows, $availabilityStatus)
+{
+    echo '<section class="xz-overview-section"><h2>PV / UV / IP 与会话趋势</h2>';
+    echo '<p class="xz-overview-note">生命周期指标：' . xz_visit_stats_admin_escape(xz_visit_stats_admin_availability_label($availabilityStatus)) . '</p>';
+    echo '<div class="xz-table-wrap"><table class="tableFull tableBorder"><thead><tr><th>时间</th><th>PV</th><th>UV</th><th>IP</th><th>会话</th><th>跳出会话</th><th>访客停留</th></tr></thead><tbody>';
+    if (!$rows) echo '<tr><td colspan="7">当前时间范围暂无数据</td></tr>';
+    foreach ($rows as $row) {
+        echo '<tr><td>' . xz_visit_stats_admin_escape($row['bucket']) . '</td>';
+        foreach (array('pv', 'uv', 'ip', 'session_count') as $key) {
+            echo '<td>' . ($row[$key] === null ? '不可用' : number_format((int) $row[$key])) . '</td>';
+        }
+        echo '<td>' . ($availabilityStatus === 'unavailable' ? '不可用' : number_format((int) $row['bounce_sessions'])) . '</td>';
+        echo '<td>' . ($row['average_visitor_dwell_ms'] === null ? '不可用' : number_format((float) $row['average_visitor_dwell_ms']) . ' ms') . '</td></tr>';
+    }
+    echo '</tbody></table></div></section>';
+}
+
 function xz_visit_stats_admin_submenu($view)
 {
     $groups = array(

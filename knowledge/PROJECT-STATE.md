@@ -11,7 +11,7 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T4 — analytics/admin reports, filters and session drill-down`
-- Phase status: `IN PROGRESS / CODEX HANDOFF READY`
+- Phase status: `T4 Task 9 PASS / Task 10 DELIVERY IN PROGRESS` (local verification passed; final commit, push and exact-SHA CI are pending)
 - Release Gate: `NOT READY`
 - PR/Merge/Tag/Release: not authorized during T4
 
@@ -55,6 +55,19 @@ Evidence: `docs/v4.0.0/REUSE-GATE-T4-v1.0.md`.
 - KEEP existing bounded CSV-safe export behavior for compatibility while using the v4 export-task table for controlled v4 task workflows.
 - Do not add DataTables/grid frameworks, datepicker libraries or generic queue/worker frameworks during T4 without a new Reuse Gate.
 - Matomo and 51.LA remain reference-only for information architecture/semantics; no import/fork/code copy.
+
+## T4 persisted progress — 2026-10-13
+
+- Tasks 1–8 are complete locally and must not be repeated. Their commits remain in order: Task 1 `1118ea73cfdb654f17b6d1b027b74b0e5456fcc7`; Task 2 `b617098e224039ed540d55b6322e8645a63633b0`; Task 3 `d8d5ba82ab602872382db468999e8ba40c808eb7`; Task 4 `a137761ce8227325b0ddb5ca35fcb92df7fe6d2f`; Task 5 `0fbea898b5227189babc427645be684bfd7e2d6e`; Task 6 `bc2f32a9961c74e683c0f2a2e7d1703bdd7b1168`; Task 7 `22266d8002b4774bbe8263c57c6ede835b3dea2c`; Task 8 `28f014b639338aa7ea888b0aeed2203a07a59639`.
+- The fetched remote head is `cd695153c511fc54f66106d41268f0908fa04d42`; local Task 1–8 history is eight commits ahead and contains that remote commit as an ancestor. Current local HEAD is still Task 8 `28f014b639338aa7ea888b0aeed2203a07a59639`. Task 9 changes remain in the working tree pending normal commit/push; no reset, rebase, force push, or worktree cleanup was performed.
+- Runtime paths: source `D:\wwwroot\xinzhao_net\zb_users\plugin\xz_visit_stats\source`; Windows test site `D:\wwwroot\www.xzhao.net`; runtime plugin `D:\wwwroot\www.xzhao.net\zb_users\plugin\xz_visit_stats`. A pre-deploy plugin backup is retained at `D:\wwwroot\www.xzhao.net\zb_users\plugin\xz_visit_stats.backup-t4-session-link-20261013-023259` (92 files). The filtered runtime has 92 files, all matching the source package files; its vendor directory contains only locked `mlocati/ip-lib 1.22.0` and the MIT `LICENSE.txt`. No PHPUnit/PHPStan/dev packages or export CSVs are deployed.
+- Database rollback evidence: pre-Task 9 logical backup `D:\wwwroot\xz_visit_stats-db-backups\zblog-before-t4-task9-20261012-224016.sql`, 6,993,139 bytes, SHA-256 `815FEC0A0459C0B5EDDD26C5126C006D484FA4680EE26E3BB3A2058247D3ACD2`. The MySQL client is present. No restore was executed against the running test database; if recovery is required, use the retained dump only in an isolated recovery/test schema before any deliberate cutover.
+- Local runtime: IIS 10 / W3SVC Running, PHP `8.3.8`, Z-BlogPHP `173540`, MySQL service Running / server `5.7.38-log`; `http://127.0.0.1/` returned HTTP 200. The repository local verifier passed its homepage (200), page-type 404 (404), and crawler/referer (200) probes after fixing PowerShell 7 HTTP status handling in `scripts/local-verify.ps1`.
+- Task 9 is locally PASS. All ten T4 primary admin pages rendered under the existing authorized session without PHP/SQL errors; legacy `pages`, `ip`, `environment`, `campaign`, `errors`, `performance`, `source`, `spider`, and `overview` compatibility pages also rendered. Existing T4 filter-range, visitor filter, keyset pagination, IP/directory-rule CRUD, controlled export, unauthorized-download denial, privacy, and realtime-to-session checks remain verified. Event detail path and session links were clicked in the real UI and reached filtered records and session detail pages. The temporary test rules, export task and generated file are absent after cleanup.
+- The real local MySQL 5.7 audit compared 15 plugin tables against the pre-Task 9 baseline: all nine legacy/v3 tables remain and no existing table row count decreased. All six v4 tables and every required index are present. The v4 migration had already been run twice idempotently in this Task 9 session; no v3 table was dropped or rebuilt. The new unfiltered event-time index is `(ev_TriggeredAt, ev_ID)`.
+- Real `EXPLAIN` results (bounded local test dataset): 30-day sessions used `xzvs_session_time` (`range`, estimated 4 rows; 0.254 ms, 4 result IDs); 30-day events used `xzvs_event_time` (`range`, estimated 1 row; 0.823 ms, no recent event IDs); session detail used `PRIMARY` (`const`, 0.178 ms); session-page detail used `xzvs_page_sequence` (`ref`, 0.157 ms); record/session linkage used `xzvs_page_log` (`ref`, 0.096 ms). No representative query did an unbounded raw-table scan. Timings describe only this local dataset.
+- Final local automated gates: PHPUnit `69 tests / 494 assertions` PASS; all `66` non-vendor PHP files syntax PASS; all `16` asset JavaScript files syntax PASS; PowerShell verifier syntax PASS; UI Terminology PASS; `git diff --check` exit 0; secret-pattern scan of 12 changed/new files found no hits; no unexpected temp/log/backup/export artifacts are in the change set. PHPStan is configured report-only in CI: local run reports 67 existing diagnostics (including Z-Blog bootstrap/global stubs and unchanged legacy comparisons); no new diagnostic points to the Task 9 collector-link or page-size fix. Semgrep is delegated to the required GitHub CI workflow.
+- Task 10 delivery is in progress: update this state after exact commit/push and exact-SHA GitHub Actions evidence. T5 has not started. Release Gate remains `NOT READY`; no merge, tag, or release has occurred.
 
 ## T4 scope
 
@@ -106,7 +119,7 @@ Local Codex should reconcile to the real latest remote HEAD and execute the enti
 
 ## Next action
 
-Execute `.codex-tasks/08-v4-t4-analytics-admin.md` from the real latest `feature/visit-stats-4.0` HEAD. Complete plan Tasks 1–10, perform real local admin/runtime and MySQL `EXPLAIN` verification, push the implementation, obtain exact-SHA CI success, update this state with observed evidence, and hand the final six-gate report to ChatGPT for Notion writeback. Stop before T5/merge/tag/release.
+Resume at Task 10 delivery: review the final diff, commit and normally push `feature/visit-stats-4.0`, verify GitHub Actions for the exact pushed SHA, then hand the evidence to the ChatGPT controller for Notion writeback. Do not repeat Tasks 1–9. Stop before T5/merge/tag/release.
 
 ## Update discipline
 

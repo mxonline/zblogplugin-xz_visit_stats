@@ -25,6 +25,15 @@ final class V4FoundationTest extends TestCase
         $this->assertSame(array('sp_SessionID', 'sp_Sequence'), $definitions['session_pages']['indexes']['xzvs_page_sequence']);
     }
 
+    public function testEventSchemaIndexesUnfilteredTimeOrderedReports(): void
+    {
+        $definitions = xz_visit_stats_v4_schema_definitions();
+        $this->assertSame(
+            array('ev_TriggeredAt', 'ev_ID'),
+            $definitions['events']['indexes']['xzvs_event_time']
+        );
+    }
+
     public function testSessionKeyIsOpaqueAndTimeoutStartsNewSession(): void
     {
         $first = xz_visit_stats_v4_session_decide(array(), str_repeat('a', 64), str_repeat('b', 64), 1000, 1800);

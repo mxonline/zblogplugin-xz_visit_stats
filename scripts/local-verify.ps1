@@ -63,9 +63,14 @@ function Invoke-HttpStatus {
         $response = Invoke-WebRequest -Uri $Uri -Headers $Headers -UseBasicParsing -TimeoutSec $HttpTimeoutSec
         return [int]$response.StatusCode
     }
-    catch [System.Net.WebException] {
-        if ($null -ne $_.Exception.Response) {
-            return [int]$_.Exception.Response.StatusCode
+    catch {
+        $response = $_.Exception.Response
+        if ($null -ne $response -and $null -ne $response.StatusCode) {
+            return [int]$response.StatusCode
+        }
+        $statusCodeProperty = $_.Exception.PSObject.Properties['StatusCode']
+        if ($null -ne $statusCodeProperty -and $null -ne $statusCodeProperty.Value) {
+            return [int]$statusCodeProperty.Value
         }
         throw
     }
