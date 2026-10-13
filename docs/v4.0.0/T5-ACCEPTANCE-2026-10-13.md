@@ -112,8 +112,8 @@ This section records a read-only continuation of the existing audit. It does not
 
 ## Forward correction PR checkpoint — 2026-10-13
 
-- Draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28) is open against `main` at head `81912fe40753a25c1f3c2ec40a5efb1e75d666ca`. It carries the preserved document edits and this audit record; it does not alter runtime code or the published asset.
-- Exact-SHA Code Quality Run [38413677655](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38413677655) passed. PR quality check Run [38414205617](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414205617) also passed with the same `headSha`.
+- Draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28) was opened against `main` with source commit `81912fe40753a25c1f3c2ec40a5efb1e75d666ca`; exact-SHA Runs [38413677655](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38413677655) and [38414205617](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414205617) passed.
+- An evidence-only follow-up commit `9c6f965ce3207fea7425c6643679bd96a3243dbd` updated the PR checkpoint; exact-SHA Runs [38414739386](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414739386) and [38414730126](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414730126) passed. At this checkpoint, PR #28 is OPEN/DRAFT and unmerged; it does not alter runtime code or the published asset.
 - The local corrective ZIP payload compares to the committed source tree with 37 byte-identical files and 57 EOL-only differences; no content mismatch. The candidate remains unpublished, PR remains draft/unmerged, and the post-release artifact audit remains blocked pending an explicit distribution decision.
 
 ### Minimal forward-fix proposal
