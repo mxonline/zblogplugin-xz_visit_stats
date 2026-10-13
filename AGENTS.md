@@ -12,6 +12,7 @@ User requirement
 → project state / task-specific knowledge
 → GitHub + official ecosystem search when a reusable subsystem decision is involved
 → Reuse Gate: USE / REUSE / FORK / BUILD
+→ create or resume DEV-YYYYMMDD-NNN canonical Runtime Bundle
 → Codex opens the real project workspace
 → reads this file and current repository state
 → loads only the required project knowledge
@@ -27,6 +28,34 @@ User requirement
 ```
 
 Routine development must not require the user to copy commands, edit task files, open a second Codex window, or confirm each normal code/test operation.
+
+## Canonical unattended runtime authority
+
+New development runs use the version-independent contract in `docs/DEVELOPMENT-RUNTIME.md`.
+
+Machine execution state is persisted under:
+
+```text
+.development/runtime/<execution_id>/state.json
+.development/runtime/<execution_id>/events.jsonl
+.development/runtime/<execution_id>/evidence/index.json
+```
+
+- `execution_id` uses the existing `DEV-YYYYMMDD-NNN` run number and remains stable across chat/Codex/Windows interruption.
+- `scripts/dev_runtime.py` owns schema validation, revisioned state, append-only events, evidence binding, Git/CI reconciliation and deterministic next-action evaluation.
+- `scripts/dev-flow.ps1` is a thin Windows adapter to the same runtime; it must not maintain a second state model.
+- Real Git, exact-head CI, local Z-Blog/runtime, Release and Notion tool results remain factual evidence. If they contradict a stored state string, reconcile/fail closed rather than trusting the state string.
+- `.codex-state.json`, `.codex/tasks.json`, `.codex-tasks/` and `dev-v1.3.ps1` are **legacy compatibility** for older task chains. They are not canonical state for new runs and cannot override a valid DEV Runtime Bundle.
+- Chat history and model memory are hints only; they have no persistent execution-state authority.
+
+On `continue`, `resume`, or a restarted workspace, load the same Runtime Bundle first, validate it, reconcile the real branch/head SHA, restore Notion/PRD context, then execute exactly the returned next action. Do not create a second run for the same interrupted task.
+
+## Cross-session handoff continuity (2026-10-09)
+
+- Reuse the current `.development/runtime/<execution_id>/state.json`, `events.jsonl`, and `evidence/index.json` as the *only* accepted DEV execution state. This rule does not add another runner, second HANDOFF state, development stage, Release Gate, or human approval.
+- At an actually verified checkpoint, external BLOCKED, or voluntary long-session close, project the current execution_id / revision / branch HEAD / verified tests / first causal failure / remedies already attempted / next_action into the existing Notion project HANDOFF. Write and refetch before claiming synchronization. If Notion cannot be reached, preserve Git Runtime truth and mark the projection stale.
+- In a fresh Codex conversation, run the existing `scripts/dev_runtime.py`/Windows adapter validation, reconcile Git/CI and local Z-Blog evidence, and only then consume the Notion HANDOFF. Reuse stable verified stages, repair failed current work, and keep existing six-gate completion contract.
+- Do not equate a handoff summary or old Notion plan with actual Release; do not interrupt ordinary active work merely to request user “continue”. No secrets, session cookies, database contents or private credentials in handoff.
 
 ## Project baseline
 
@@ -125,21 +154,21 @@ Pause only when an operation requires credentials that are not available, touche
 
 For every non-trivial task:
 
-1. Read the real current code and repository status.
-2. Load the task-specific project knowledge via `knowledge/INDEX.md`.
-3. Determine the affected Hook, database, configuration and compatibility surface.
-4. If the task introduces/selects a reusable subsystem, run `knowledge/REUSE-GATE.md` and record `USE / REUSE / FORK / BUILD` before production implementation.
-5. Make the smallest coherent implementation.
-6. Run fast local checks.
-7. If the change depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
-8. On failure, read the actual error/output, check `knowledge/KNOWN-FAILURES.md`, fix the cause and re-run the relevant checks.
-9. Inspect the final diff for unrelated edits, generated junk and secrets.
-10. Update documentation/version metadata only when the task or release state requires it.
-11. Commit/push the development branch when the requested workflow includes Git delivery.
-12. Evaluate the Release Gate even when the current phase is not ready to publish.
-13. Update `knowledge/PROJECT-STATE.md`; add reusable knowledge/failure entries only when supported by observed evidence.
-14. Ensure the controller has written the real result back to Notion.
-15. Emit the mandatory six-gate completion report.
+1. Load or create the single canonical `DEV-YYYYMMDD-NNN` Runtime Bundle and validate `state / events / evidence`; when continuing a task, reuse its existing execution ID and task rather than creating a parallel run.
+2. Read the real current Git state and reconcile branch/head SHA against Runtime; do not overwrite uncommitted human work.
+3. Restore current Notion Context/PRD and record verifiable evidence for Gate 1.
+4. Read the real current code and load task-specific knowledge via `knowledge/INDEX.md`.
+5. Determine the affected Hook, database, configuration and compatibility surface.
+6. If the task introduces/selects a reusable subsystem, run `knowledge/REUSE-GATE.md` and record `USE / REUSE / FORK / BUILD` before production implementation.
+7. Make the smallest coherent implementation and run fast local checks.
+8. If the task depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
+9. On failure, read the actual output, check `knowledge/KNOWN-FAILURES.md`, fix the cause and re-run the relevant checks without asking whether to continue.
+10. Inspect the final diff for unrelated edits, generated junk and secrets; update documentation/version metadata only when the task or release state requires it.
+11. Commit/push the development branch when the requested workflow includes Git delivery; any earlier CI PASS becomes stale after a new head SHA.
+12. Validate GitHub CI against the exact current head SHA.
+13. Evaluate the Release Gate even when the current phase is not ready to publish.
+14. Update `knowledge/PROJECT-STATE.md` and the existing Notion task/plan with observed evidence; refetch Notion when the complete flow requires writeback verification.
+15. Persist each accepted checkpoint as evidence + state revision + append-only event, then emit the mandatory six-gate completion report only when the runtime evaluator permits it.
 
 ## When local Z-Blog runtime verification is mandatory
 
@@ -155,7 +184,7 @@ Runtime verification is a release blocker for changes involving any of the follo
 - performance-sensitive collector/statistics queries;
 - any behavior that CI unit tests cannot faithfully represent.
 
-A documentation-only change or a small isolated pure-function fix may skip full runtime verification when its acceptance criteria are fully covered by faster checks. In that case the Local Runtime gate must be reported as `NOT REQUIRED` with an explicit reason.
+A documentation-only change or a small isolated pure-function fix may skip full runtime verification when its acceptance criteria are fully covered by faster checks. In that case the Local Runtime gate must be reported as `NOT REQUIRED` with an explicit reason and evidence.
 
 ## Fast checks
 
@@ -166,6 +195,7 @@ Prefer task-relevant checks rather than running every heavy tool after every edi
 - existing PHPUnit tests;
 - JavaScript syntax checks when JS changes;
 - `scripts/local-verify.ps1` for the standard local verification chain;
+- `python scripts/dev_runtime.py evaluate ...` or `scripts/dev-flow.ps1 evaluate ...` for runtime-state integrity;
 - direct local HTTP/runtime/database checks for runtime-sensitive work.
 
 PHPStan, Semgrep and full regression suites are risk/release driven, not automatic blockers for every small change.
@@ -191,6 +221,7 @@ For database assertions, compare important aggregate results against direct SQL 
 - Never overwrite unrelated uncommitted work; inspect `git status` first.
 - Commit and push normal development work when the task calls for end-to-end delivery.
 - CI failure is part of the normal repair loop: read the real logs, fix locally, re-test and push again.
+- A GitHub CI PASS is reusable only when its evidence is bound to the current Runtime `head_sha`; a new Commit invalidates the old CI checkpoint.
 - Do not merge/tag/release until release gates pass.
 - Formal releases follow `docs/RELEASE.md` and the repository release-document rules.
 - An intermediate phase may report `Release Gate: NOT READY`; this means the gate was evaluated and the reason was recorded, not skipped.
@@ -237,6 +268,7 @@ README, CHANGELOG, VERSION and Release Notes must describe the real implemented 
 
 Every completed task report must contain:
 
+- execution id / run number and state revision;
 - current finding / implemented result;
 - files changed;
 - checks actually executed and their results;
