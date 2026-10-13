@@ -19,6 +19,14 @@ class QueryV2Test extends TestCase
         $zbp->option = array('ZC_TIME_ZONE' => 'Asia/Shanghai');
     }
 
+    public function testKeysetDrilldownRetainsChosenPageSize(): void
+    {
+        $filters = xz_visit_stats_v2_filters(array('range' => 'custom', 'page_size' => '20'));
+        $params = xz_visit_stats_v2_drilldown_params($filters, array('cursor' => '479'));
+        $this->assertSame(20, $params['page_size']);
+        $this->assertSame('479', $params['cursor']);
+    }
+
     public function testFiltersKeepUnifiedDrilldownInputsAndRejectInvalidValues(): void
     {
         $filters = xz_visit_stats_v2_filters(array(

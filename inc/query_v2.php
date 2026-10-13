@@ -325,7 +325,7 @@ function xz_visit_stats_v2_error_summary($filters, $limit = 100)
 
 function xz_visit_stats_v2_drilldown_params($filters, $extra = array())
 {
-    $keys = array('range','start','end','visit_type','status_group','status_code','source_type','source_domain','bot_name','path_key','ip','url','referer','slow_ms');
+    $keys = array('range','start','end','visit_type','status_group','status_code','source_type','source_domain','bot_name','path_key','ip','url','referer','slow_ms','page_size');
     $params = array('view' => 'records');
     foreach ($keys as $key) if (isset($filters[$key]) && $filters[$key] !== '' && $filters[$key] !== 'all') $params[$key] = $filters[$key];
     foreach ($extra as $key => $value) if ($value !== '' && $value !== null) $params[$key] = $value;

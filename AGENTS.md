@@ -9,9 +9,13 @@ The desired workflow is:
 ```text
 User requirement
 → ChatGPT requirements / PRD / acceptance criteria
+→ project state / task-specific knowledge
+→ GitHub + official ecosystem search when a reusable subsystem decision is involved
+→ Reuse Gate: USE / REUSE / FORK / BUILD
 → create or resume DEV-YYYYMMDD-NNN canonical Runtime Bundle
 → Codex opens the real project workspace
 → reads this file and current repository state
+→ loads only the required project knowledge
 → edits the real source tree
 → runs local automated checks
 → runs local Z-Blog runtime verification when required
@@ -19,6 +23,7 @@ User requirement
 → Git commit / push / CI
 → release documentation and release gates
 → Notion writeback
+→ project knowledge/state writeback
 → mandatory six-gate completion report
 ```
 
@@ -58,20 +63,57 @@ On `continue`, `resume`, or a restarted workspace, load the same Runtime Bundle 
 - Repository: `mxonline/zblogplugin-xz_visit_stats`.
 - Current formal baseline is the version recorded by `plugin.xml`, `docs/VERSION.md`, Git tags/releases and the current branch. Never trust a stale version written in this file over the real repository state.
 - Before starting a task, inspect `git status`, current branch, `plugin.xml`, relevant PRD/version documents and the affected code.
-- A 2.0 task is a major-version task and requires local Z-Blog runtime verification before it can be called complete.
+- Major-version work requires local Z-Blog runtime verification before it can be called complete.
+
+## Knowledge loading protocol
+
+The project knowledge router is `knowledge/INDEX.md`.
+
+For every non-trivial task:
+
+1. Read this `AGENTS.md`.
+2. Read `knowledge/PROJECT-STATE.md`.
+3. Inspect the real current Git state and reconcile any difference before execution.
+4. Follow `knowledge/INDEX.md` to load only the documents relevant to the task.
+5. Search `knowledge/KNOWN-FAILURES.md` before inventing a new fix for a repeated failure.
+6. Use `knowledge/ZBLOG-DEVELOPMENT-KNOWLEDGE.md` for reusable project engineering rules.
+7. When a new reusable subsystem/library/algorithm decision is involved, read and execute `knowledge/REUSE-GATE.md` before implementation.
+8. After verified work, update project state/knowledge and the corresponding Notion record.
+
+Authority order is real Git/runtime/CI evidence first, then `PROJECT-STATE.md`, current PRD/design/task handoff, this file, project knowledge, Notion, and historical/external references.
+
+The legacy `.codex-state.json` belongs to an older controller/task chain and is not the authoritative v4 project-state source unless a future migration explicitly makes it so and tests that controller behavior.
+
+Do not load all project/history/reference documents by default. Keep context task-specific.
+
+## Reuse Gate hard rule
+
+`knowledge/REUSE-GATE.md` is a prospective pre-implementation decision gate. It does not replace the v4 PRD, current `.codex-tasks/`, local runtime checks, CI or release gates.
+
+- Do not rewind, delete or redo completed v4/T2/T3 work merely because this rule was added after development had started.
+- Existing verified data/schema/runtime evidence remains authoritative.
+- Apply the gate to unresolved T3/T4 implementation choices and future non-trivial subsystem decisions.
+- Search Z-Blog official resources first, then maintained GitHub projects/libraries, before custom-building a generic capability.
+- Evaluate license, maintenance, CI/tests, security/dependencies, PHP/Z-Blog/MySQL compatibility, hot-path performance, package size, privacy and maintenance cost.
+- Star count is supporting evidence only.
+- No explicit `USE / REUSE / FORK / BUILD` decision means no new reusable subsystem implementation should begin.
+- A gate may conclude `BUILD + SELECTIVE REUSE`; large analytics systems may be architecture references without being imported or forked.
 
 ## Expected local development environment
 
-The current Windows test environment is expected to expose the plugin inside a real Z-Blog installation. Typical paths are:
+The v4 Windows audit most recently verified this local environment:
 
 ```text
-Z-Blog root:   D:\wwwroot\xinzhao_net
-Plugin root:   D:\wwwroot\xinzhao_net\zb_users\plugin\xz_visit_stats
+Z-Blog root:   D:\wwwroot\www.xzhao.net
+Plugin root:   D:\wwwroot\www.xzhao.net\zb_users\plugin\xz_visit_stats
 Local site:    http://127.0.0.1
 PHP CLI:       D:\BtSoft\php\83\php.exe
+PHP:           8.3.8
+Z-BlogPHP:     173540
+MySQL:         5.7.38-log
 ```
 
-Do not blindly hard-code these values into runtime plugin code. Local scripts may use them as defaults but must allow overrides. If the real workspace differs, detect the actual paths before testing.
+Do not blindly hard-code these values into runtime plugin code. Local scripts may use verified values as defaults but must allow overrides. If the real workspace differs, detect the actual paths/versions before testing and update project state after verification.
 
 ## Direct execution policy
 
@@ -112,27 +154,27 @@ Pause only when an operation requires credentials that are not available, touche
 
 For every non-trivial task:
 
-1. Load or create the canonical `DEV-YYYYMMDD-NNN` Runtime Bundle and validate `state / events / evidence`.
+1. Load or create the single canonical `DEV-YYYYMMDD-NNN` Runtime Bundle and validate `state / events / evidence`; when continuing a task, reuse its existing execution ID and task rather than creating a parallel run.
 2. Read the real current Git state and reconcile branch/head SHA against Runtime; do not overwrite uncommitted human work.
 3. Restore current Notion Context/PRD and record verifiable evidence for Gate 1.
-4. Determine the affected Hook, database, configuration and compatibility surface.
-5. Make the smallest coherent implementation.
-6. Run fast local checks.
-7. If the change depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
-8. On failure, read the actual error/output, fix the cause and re-run the relevant checks without asking whether to continue.
-9. Inspect the final diff for unrelated edits, generated junk and secrets.
-10. Update documentation/version metadata only when the task or release state requires it.
+4. Read the real current code and load task-specific knowledge via `knowledge/INDEX.md`.
+5. Determine the affected Hook, database, configuration and compatibility surface.
+6. If the task introduces/selects a reusable subsystem, run `knowledge/REUSE-GATE.md` and record `USE / REUSE / FORK / BUILD` before production implementation.
+7. Make the smallest coherent implementation and run fast local checks.
+8. If the task depends on Z-Blog runtime behavior, run the real local-runtime checks described in `docs/TESTING.md`.
+9. On failure, read the actual output, check `knowledge/KNOWN-FAILURES.md`, fix the cause and re-run the relevant checks without asking whether to continue.
+10. Inspect the final diff for unrelated edits, generated junk and secrets; update documentation/version metadata only when the task or release state requires it.
 11. Commit/push the development branch when the requested workflow includes Git delivery; any earlier CI PASS becomes stale after a new head SHA.
 12. Validate GitHub CI against the exact current head SHA.
 13. Evaluate the Release Gate even when the current phase is not ready to publish.
-14. Ensure the controller has written the real result back to Notion and refetched it when the complete flow requires writeback verification.
+14. Update `knowledge/PROJECT-STATE.md` and the existing Notion task/plan with observed evidence; refetch Notion when the complete flow requires writeback verification.
 15. Persist each accepted checkpoint as evidence + state revision + append-only event, then emit the mandatory six-gate completion report only when the runtime evaluator permits it.
 
 ## When local Z-Blog runtime verification is mandatory
 
 Runtime verification is a release blocker for changes involving any of the following:
 
-- major-version work such as v2.0;
+- major-version work;
 - plugin install, enable, disable, uninstall or upgrade behavior;
 - database schema, indexes, migrations or stored configuration;
 - Z-Blog Hooks and request lifecycle behavior;
@@ -232,8 +274,10 @@ Every completed task report must contain:
 - checks actually executed and their results;
 - local Z-Blog/runtime checks actually executed when required;
 - Git branch/commit/CI state when applicable;
+- Reuse Gate decision when the task involved a reusable subsystem;
 - Release Gate result;
 - Notion context/writeback evidence for a complete-flow task;
+- knowledge/state writeback evidence for non-trivial tasks;
 - remaining limitations or external blockers;
 - the mandatory six-gate block when complete flow was requested.
 

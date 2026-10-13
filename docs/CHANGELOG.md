@@ -1,5 +1,30 @@
 # xz_visit_stats 变更记录
 
+## v4.0.0｜访问分析中心
+
+### 状态
+
+- 版本：v4.0.0。
+- 状态：Release Candidate；未创建正式 Tag 或 GitHub Release。
+- T5 Windows 本机验收、精确 SHA CI 与 ZIP Dry Run 均通过；Release Gate 为 PASS，v4.0.0 仍未创建正式 Tag 或 GitHub Release。证据记录在 `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`。
+
+### 变更范围
+
+- 增加访问总览、实时访客、趋势、访问记录、来源、内容、访客、蜘蛛、事件与设置模块。
+- 增加会话与页面序列、基于生命周期的停留和跳出指标、事件参数白名单、IP/CIDR 过滤和受控导出。
+- 保留 v3 原始访问日志与现有汇总结构；历史 v3 行不会被伪造为有 v4 停留或跳出数据。
+- 随包保留 Alpine.js、Apache ECharts、mlocati/ip-lib 运行时组件所需许可证。
+- 修正 680 px 及以下后台布局覆盖 Z-Blog 固定导航的问题，并更新管理样式缓存键。
+
+### 兼容与限制
+
+- PHP 7.1 语法下限；本轮实机环境为 PHP 8.3.8、Z-BlogPHP build 173540、MySQL 5.7.38。
+- Beacon 默认关闭。`vs_DurationMs` 仍是服务端处理耗时，不作为访客停留时长。
+
+### 验证
+
+最终本机矩阵、CI Run、Release Gate 和候选 ZIP 清单以 T5 验收记录为准；只有最终记录证明通过的项目才标记为 PASS。
+
 ## v3.0.0｜站长访问分析中心产品化
 
 ### 状态

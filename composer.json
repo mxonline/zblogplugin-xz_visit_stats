@@ -5,5 +5,8 @@
   },
   "autoload": {
     "classmap": ["."]
+  },
+  "require": {
+    "mlocati/ip-lib": "1.22.0"
   }
 }

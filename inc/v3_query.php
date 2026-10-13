@@ -28,6 +28,17 @@ function xz_visit_stats_v3_where($filters, $range)
             $where[] = $column . ' = ' . xz_visit_stats_v2_quote($filters[$key]);
         }
     }
+    if (isset($filters['country']) && $filters['country'] !== '') $where[] = 'vs_GeoCountry = ' . xz_visit_stats_v2_quote($filters['country']);
+    if (isset($filters['province']) && $filters['province'] !== '') $where[] = 'vs_GeoRegion = ' . xz_visit_stats_v2_quote($filters['province']);
+    if (isset($filters['new_returning']) && in_array($filters['new_returning'], array('new', 'returning'), true) && function_exists('xz_visit_stats_v4_session_query_table')) {
+        $sessionTable = xz_visit_stats_v4_session_query_table();
+        $start = (int) $range['start'];
+        $end = (int) $range['end'];
+        $selection = '(SELECT cur.se_VisitorHash FROM ' . $sessionTable . ' cur WHERE cur.se_StartedAt >= ' . $start . ' AND cur.se_StartedAt < ' . $end . " AND cur.se_VisitorHash<>''";
+        $prior = 'EXISTS (SELECT 1 FROM ' . $sessionTable . ' older WHERE older.se_VisitorHash=cur.se_VisitorHash AND older.se_StartedAt<' . $start . ' LIMIT 1)';
+        $selection .= $filters['new_returning'] === 'new' ? ' AND NOT ' . $prior : ' AND ' . $prior;
+        $where[] = 'vs_VisitorHash IN ' . $selection . ')';
+    }
     return $where;
 }
 
@@ -210,7 +221,9 @@ function xz_visit_stats_v3_keyset_records($filters, $cursor = '', $limit = 50)
 function xz_visit_stats_v3_csv_safe($value)
 {
     $value = (string) $value;
-    return preg_match('/^[=+\-@]/', $value) === 1 ? "'" . $value : $value;
+    $hasLeadingControl = preg_match('/^[\x00-\x20\x7f]/', $value) === 1;
+    $hasFormulaAfterWhitespace = preg_match('/^[\x00-\x20\x7f]*[=+\-@]/', $value) === 1;
+    return $hasLeadingControl || $hasFormulaAfterWhitespace ? "'" . $value : $value;
 }
 
 function xz_visit_stats_v3_export_rows($filters, $cursor = '', $limit = 5000)
