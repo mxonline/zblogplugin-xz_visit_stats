@@ -5,8 +5,8 @@
 ### 状态
 
 - 版本：v4.0.0。
-- 状态：Release Candidate；未创建正式 Tag 或 GitHub Release。
-- T5 Windows 本机验收、精确 SHA CI 与 ZIP Dry Run 均通过；Release Gate 为 PASS，v4.0.0 仍未创建正式 Tag 或 GitHub Release。证据记录在 `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`。
+- 状态：正式发布；Tag `v4.0.0` 指向 `e3dcce5f34def6d70d860a9c4165968f257e1757`。
+- [GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) 已发布；精确 SHA CI Run `38356703851` 成功。正式 ZIP SHA-256：`D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`。T5 验收证据见 `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`。
 
 ### 变更范围
 

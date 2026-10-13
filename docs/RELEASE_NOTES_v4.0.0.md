@@ -1,6 +1,6 @@
-# xz_visit_stats v4.0.0 Release Candidate
+# xz_visit_stats v4.0.0
 
-**状态：候选版；T5 Release Gate PASS，尚未正式发布。** 本机 Windows 验收、复审后的后台筛选/空状态与 680/800/1100 px 响应式复测、精确 SHA CI 和正式 ZIP Dry Run 均通过。尚无正式 Tag、GitHub Release 或应用中心版本。
+**状态：正式发布。** Tag `v4.0.0` 指向提交 `e3dcce5f34def6d70d860a9c4165968f257e1757`；[GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) 已发布。T5 Windows 本机验收、复审后的后台筛选/空状态与 680/800/1100 px 响应式复测、精确 SHA CI 和正式 ZIP 核验均通过。未上传 Z-Blog 应用中心。
 
 ## 本版本内容
 
@@ -25,4 +25,4 @@
 
 ## 安装包
 
-候选包名：`xz_visit_stats-v4.0.0.zip`。候选包已完成白名单、哈希与本机安装核验，Release Dry Run 为 `可发布`。该候选包仍不是正式版本；正式 Tag / GitHub Release 尚未创建，也未上传 Z-Blog 应用中心。
+正式安装包：[`xz_visit_stats-v4.0.0.zip`](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/download/v4.0.0/xz_visit_stats-v4.0.0.zip)。SHA-256：`D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`。安装包有 94 个白名单文件，包含必需运行时依赖与许可证；未上传 Z-Blog 应用中心。

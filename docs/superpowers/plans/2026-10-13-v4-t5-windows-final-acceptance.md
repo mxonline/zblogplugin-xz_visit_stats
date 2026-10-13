@@ -108,4 +108,10 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [x] Commit and push the review fixes and T5 candidate evidence on `feature/visit-stats-4.0`; do not create a PR merge, tag, or GitHub Release while the existing Release Gate is blocked. Do not upload to the Z-Blog application center.
 - [x] Verify GitHub Actions Run `38353324295` succeeded with exact candidate source `head_sha=fb5bf02e68a1485aa3c6ac34cd2fcf958702caf8`.
 - [x] Write current observed results and package hash into the existing project state and Notion task/plan; read both back.
-- [ ] Report the six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, Release Gate, candidate artifact, formal-release status and one next action.
+- [x] Report the six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, Release Gate, published artifact, formal-release status and one next action.
+
+## Formal v4.0.0 release completion — 2026-10-13
+
+- PR [#26](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/26) merged to `main` as `e3dcce5f34def6d70d860a9c4165968f257e1757`; exact-main-SHA Run [38356703851](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38356703851) passed. PR-head runs `38356571362` and `38356571328` passed on `c3b2bcf769ec1502aab91e885aec406d6aff0eca`.
+- Tag `v4.0.0` points to the merge commit; GitHub Release [v4.0.0](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) is published with a 94-file allowlisted ZIP, SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`.
+- Release Gate `PASS`; no production website/database operation or Z-Blog application-centre upload occurred. The existing T5 task and implementation plan are the only task/plan records.
