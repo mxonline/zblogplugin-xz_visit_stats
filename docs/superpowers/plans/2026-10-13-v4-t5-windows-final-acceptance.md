@@ -35,7 +35,9 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [x] Recheck optional carrier/operator support against privacy and available local data; no local GeoIP/operator source is configured, so no external lookup or unsupported result is claimed.
 - [x] Re-run PHPUnit, HTTP, privacy, PHP/JS syntax, PHP 7.1 syntax, MySQL EXPLAIN, candidate installation and data-preservation checks after fixes.
 - [ ] Recheck current authenticated admin pages, filters, empty/partial states and 680/800/1100 px responsive layout; no authenticated local admin browser session is available. Older visual results are retained as historical evidence only.
-- [ ] Complete Release Dry Run, exact-SHA CI and Notion readback for the final source commit; record the actual Release Gate and leave release blocked until the UI recheck passes.
+- [x] Push candidate source `fb5bf02e68a1485aa3c6ac34cd2fcf958702caf8`; exact-SHA GitHub Actions Run `38353324295` passed.
+- [ ] Complete the releasable Release Dry Run and authenticated admin UI recheck; current dry-run result remains `不可发布` until the UI recheck is available.
+- [ ] Write the current Release Gate and CI/package evidence back to the existing Notion T5 task/plan and verify by readback.
 
 ## Review Focus
 
@@ -95,7 +97,7 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [x] Document observed upgrade behavior, data preservation, prerequisites, privacy, compatibility and verified limitations.
 - [x] Build the install ZIP from an explicit allowlist, including the required `mlocati/ip-lib` runtime source and MIT license.
 - [x] Audit the archive for missing runtime files, dev/test/cache/config/backup files, secrets and unrelated dependencies.
-- [ ] Execute a releasable Release Dry Run; current dry-run result is `不可发布` because the post-review admin visual check and final exact-SHA CI are incomplete.
+- [ ] Execute a releasable Release Dry Run; current dry-run result is `不可发布` because the post-review admin visual check remains incomplete.
 
 ### Task 5: Final delivery and writeback
 
@@ -103,7 +105,7 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - Update: `knowledge/PROJECT-STATE.md`, Notion official T5 task, and existing implementation-plan status.
 
 - [x] Re-run final repository checks and inspect the complete diff/package manifest for unrelated content or secrets.
-- [ ] Commit and push the completed T5 evidence on `feature/visit-stats-4.0`; do not create a PR merge, tag, or GitHub Release while the existing Release Gate is blocked. Do not upload to the Z-Blog application center.
-- [ ] Verify a successful GitHub Actions run whose `head_sha` exactly matches the final candidate source commit.
+- [x] Commit and push the review fixes and T5 candidate evidence on `feature/visit-stats-4.0`; do not create a PR merge, tag, or GitHub Release while the existing Release Gate is blocked. Do not upload to the Z-Blog application center.
+- [x] Verify GitHub Actions Run `38353324295` succeeded with exact candidate source `head_sha=fb5bf02e68a1485aa3c6ac34cd2fcf958702caf8`.
 - [ ] Write current observed results and package hash into the existing project state and Notion task/plan; read both back.
 - [ ] Report the six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, Release Gate, candidate artifact, formal-release status and one next action.
