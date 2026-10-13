@@ -37,7 +37,7 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [ ] Recheck current authenticated admin pages, filters, empty/partial states and 680/800/1100 px responsive layout; no authenticated local admin browser session is available. Older visual results are retained as historical evidence only.
 - [x] Push candidate source `fb5bf02e68a1485aa3c6ac34cd2fcf958702caf8`; exact-SHA GitHub Actions Run `38353324295` passed.
 - [ ] Complete the releasable Release Dry Run and authenticated admin UI recheck; current dry-run result remains `不可发布` until the UI recheck is available.
-- [ ] Write the current Release Gate and CI/package evidence back to the existing Notion T5 task/plan and verify by readback.
+- [x] Write the current Release Gate and CI/package evidence back to the existing Notion T5 task/plan; both pages read back with T5 in progress and Release Gate blocked by the pending authenticated admin UI recheck.
 
 ## Review Focus
 
@@ -107,5 +107,5 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [x] Re-run final repository checks and inspect the complete diff/package manifest for unrelated content or secrets.
 - [x] Commit and push the review fixes and T5 candidate evidence on `feature/visit-stats-4.0`; do not create a PR merge, tag, or GitHub Release while the existing Release Gate is blocked. Do not upload to the Z-Blog application center.
 - [x] Verify GitHub Actions Run `38353324295` succeeded with exact candidate source `head_sha=fb5bf02e68a1485aa3c6ac34cd2fcf958702caf8`.
-- [ ] Write current observed results and package hash into the existing project state and Notion task/plan; read both back.
+- [x] Write current observed results and package hash into the existing project state and Notion task/plan; read both back.
 - [ ] Report the six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, Release Gate, candidate artifact, formal-release status and one next action.
