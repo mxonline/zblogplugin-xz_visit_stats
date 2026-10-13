@@ -11,9 +11,9 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T5 — Windows local final acceptance and release preparation`
-- Phase status: `T5 COMPLETE` (T4 remains complete; T5 runtime, database, metrics, privacy, package, automated checks, exact-SHA CI and Notion readback are complete)
-- Release Gate: `PASS`
-- PR/Merge/Tag/Release: not authorized during T5; candidate preparation only
+- Phase status: `T5 REOPENED — review fixes and runtime evidence verified; final authenticated admin UI recheck remains externally blocked` (T4 remains complete; the former T5 PASS is historical)
+- Release Gate: `BLOCKED` — current admin visual/responsive evidence cannot be refreshed without an authenticated local Z-Blog admin session; exact-SHA CI follows the final commit
+- PR/Merge/Tag/Release: authorized by the current user only after all existing documented release gates pass; none has occurred
 
 ## Verified T2 baseline
 
@@ -83,6 +83,28 @@ Evidence: `docs/v4.0.0/REUSE-GATE-T4-v1.0.md`.
 - Automated checks: PHPUnit `69 tests / 494 assertions`; all 16 asset JavaScript files passed Node syntax; `scripts/local-verify.ps1 -SkipHttp` passed PHP lint, PHPUnit, and diff checks. PHP logs are routed to syslog (no file configured); the Windows Application log had zero PHP/FastCGI/IIS warning/error events in the reviewed 24-hour window. The available IIS W3C log's historical 5xx routes are described in the acceptance record.
 - Candidate artifact: `dist/xz_visit_stats-v4.0.0.zip`, SHA-256 `03DA00ACED38BA77B2CA0C59DCC51422456DD0830A999FF777B4D930EC0748E1`; 95 allowlisted entries, 0 missing, 0 extra, source/archive hashes match. Required runtime library and licenses, Apache and IIS export protections are included; the exact ZIP is installed and its 95 file hashes match the source. Post-install Safe Mode/read-only audit confirms 313 logs, 12 sessions, 25 session pages, 2 events, 0 export tasks; no secrets or visitor-level rows were exported.
 - Exact candidate source SHA `13def711c5fbc52de223d260b0315a3596570f8e` / GitHub Actions Run `38304017846` are successful and `head_sha` matches. Release Dry Run result is `可发布`; no conflicting v4.0.0 tag or release record exists. Release Gate is `PASS`; formal status remains `NOT RELEASED`. Notion task and implementation-plan readbacks succeeded. No merge, tag, GitHub Release, production deployment, database restore, or App Centre upload occurred.
+
+## T5 review recheck — 2026-10-13 (supersedes the previous PASS decision)
+
+- Independent code review invalidated the earlier Release Gate PASS. The official T5 Notion task was set back to in progress; the existing implementation plan and this repository state are being continued. No duplicate task, Runtime, or Gate was created.
+- Confirmed review defects in code: stale browser session key could be reused after timeout and first-page lifecycle key was not synchronized; trend UV/IP were not exact at week/month grain; v4 sessions/pages/events were omitted from retention; overview lacked new/returning counts; leading CSV controls bypassed formula detection; a PHP 7.1-incompatible JSON flag was used; trend UI omitted dimensions.
+- Implemented TDD fixes so far: server-authoritative session IDs plus `Set-Cookie` sync; exact per-grain traffic distinct aggregation; report filters are applied to session metrics via recorded visit rows; v4 retention/manual purge coverage and confirmation text; overview new/returning classification with the v3-history caveat; trend controls; control/whitespace-safe CSV prefixing; guarded JSON flag. Focused suites currently pass (PHPUnit 37 tests / 218 assertions across six focused files). These are not the final full regression result.
+- Added `scripts/t5-isolated-mysql-migration.ps1` and ran it against the established Windows Z-BlogPHP `173540`, PHP `8.3.8`, MySQL `5.7.38-log` adapter. Fresh install created all 12 expected plugin tables; a cloned v3-compatible raw-log schema with one synthetic history row migrated to v4, the migration repeated successfully, schema compatibility remained true, the row was unchanged, and all random-prefix test tables were removed. No production/history tables were written or dropped.
+- At the time of this checkpoint, the modified source had not yet been synchronized to the runtime, fully regression-tested, packaged, pushed, or checked by exact-SHA CI. That checkpoint is superseded by the final recheck below.
+- The local runtime Safe Mode audit confirms current MySQL `5.7.38-log`, PHP `8.3.8`, Z-BlogPHP `173540`; optional local GeoIP data is not configured. Carrier/operator reporting remains unavailable without a local source and must not call an external lookup.
+
+## T5 final review recheck — 2026-10-13
+
+- Existing branch `feature/visit-stats-4.0`; source checkpoint before final documentation/commit: `a8f866df014a8555477b7abf3af59d5f275f17f7`. T4 remains complete at `af3cc7137555257c379877cb0d34ce7478220576`, exact CI Run `38296309009` success. No reset, clean, force push, T4 rerun, merge, tag, release, production operation, or App Centre upload occurred.
+- Review fixes are in the source: database-authoritative session keys and cookie synchronization, exact grain-specific trend UV/IP, session report filters and v4 retention, bounded new/returning classification with v3-history caveat, CSV control-prefix neutralization, PHP 7.1-safe JSON flags, and trend filter controls. Full PHPUnit is `78 tests / 543 assertions` PASS; PHP 8.3 repository syntax PASS; PHP 7.1 syntax PASS for 43 runtime PHP files; Node syntax PASS for all 16 shipped JavaScript files.
+- The final installed release candidate has 94 allowlisted ZIP entries and SHA-256 `3D3642054715D2E19E835CFE5B6883968DEABA07D9C61C150BFD42BD7D88294C`. ZIP paths exactly match the allowlist and archived hashes match source. Installation copied all 94 files after hashing a 101-file pre-install runtime backup; 7 additional runtime files remain untouched.
+- Real MySQL 5.7 isolated lifecycle/migration recheck passed: all 12 expected tables on fresh install and v3 upgrade; exact 30-column v3.0.0 log schema; one synthetic history row's ID/path/path-key/visit-time unchanged across migration/repeat; no historical rows touched; all temporary-prefix tables removed. Disable/enable hooks passed; while disabled, the homepage returned 200 with zero marked tracking rows.
+- Final IIS/PHP HTTP smoke returned homepage 200, page-type 404, and crawler/referer 200. Direct SQL on isolated marked requests returned PV 2 / human PV 1 / bot PV 1 / UV 1 / IP 1. Exact cleanup removed 2 logs, 2 pages, 2 sessions and left zero marked rows.
+- A same-browser two-page lifecycle probe reused one session key; direct SQL returned PV 2 / UV 1 / IP 1 / one session / two pages; first-page RUM/lifecycle dwell was recorded once at 7,007 ms; one event stored only allowlisted `action`, `category`, and `label`. Cleanup returned all marked log/page/session/event/RUM counts to zero, and Beacon was restored disabled.
+- Read-only MySQL 5.7 audit after all probes: plugin `4.0.0` enabled; Beacon 0; retention 180 days; automatic cleanup 0; IP mode full; no GeoIP/operator database configured. Historical counts remain raw logs 313, sessions 12, pages 25, events 2, RUM 6, exports 0, IP rules 0. T2/T3/T4 code and database backups remain preserved.
+- Six MySQL EXPLAIN probes used the expected indexes for log time, visitor/time, IP/time, active sessions, page-log drill-down, and event time. The small local row count supports plan verification, not large-load latency claims.
+- Admin visual/responsive recheck after review fixes remains unverified: earlier 680/800/1100 px results belong to the superseded candidate. The current browser has no authenticated admin session. No login automation or credentials were used. This is the current external blocker.
+- Final Release Dry Run result: `不可发布` while the admin UI recheck is blocked and exact-SHA CI is pending. Release Gate is `BLOCKED`; formal status remains `NOT RELEASED`. No PR merge, tag, GitHub Release, production deployment/database operation, or App Centre upload is permitted while blocked. Record the exact source SHA and CI Run after commit and push.
 
 ## T4 scope
 

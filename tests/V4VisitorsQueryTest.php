@@ -135,6 +135,17 @@ final class V4VisitorsQueryTest extends TestCase
         $this->assertStringContainsString('cur.se_StartedAt >=', $visitWhere);
     }
 
+    public function testSessionReportDimensionsMatchTheirRecordedVisitRows(): void
+    {
+        $filters = xz_visit_stats_v4_report_filters(array('range' => '7d', 'device' => 'mobile', 'country' => 'HK', 'province' => 'Hong Kong'));
+        $where = implode(' AND ', xz_visit_stats_v4_session_where($filters, xz_visit_stats_v4_session_query_range($filters)));
+        $this->assertStringContainsString('session_pages.sp_SessionID=sessions.se_ID', $where);
+        $this->assertStringContainsString('visit_logs.vs_ID=session_pages.sp_LogID', $where);
+        $this->assertStringContainsString("vs_Device = 'mobile'", $where);
+        $this->assertStringContainsString("vs_GeoCountry = 'HK'", $where);
+        $this->assertStringContainsString("vs_GeoRegion = 'Hong Kong'", $where);
+    }
+
     public function testMaskedIpRowsMergePrefixCountsAndClearPreciseGeo(): void
     {
         $rows = xz_visit_stats_v4_mask_visitor_ip_rows(array(

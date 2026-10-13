@@ -1,5 +1,28 @@
 # xz_visit_stats v4.0.0 T5 Windows acceptance
 
+## Final recheck — 2026-10-13 (supersedes earlier Release Gate result)
+
+The earlier `Release Gate: PASS` and 95-file package record below describe a superseded candidate. Code review reopened the existing T5 task; only the current evidence in this section is authoritative for the present release decision.
+
+| Acceptance area | Current result | Evidence |
+| --- | --- | --- |
+| Review fixes and regression | PASS | PHPUnit 78 tests / 543 assertions; PHP 8.3 syntax across the repository; PHP 7.1 syntax across 43 runtime PHP files; Node syntax across all 16 shipped JavaScript files. The fixes cover session key/cookie lifecycle, exact trend UV/IP by grain, session report filters, v4 retention, new/returning overview, CSV formula prefixes, and PHP 7.1 JSON flag compatibility. |
+| Fresh install and v3 → v4 migration | PASS | Real Windows Z-BlogPHP/PHP 8.3/MySQL 5.7 adapter. Isolated install and upgrade produced all 12 plugin tables. The synthetic source row used the 30-column v3.0.0 raw-log schema; its ID, path, path key, and visit time remained unchanged through migration and repeated migration. Zero historical table rows were touched; all test-prefix tables were removed. |
+| Installed candidate and plugin lifecycle | PASS | Final 94-file candidate installed after a hash-verified backup of 101 current runtime files; 7 unrelated runtime extras remained. Z-Blog disable/enable hooks passed; while disabled, a marked homepage returned 200 and created zero marked logs; the plugin was re-enabled. |
+| HTTP collection and statistics | PASS | Final marked HTTP smoke: homepage 200, IIS missing-path 404, crawler/referer request 200; direct SQL found PV 2 / human PV 1 / bot PV 1 / UV 1 / IP 1. Exact marker cleanup deleted 2 logs, 2 pages, 2 sessions; post-cleanup marker count was zero. |
+| Session, dwell, RUM and events | PASS | Two same-browser visits reused one `xzvs_sk` session: SQL PV 2 / UV 1 / IP 1 / sessions 1 / pages 2. Same-origin lifecycle/RUM POST stored one RUM row and a 7,014 ms page/session dwell. One event was stored with only `action`, `category`, and `label`; unapproved `cookie`, `ip`, and `token` fields were discarded. Exact marker cleanup removed all test rows and Beacon was restored to disabled. |
+| Database preservation and privacy configuration | PASS | Final Safe Mode/read-only audit after cleanup and lifecycle probes: raw logs 313, sessions 12, session pages 25, events 2, RUM 6, export tasks 0, IP rules 0; plugin enabled; Beacon disabled; `db_version=4.0.0`. T2/T3/T4 backups remain retained. |
+| MySQL EXPLAIN | PASS | Six read-only MySQL 5.7 plans used their expected indexes: log time, visitor/time, IP/time, active sessions, page-log drill-down, event time. This small existing dataset proves index selection, not large-volume latency. |
+| Admin visual/responsive recheck after review fixes | BLOCKED | The final code changes include overview and trend controls. The previously recorded 680/800/1100 px visual result predates this reopened review; no authenticated Z-Blog admin browser session is available now to recheck the current pages, filters, empty states, and responsive layout. No login automation or credential extraction was used. |
+| Release candidate ZIP | PASS | `dist/xz_visit_stats-v4.0.0.zip`, 94 allowlisted entries, SHA-256 `3D3642054715D2E19E835CFE5B6883968DEABA07D9C61C150BFD42BD7D88294C`; extracted paths exactly match the allowlist and all archived hashes match the current package sources. Required runtime IP library and licenses plus Apache/IIS export protections are present; tests, scripts, cache, config, and backups are excluded. This exact ZIP was installed to the local test site after a hash-verified backup. |
+| Exact-SHA CI and formal release | PENDING | The current fixes and evidence still need a final commit and exact-SHA GitHub Actions run. The earlier T4/T5 CI runs are historical and do not cover this source. No PR merge, tag, GitHub Release, production deployment, or App Centre upload has occurred. |
+
+**Current Release Dry Run:** `不可发布` — exact-SHA CI is pending and the post-review authenticated admin visual/responsive recheck cannot be completed without an authorized local admin session. **Release Gate: `BLOCKED`. Formal status: `NOT RELEASED`.**
+
+**Next action:** provide or open an authenticated session for the existing localhost Z-Blog admin UI so the remaining visual/filter recheck can run; then complete the exact-SHA CI and repeat the same Release Dry Run.
+
+## Historical candidate record — superseded after review re-open
+
 ## Baseline and environment
 
 - T4 commit: `af3cc7137555257c379877cb0d34ce7478220576`.

@@ -123,6 +123,14 @@ final class V4ExportTest extends TestCase
         }
     }
 
+    public function testCsvFormulaGuardRejectsControlWhitespaceBeforeFormulaCharacters(): void
+    {
+        foreach (array("\t=SUM(1+1)", "\r+1", "\n@cmd", " \t-1", '  =1') as $value) {
+            $this->assertSame("'" . $value, xz_visit_stats_v3_csv_safe($value));
+        }
+        $this->assertSame('plain text', xz_visit_stats_v3_csv_safe('plain text'));
+    }
+
     public function testExportRequestRequiresTheCurrentRootOwnerAndCsrf(): void
     {
         global $zbp;

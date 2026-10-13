@@ -221,7 +221,9 @@ function xz_visit_stats_v3_keyset_records($filters, $cursor = '', $limit = 50)
 function xz_visit_stats_v3_csv_safe($value)
 {
     $value = (string) $value;
-    return preg_match('/^[=+\-@]/', $value) === 1 ? "'" . $value : $value;
+    $hasLeadingControl = preg_match('/^[\x00-\x20\x7f]/', $value) === 1;
+    $hasFormulaAfterWhitespace = preg_match('/^[\x00-\x20\x7f]*[=+\-@]/', $value) === 1;
+    return $hasLeadingControl || $hasFormulaAfterWhitespace ? "'" . $value : $value;
 }
 
 function xz_visit_stats_v3_export_rows($filters, $cursor = '', $limit = 5000)

@@ -2,6 +2,7 @@
 param(
     [string]$PhpExe = 'D:\BtSoft\php\83\php.exe',
     [string]$SiteUrl = 'http://127.0.0.1',
+    [string]$HttpTestMarker = '',
     [int]$HttpTimeoutSec = 20,
     [switch]$SkipHttp,
     [switch]$SkipPhpUnit
@@ -130,28 +131,33 @@ if (-not $SkipPhpUnit) {
 if (-not $SkipHttp) {
     Write-Step 'Local HTTP smoke test'
     $base = $SiteUrl.TrimEnd('/')
+    if ([string]::IsNullOrWhiteSpace($HttpTestMarker)) { $HttpTestMarker = 't5-' + [Guid]::NewGuid().ToString('N') }
+    if ($HttpTestMarker -notmatch '^t5-[a-f0-9]{32}$') { throw 'HttpTestMarker must use the t5- prefix and a 32-character hex token.' }
+    $queryMarker = '__xzvs_t5=' + [Uri]::EscapeDataString($HttpTestMarker)
 
-    $homeStatus = Invoke-HttpStatus -Uri ($base + '/')
+    $homeHeaders = @{ 'User-Agent' = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) XzVisitStatsT5/' + $HttpTestMarker }
+    $homeStatus = Invoke-HttpStatus -Uri ($base + '/?' + $queryMarker) -Headers $homeHeaders
     if ($homeStatus -lt 200 -or $homeStatus -ge 400) {
         throw "Homepage smoke test failed with HTTP $homeStatus"
     }
     Write-Host "Homepage: HTTP $homeStatus"
 
-    $notFoundStatus = Invoke-HttpStatus -Uri ($base + '/__xz_visit_stats_runtime_404__')
+    $notFoundStatus = Invoke-HttpStatus -Uri ($base + '/__xz_visit_stats_runtime_404__/' + $HttpTestMarker)
     if ($notFoundStatus -ne 404) {
         throw "Expected page-type 404 request to return HTTP 404, got $notFoundStatus"
     }
     Write-Host "404 probe: HTTP $notFoundStatus"
 
     $headers = @{
-        'User-Agent' = 'Baiduspider/2.0 (+https://www.baidu.com/search/spider.html)'
-        'Referer' = 'https://www.baidu.com/s?wd=xz_visit_stats_runtime_test'
+        'User-Agent' = 'Baiduspider/2.0 (+https://www.baidu.com/search/spider.html) ' + $HttpTestMarker
+        'Referer' = 'https://www.baidu.com/s?wd=' + $HttpTestMarker
     }
-    $botStatus = Invoke-HttpStatus -Uri ($base + '/') -Headers $headers
+    $botStatus = Invoke-HttpStatus -Uri ($base + '/?' + $queryMarker) -Headers $headers
     if ($botStatus -lt 200 -or $botStatus -ge 400) {
         throw "Bot/Referer smoke request failed with HTTP $botStatus"
     }
     Write-Host "Bot/Referer probe: HTTP $botStatus"
+    Write-Host "HTTP test marker: $HttpTestMarker"
 }
 
 Write-Host "`nLOCAL VERIFY: PASS"

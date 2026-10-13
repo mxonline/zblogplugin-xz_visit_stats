@@ -29,6 +29,69 @@ function xz_visit_stats_maintenance_save_retention_days($value)
     return true;
 }
 
+function xz_visit_stats_maintenance_v4_table_exists($table)
+{
+    global $zbp;
+    return is_object($zbp->db) && method_exists($zbp->db, 'ExistTable') && $zbp->db->ExistTable($table);
+}
+
+function xz_visit_stats_maintenance_v4_range_where($column, array $filters)
+{
+    if (isset($filters['mode']) && $filters['mode'] === 'custom') {
+        return $column . ' >= ' . (int) $filters['start'] . ' AND ' . $column . ' < ' . (int) $filters['end'];
+    }
+    return $column . ' < ' . (int) $filters['end'];
+}
+
+function xz_visit_stats_maintenance_cleanup_v4_range(array $filters)
+{
+    global $zbp;
+    if (!function_exists('xz_visit_stats_v4_session_table') || !function_exists('xz_visit_stats_v4_session_pages_table')) return false;
+    $sessionsName = xz_visit_stats_v4_session_table();
+    if (!xz_visit_stats_maintenance_v4_table_exists($sessionsName)) return false;
+    $quoteTable = function ($name) { return '`' . str_replace('`', '``', (string) $name) . '`'; };
+    $sessions = $quoteTable($sessionsName);
+    $sessionWhere = xz_visit_stats_maintenance_v4_range_where('se_StartedAt', $filters);
+    $sessionIds = 'SELECT se_ID FROM ' . $sessions . ' WHERE ' . $sessionWhere;
+    $pagesName = xz_visit_stats_v4_session_pages_table();
+    if (xz_visit_stats_maintenance_v4_table_exists($pagesName)) {
+        $pages = $quoteTable($pagesName);
+        $pageWhere = xz_visit_stats_maintenance_v4_range_where('sp_EnteredAt', $filters);
+        $zbp->db->Query('DELETE FROM ' . $pages . ' WHERE ' . $pageWhere . ' OR sp_SessionID IN (' . $sessionIds . ')');
+    }
+    $eventsName = $zbp->db->dbpre . 'xz_visit_stats_events';
+    if (xz_visit_stats_maintenance_v4_table_exists($eventsName)) {
+        $events = $quoteTable($eventsName);
+        $eventWhere = xz_visit_stats_maintenance_v4_range_where('ev_TriggeredAt', $filters);
+        $zbp->db->Query('DELETE FROM ' . $events . ' WHERE ' . $eventWhere . ' OR ev_SessionID IN (' . $sessionIds . ')');
+    }
+    $zbp->db->Query('DELETE FROM ' . $sessions . ' WHERE ' . $sessionWhere);
+    return true;
+}
+
+function xz_visit_stats_maintenance_cleanup_v4_retention($cutoff)
+{
+    global $zbp;
+    if (!function_exists('xz_visit_stats_v4_session_table') || !function_exists('xz_visit_stats_v4_session_pages_table')) return false;
+    $sessionsName = xz_visit_stats_v4_session_table();
+    if (!xz_visit_stats_maintenance_v4_table_exists($sessionsName)) return false;
+    $quoteTable = function ($name) { return '`' . str_replace('`', '``', (string) $name) . '`'; };
+    $sessions = $quoteTable($sessionsName);
+    $expiredSessions = 'SELECT se_ID FROM ' . $sessions . ' WHERE se_LastSeenAt < ' . (int) $cutoff;
+    $pagesName = xz_visit_stats_v4_session_pages_table();
+    if (xz_visit_stats_maintenance_v4_table_exists($pagesName)) {
+        $pages = $quoteTable($pagesName);
+        $zbp->db->Query('DELETE FROM ' . $pages . ' WHERE sp_EnteredAt < ' . (int) $cutoff . ' OR sp_SessionID IN (' . $expiredSessions . ')');
+    }
+    $eventsName = $zbp->db->dbpre . 'xz_visit_stats_events';
+    if (xz_visit_stats_maintenance_v4_table_exists($eventsName)) {
+        $events = $quoteTable($eventsName);
+        $zbp->db->Query('DELETE FROM ' . $events . ' WHERE ev_TriggeredAt < ' . (int) $cutoff . ' OR ev_SessionID IN (' . $expiredSessions . ')');
+    }
+    $zbp->db->Query('DELETE FROM ' . $sessions . ' WHERE se_LastSeenAt < ' . (int) $cutoff);
+    return true;
+}
+
 function xz_visit_stats_maintenance_auto_cleanup()
 {
     global $zbp;
@@ -52,7 +115,9 @@ function xz_visit_stats_maintenance_auto_cleanup()
         return;
     }
     try {
-        $zbp->db->Query('DELETE FROM ' . xz_visit_stats_stats_table() . ' WHERE vs_VisitedAt < ' . (int) ($today - $settings['retention_days'] * 86400));
+        $cutoff = (int) ($today - $settings['retention_days'] * 86400);
+        $zbp->db->Query('DELETE FROM ' . xz_visit_stats_stats_table() . ' WHERE vs_VisitedAt < ' . $cutoff);
+        xz_visit_stats_maintenance_cleanup_v4_retention($cutoff);
         $config->last_cleanup_at = $today;
         $zbp->SaveConfig('xz_visit_stats');
     } catch (Exception $exception) {
@@ -186,6 +251,7 @@ function xz_visit_stats_maintenance_delete($filters)
         'DELETE FROM ' . xz_visit_stats_stats_table()
         . ' WHERE ' . xz_visit_stats_maintenance_purge_where($filters)
     );
+    xz_visit_stats_maintenance_cleanup_v4_range($filters);
 
     return $count;
 }
@@ -217,7 +283,7 @@ function xz_visit_stats_maintenance_handle_post($source = null)
     }
     $count = xz_visit_stats_maintenance_purge_count($filters);
     if ($action === 'preview_purge') {
-        return array('type' => 'preview', 'message' => '已计算预计删除数量，请在下方确认后执行。', 'filters' => $filters, 'count' => $count);
+        return array('type' => 'preview', 'message' => '预计删除 ' . $count . ' 条访问日志，并清除对应时间范围的 v4 页面/事件及在该范围开始的会话记录。', 'filters' => $filters, 'count' => $count);
     }
     if (xz_visit_stats_query_value($source, 'confirm_delete', '') !== 'yes') {
         return array('type' => 'error', 'message' => '请勾选确认删除后再执行。', 'filters' => $filters, 'count' => $count);
@@ -225,5 +291,5 @@ function xz_visit_stats_maintenance_handle_post($source = null)
 
     $deleted = xz_visit_stats_maintenance_delete($filters);
 
-    return array('type' => 'success', 'message' => '已删除 ' . $deleted . ' 条日志。', 'filters' => $filters, 'count' => $deleted);
+    return array('type' => 'success', 'message' => '已删除 ' . $deleted . ' 条访问日志及对应的 v4 页面、事件和会话记录。', 'filters' => $filters, 'count' => $deleted);
 }

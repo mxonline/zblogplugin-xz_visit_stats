@@ -29,14 +29,33 @@ function xz_visit_stats_v4_session_decide($previous, $visitorHash, $secret, $now
     $sameVisitor = isset($previous['visitor_hash']) && hash_equals((string) $previous['visitor_hash'], (string) $visitorHash);
     $withinWindow = $sameVisitor && isset($previous['last_seen_at']) && $now >= (int) $previous['last_seen_at'] && ($now - (int) $previous['last_seen_at']) <= max(1, (int) $timeout);
     if ($withinWindow) {
-        if (preg_match('/^[a-f0-9]{64}$/', (string) $preferredKey)) $previous['session_key'] = (string) $preferredKey;
         $previous['last_seen_at'] = $now;
         $previous['page_count'] = max(0, (int) $previous['page_count']) + 1;
         $previous['sequence'] = max(0, (int) $previous['sequence']) + 1;
         return $previous;
     }
-    $sessionKey = preg_match('/^[a-f0-9]{64}$/', (string) $preferredKey) ? (string) $preferredKey : hash_hmac('sha256', (string) $visitorHash . '|' . $now . '|' . bin2hex(random_bytes(16)), (string) $secret);
+    // The database owns session identity. A long-lived browser cookie may point
+    // at an expired session whose key is still unique in the sessions table.
+    $sessionKey = hash_hmac('sha256', (string) $visitorHash . '|' . $now . '|' . bin2hex(random_bytes(16)), (string) $secret);
     return array('session_key' => $sessionKey, 'visitor_hash' => (string) $visitorHash, 'started_at' => $now, 'last_seen_at' => $now, 'page_count' => 1, 'sequence' => 1);
+}
+
+function xz_visit_stats_v4_session_cookie_value($sessionKey, $secure = false)
+{
+    $sessionKey = (string) $sessionKey;
+    if (preg_match('/^[a-f0-9]{64}$/', $sessionKey) !== 1) return '';
+    return 'xzvs_sk=' . $sessionKey . '; Path=/; SameSite=Lax' . ($secure ? '; Secure' : '');
+}
+
+function xz_visit_stats_v4_session_sync_cookie($sessionKey)
+{
+    $value = xz_visit_stats_v4_session_cookie_value($sessionKey, strtolower((string) xz_visit_stats_server_value('HTTPS')) === 'on' || xz_visit_stats_server_value('SERVER_PORT') === '443');
+    if ($value === '') return false;
+    if (isset($_COOKIE['xzvs_sk']) && hash_equals((string) $_COOKIE['xzvs_sk'], (string) $sessionKey)) return true;
+    if (headers_sent()) return false;
+    header('Set-Cookie: ' . $value, false);
+    $_COOKIE['xzvs_sk'] = (string) $sessionKey;
+    return true;
 }
 
 function xz_visit_stats_v4_session_table()
@@ -80,5 +99,6 @@ function xz_visit_stats_v4_track_page($visit)
         $id = (int) $row[0]['se_ID'];
     }
     $zbp->db->Query('INSERT INTO `' . $pages . '` (sp_SessionID,sp_LogID,sp_Sequence,sp_PathKey,sp_Path,sp_EnteredAt,sp_UpdatedAt) VALUES (' . $id . ',' . (int) (isset($visit['log_id']) ? $visit['log_id'] : 0) . ',' . (int) $decision['sequence'] . ',' . xz_visit_stats_v4_sql($pathKey) . ',' . xz_visit_stats_v4_sql(isset($visit['path']) ? $visit['path'] : '/') . ',' . $now . ',' . $now . ')');
+    xz_visit_stats_v4_session_sync_cookie($decision['session_key']);
     return array('session_id' => $id, 'session_key' => $decision['session_key'], 'sequence' => $decision['sequence']);
 }

@@ -105,4 +105,11 @@ final class V4AdminUiContractTest extends TestCase
 
         $this->assertStringContainsString('admin.css?v=4.0.0-task8', $html);
     }
+
+    public function testEventJsonEncodingGuardsThePhp72OnlySubstitutionFlag(): void
+    {
+        $main = file_get_contents(dirname(__DIR__) . '/main.php');
+        $this->assertStringContainsString("defined('JSON_INVALID_UTF8_SUBSTITUTE')?constant('JSON_INVALID_UTF8_SUBSTITUTE'):0", $main);
+        $this->assertStringNotContainsString('|JSON_INVALID_UTF8_SUBSTITUTE', $main);
+    }
 }

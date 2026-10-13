@@ -1,6 +1,6 @@
 # xz_visit_stats v4.0.0 Release Candidate
 
-**状态：候选版，尚未正式发布。** 当前文件不代表已创建 Tag、GitHub Release 或应用中心版本。
+**状态：候选版，尚未正式发布。** 当前文件不代表已创建 Tag、GitHub Release 或应用中心版本。本轮 T5 Release Gate 因复审后的后台视觉/响应式复验缺少授权管理员会话而阻断；在验收记录中的阻断项解决前，不得合并或发布。
 
 ## 本版本内容
 
@@ -24,4 +24,4 @@
 
 ## 安装包
 
-候选包名：`xz_visit_stats-v4.0.0.zip`。本机 Release Dry Run 通过后，该包可作为待授权的发布输入；它仍不是正式版本，也不应上传 Z-Blog 应用中心，除非另有明确发布授权。
+候选包名：`xz_visit_stats-v4.0.0.zip`。当前候选包已完成白名单和哈希检查，但 Release Dry Run 仍为不可发布；补齐验收记录中的阻断项并通过精确 SHA CI 后，才可作为发布输入。它仍不是正式版本，也不应上传 Z-Blog 应用中心。

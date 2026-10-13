@@ -15,6 +15,7 @@ require_once dirname(__DIR__) . '/inc/v3_query.php';
 require_once dirname(__DIR__) . '/inc/v4_report_filters.php';
 require_once dirname(__DIR__) . '/inc/session.php';
 require_once dirname(__DIR__) . '/inc/v4_sessions_query.php';
+require_once dirname(__DIR__) . '/inc/v4_visitors_query.php';
 require_once dirname(__DIR__) . '/inc/v4_reports.php';
 
 final class V4ReportsDb
@@ -30,11 +31,17 @@ final class V4ReportsDb
     public function Query($sql)
     {
         $this->queries[] = $sql;
-        if (strpos($sql, 'COUNT(*) AS session_count') !== false) {
-            return array(array('session_count' => 3, 'unique_visitors' => 2, 'completed_sessions' => 2, 'bounce_sessions' => 1, 'dwell_samples' => 1, 'dwell_sum_ms' => 1250));
+        if (strpos($sql, 'COUNT(DISTINCT CASE WHEN vs_IsBot=0 THEN vs_VisitorHash END) AS uv') !== false) {
+            return array(array('trend_bucket' => '2026-W35', 'pv' => 9, 'uv' => 3, 'ip' => 2, 'human_pv' => 8, 'bot_pv' => 1));
+        }
+        if (strpos($sql, 'AS new_visitors') !== false) {
+            return array(array('visitor_count' => 4, 'new_visitors' => 3, 'returning_visitors' => 1));
         }
         if (strpos($sql, 'GROUP BY trend_bucket') !== false) {
-            return array(array('trend_bucket' => '2026-08-27', 'session_count' => 3, 'unique_visitors' => 2, 'bounce_sessions' => 1, 'dwell_samples' => 1, 'dwell_sum_ms' => 1250));
+            return array(array('trend_bucket' => '2026-W35', 'session_count' => 3, 'unique_visitors' => 2, 'bounce_sessions' => 1, 'dwell_samples' => 1, 'dwell_sum_ms' => 1250));
+        }
+        if (strpos($sql, 'COUNT(*) AS session_count') !== false) {
+            return array(array('session_count' => 3, 'unique_visitors' => 2, 'completed_sessions' => 2, 'bounce_sessions' => 1, 'dwell_samples' => 1, 'dwell_sum_ms' => 1250));
         }
         if (strpos($sql, 'COUNT(*) AS total_pv') !== false) {
             return array(array('total_pv' => 12, 'visitor_pv' => 10, 'visitor_uv' => 8, 'visitor_ip' => 7, 'bot_pv' => 2, 'error_4xx' => 1, 'error_5xx' => 0, 'not_found' => 1, 'duration_sum' => 450, 'duration_count' => 12, 'avg_ms' => 37.5));
@@ -80,6 +87,10 @@ final class V4ReportsTest extends TestCase
         $this->assertArrayHasKey('entry_pages', $overview);
         $this->assertArrayHasKey('geo', $overview);
         $this->assertArrayHasKey('device', $overview);
+        $this->assertSame(4, $overview['new_returning']['visitor_count']);
+        $this->assertSame(3, $overview['new_returning']['new_visitors']);
+        $this->assertSame(1, $overview['new_returning']['returning_visitors']);
+        $this->assertSame('partial', $overview['new_returning']['availability']['status']);
         $this->assertStringNotContainsString('vs_DurationMs', json_encode($overview['kpis']));
     }
 
@@ -94,5 +105,38 @@ final class V4ReportsTest extends TestCase
         $this->assertArrayHasKey('average_visitor_dwell_ms', $report['rows'][0]);
         $this->assertSame('partial', $report['availability']['status']);
         $this->assertStringNotContainsString('OFFSET', implode("\n", $GLOBALS['zbp']->db->queries));
+    }
+
+    public function testTrendUsesExactRequestedGrainDistinctCountsAndAllVisibleFilters(): void
+    {
+        $filters = array('range' => '30d', 'device' => 'mobile', 'new_returning' => 'returning', 'source_type' => 'search', 'province' => 'Hong Kong');
+        $report = xz_visit_stats_v4_trend_report($filters, 'week');
+        $rows = $report['rows'];
+        $this->assertSame('2026-W35', $rows[0]['bucket']);
+        $this->assertSame(9, $rows[0]['pv']);
+        $this->assertSame(3, $rows[0]['uv']);
+        $this->assertSame(2, $rows[0]['ip']);
+        $trafficSql = '';
+        foreach ($GLOBALS['zbp']->db->queries as $sql) {
+            if (strpos($sql, 'COUNT(DISTINCT CASE WHEN vs_IsBot=0 THEN vs_VisitorHash END) AS uv') !== false) $trafficSql = $sql;
+        }
+        $this->assertStringContainsString("DATE_FORMAT(FROM_UNIXTIME(vs_VisitedAt),'%x-W%v')", $trafficSql);
+        $this->assertStringContainsString("vs_Device = 'mobile'", $trafficSql);
+        $this->assertStringContainsString("vs_GeoRegion = 'Hong Kong'", $trafficSql);
+        $this->assertStringContainsString(") = 'search'", $trafficSql);
+        $this->assertStringContainsString("se_StartedAt", $trafficSql);
+    }
+
+    public function testOverviewRendersRequiredNewReturningSummaryAndTrendHasDimensionControls(): void
+    {
+        $main = file_get_contents(dirname(__DIR__) . '/main.php');
+        $this->assertStringContainsString('新访客（v4 首次观测）</h3>', $main);
+        $this->assertStringContainsString('回访访客（v4 已观测）</h3>', $main);
+        $trendStart = strpos($main, "if (\$view === 'trend')");
+        $overviewStart = strpos($main, "if (\$view === 'overview')");
+        $trendForm = substr($main, $trendStart, $overviewStart - $trendStart);
+        foreach (array('name="device"', 'name="new_returning"', 'name="source_type"', 'name="source_domain"', 'name="country"', 'name="province"') as $name) {
+            $this->assertStringContainsString($name, $trendForm);
+        }
     }
 }

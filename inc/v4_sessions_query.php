@@ -44,6 +44,10 @@ function xz_visit_stats_v4_session_where(array $filters, array $range)
         $prior = 'EXISTS (SELECT 1 FROM ' . xz_visit_stats_v4_session_query_table() . ' prior WHERE prior.se_VisitorHash=sessions.se_VisitorHash AND prior.se_StartedAt<' . (int) $range['start'] . ' LIMIT 1)';
         $where[] = $filters['new_returning'] === 'new' ? 'NOT ' . $prior : $prior;
     }
+    if (!empty($filters['device']) || !empty($filters['country']) || !empty($filters['province']) || !empty($filters['browser']) || !empty($filters['os']) || !empty($filters['ai_source']) || !empty($filters['campaign'])) {
+        $visitWhere = implode(' AND ', xz_visit_stats_v3_where($filters, $range));
+        $where[] = 'EXISTS (SELECT 1 FROM ' . xz_visit_stats_v4_session_pages_query_table() . ' session_pages INNER JOIN ' . xz_visit_stats_v2_table() . ' visit_logs ON visit_logs.vs_ID=session_pages.sp_LogID WHERE session_pages.sp_SessionID=sessions.se_ID AND ' . $visitWhere . ')';
+    }
     return $where;
 }
 

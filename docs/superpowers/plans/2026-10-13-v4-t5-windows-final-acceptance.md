@@ -2,9 +2,9 @@
 
 > **For agentic workers:** Use `superpowers:executing-plans` to carry this plan through in the current Codex task. The current Codex conversation is the T5 task; do not create a duplicate Notion task.
 
-**Goal:** Complete the existing T5 Windows acceptance and prepare a verified v4.0.0 release candidate without merging, tagging, publishing, or touching production.
+**Goal:** Complete the existing T5 Windows acceptance and, only when the existing Release Gate passes, complete the v4.0.0 formal release without touching production or the Z-Blog application center.
 
-**Architecture:** Reconcile the existing `feature/visit-stats-4.0` checkout and the single established Windows Z-Blog/IIS runtime. Use isolated, uniquely identified acceptance data and preserve all T2/T3/T4 artifacts and historical rows; only make a code change if a reproduced failure proves it necessary. After runtime evidence is complete, align release metadata, create a whitelist-based install ZIP, run the release dry run, then push the final development commit and verify CI for its exact SHA.
+**Architecture:** Reconcile the existing `feature/visit-stats-4.0` checkout and the single established Windows Z-Blog/IIS runtime. Use isolated, uniquely identified acceptance data and preserve all T2/T3/T4 artifacts and historical rows; make a code change only for a reproduced T5/review finding. After local evidence is complete, align release metadata, create a whitelist-based install ZIP, run the existing Release Dry Run, then open a PR, merge, tag and publish only if every documented gate passes and exact-SHA CI succeeds.
 
 **Tech Stack:** Windows PowerShell, PHP 8.3, Z-BlogPHP, IIS, MySQL 5.7, existing PHPUnit and JavaScript syntax tooling, GitHub Actions, Notion.
 
@@ -14,13 +14,28 @@
 
 - Preserve the existing T2/T3/T4 commits, verified data, retained runtime/database backups, and v3 history.
 - Use the existing feature branch and single local runtime; do not create a parallel runtime, duplicate task, or additional release gate.
-- Do not run `reset`, `clean`, force-push, production deployment/database writes, merge, tag, GitHub Release, or Z-Blog application-center upload.
+- Do not run `reset`, `clean`, force-push, production deployment/database writes, or Z-Blog application-center upload. Merge, tag and GitHub Release are allowed only after the existing documented release gates pass.
 - Isolate acceptance records and remove only rows created for this run, identified by their test keys or primary IDs.
 - Preserve the meaning of `vs_DurationMs` as server processing time; never use it for visitor dwell.
 - Match report values to direct SQL and the PRD’s PV/UV/IP/session/dwell/bounce definitions.
 - Retain required runtime vendor code and its license in the package; exclude development tools, tests, caches, secrets/configuration, and backups.
 - Do not refactor existing PHPStan report-only diagnostics unless a reproduced T5 failure is caused by them.
 - Use TDD for any production code fix: reproduce with a failing focused test, make the smallest fix, then rerun focused and affected regression checks.
+
+## Review Recheck — 2026-10-13
+
+The first T5 package and its successful CI remain historical evidence. Independent review found reproducible correctness/security gaps, so they no longer authorize a PASS Release Gate. Continue within this same T5 task and existing Release Gate; do not create a duplicate task, Runtime, or gate. The current user explicitly authorizes the documented PR/merge/tag/release flow only if every gate below and `docs/RELEASE.md` passes.
+
+- [x] Make session keys server-authoritative, sync the key to the browser before lifecycle/event beacons, and verify first-page dwell plus timed-out revisit. The real first-page probe measured 7,007 ms; unit coverage verifies expired-session rotation.
+- [x] Calculate PV/UV/IP at each requested trend grain and apply device, new/returning, source, and region filters to traffic and session metrics; PHPUnit and SQL/contract tests pass.
+- [x] Purge expired v4 sessions, session pages, and events alongside v3 logs; manual purge scope and confirmation text are explicit and covered by PHPUnit.
+- [x] Replace the unavailable new/returning overview placeholder with bounded v4-history classification and display its historical coverage caveat.
+- [x] Neutralize CSV cells with leading control/whitespace before formula characters; keep event JSON flags compatible with PHP 7.1.
+- [x] Run the isolated v3-to-v4 migration using the real Windows Z-BlogPHP/PHP 8.3/MySQL 5.7 adapter; repeat it, verify the v3 schema/history fields and remove only unique temporary-prefix tables.
+- [x] Recheck optional carrier/operator support against privacy and available local data; no local GeoIP/operator source is configured, so no external lookup or unsupported result is claimed.
+- [x] Re-run PHPUnit, HTTP, privacy, PHP/JS syntax, PHP 7.1 syntax, MySQL EXPLAIN, candidate installation and data-preservation checks after fixes.
+- [ ] Recheck current authenticated admin pages, filters, empty/partial states and 680/800/1100 px responsive layout; no authenticated local admin browser session is available. Older visual results are retained as historical evidence only.
+- [ ] Complete Release Dry Run, exact-SHA CI and Notion readback for the final source commit; record the actual Release Gate and leave release blocked until the UI recheck passes.
 
 ## Review Focus
 
@@ -80,7 +95,7 @@
 - [x] Document observed upgrade behavior, data preservation, prerequisites, privacy, compatibility and verified limitations.
 - [x] Build the install ZIP from an explicit allowlist, including the required `mlocati/ip-lib` runtime source and MIT license.
 - [x] Audit the archive for missing runtime files, dev/test/cache/config/backup files, secrets and unrelated dependencies.
-- [x] Execute the final Release Dry Run; `Release Gate` may be `PASS` only after exact-SHA CI and final ZIP/readback checks pass.
+- [ ] Execute a releasable Release Dry Run; current dry-run result is `不可发布` because the post-review admin visual check and final exact-SHA CI are incomplete.
 
 ### Task 5: Final delivery and writeback
 
@@ -88,7 +103,7 @@
 - Update: `knowledge/PROJECT-STATE.md`, Notion official T5 task, and existing implementation-plan status.
 
 - [x] Re-run final repository checks and inspect the complete diff/package manifest for unrelated content or secrets.
-- [x] Commit and push the completed T5 evidence on `feature/visit-stats-4.0`; do not merge, tag, release or upload to the Z-Blog application center.
-- [x] Verify a successful GitHub Actions run whose `head_sha` exactly matches the candidate source commit.
-- [x] Write observed results and package hashes into the existing project state and Notion task; read both back.
-- [x] Report the required six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, release gate, candidate artifacts, unreleased status and one next action.
+- [ ] Commit and push the completed T5 evidence on `feature/visit-stats-4.0`; do not create a PR merge, tag, or GitHub Release while the existing Release Gate is blocked. Do not upload to the Z-Blog application center.
+- [ ] Verify a successful GitHub Actions run whose `head_sha` exactly matches the final candidate source commit.
+- [ ] Write current observed results and package hash into the existing project state and Notion task/plan; read both back.
+- [ ] Report the six FULL DEVELOPMENT FLOW GATE items, acceptance matrix, final SHA, CI run ID, Release Gate, candidate artifact, formal-release status and one next action.

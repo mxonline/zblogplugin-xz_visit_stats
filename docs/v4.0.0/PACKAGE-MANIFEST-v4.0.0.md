@@ -3,6 +3,10 @@
 Candidate file: `dist/xz_visit_stats-v4.0.0.zip`
 Archive root: `xz_visit_stats/`
 
+Current rechecked candidate: 94 allowlisted entries; SHA-256 `3D3642054715D2E19E835CFE5B6883968DEABA07D9C61C150BFD42BD7D88294C`.
+
+The ZIP and extracted file hashes pass. Release Gate remains `BLOCKED` until the post-review authenticated admin UI recheck and exact-SHA CI are complete; do not merge, tag, or publish while blocked. The superseded 95-entry candidate record is retained in the historical T5 notes only.
+
 ## Included
 
 - Runtime entry points: `plugin.xml`, `main.php`, `include.php`, `realtime_api.php`, `rum.php`, `event.php`.

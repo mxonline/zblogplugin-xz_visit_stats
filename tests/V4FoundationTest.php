@@ -52,6 +52,27 @@ final class V4FoundationTest extends TestCase
         $this->assertSame(1, $expired['sequence']);
     }
 
+    public function testSessionKeysStayServerAuthoritativeAcrossRevisitAndTimeout(): void
+    {
+        $previous = array('session_key' => str_repeat('a', 64), 'visitor_hash' => str_repeat('b', 64), 'started_at' => 1000, 'last_seen_at' => 1000, 'page_count' => 1, 'sequence' => 1);
+        $staleCookie = str_repeat('c', 64);
+
+        $continued = xz_visit_stats_v4_session_decide($previous, str_repeat('b', 64), str_repeat('d', 64), 1200, 1800, $staleCookie);
+        $this->assertSame($previous['session_key'], $continued['session_key']);
+
+        $expired = xz_visit_stats_v4_session_decide($previous, str_repeat('b', 64), str_repeat('d', 64), 3000, 1800, $previous['session_key']);
+        $this->assertNotSame($previous['session_key'], $expired['session_key']);
+        $this->assertSame(1, $expired['sequence']);
+    }
+
+    public function testSessionCookieUsesThePersistedServerKeyAndSecureTransport(): void
+    {
+        $key = str_repeat('a', 64);
+        $this->assertSame('xzvs_sk=' . $key . '; Path=/; SameSite=Lax', xz_visit_stats_v4_session_cookie_value($key, false));
+        $this->assertSame('xzvs_sk=' . $key . '; Path=/; SameSite=Lax; Secure', xz_visit_stats_v4_session_cookie_value($key, true));
+        $this->assertSame('', xz_visit_stats_v4_session_cookie_value('invalid', false));
+    }
+
     public function testLifecycleOnlyAcceptsTrustworthyClientDwell(): void
     {
         $this->assertSame(1200, xz_visit_stats_v4_lifecycle_duration(array('entered_at' => 1000, 'left_at' => 2200), 3000));
