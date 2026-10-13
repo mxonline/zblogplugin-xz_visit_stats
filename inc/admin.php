@@ -250,5 +250,5 @@ function xz_visit_stats_admin_head()
 
     echo '<link rel="stylesheet" href="'
         . xz_visit_stats_admin_escape($zbp->host)
-        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=4.0.0-task8" type="text/css" />';
+        . 'zb_users/plugin/xz_visit_stats/assets/admin.css?v=4.0.0-t5-responsive" type="text/css" />';
 }

@@ -72,6 +72,18 @@ final class V4AdminUiContractTest extends TestCase
         $this->assertStringContainsString('xzvs-availability ', $main);
     }
 
+    public function testMobileShellPreservesZBlogNavigationOffsetWithoutViewportWidthExpansion(): void
+    {
+        $css = file_get_contents(dirname(__DIR__) . '/assets/admin.css');
+
+        $this->assertIsString($css);
+        $this->assertSame(1, preg_match('/body:has\(#divMain2\.xzvs-app\) \.main\s*\{([^}]*)\}/', $css, $mainRule));
+        $this->assertStringContainsString('min-width: 0', $mainRule[1]);
+        $this->assertStringNotContainsString('padding-left', $mainRule[1]);
+        $this->assertSame(1, preg_match('/body:has\(#divMain2\.xzvs-app\) #divMain\s*\{([^}]*)\}/', $css, $contentRule));
+        $this->assertStringNotContainsString('100vw', $contentRule[1]);
+    }
+
     public function testLifecycleAvailabilityUsesClearChineseLabels(): void
     {
         $this->assertTrue(function_exists('xz_visit_stats_admin_availability_label'));
@@ -103,7 +115,7 @@ final class V4AdminUiContractTest extends TestCase
         xz_visit_stats_admin_head();
         $html = ob_get_clean();
 
-        $this->assertStringContainsString('admin.css?v=4.0.0-task8', $html);
+        $this->assertStringContainsString('admin.css?v=4.0.0-t5-responsive', $html);
     }
 
     public function testEventJsonEncodingGuardsThePhp72OnlySubstitutionFlag(): void
