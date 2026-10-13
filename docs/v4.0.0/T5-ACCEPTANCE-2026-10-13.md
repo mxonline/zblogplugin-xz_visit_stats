@@ -110,6 +110,12 @@ This section records a read-only continuation of the existing audit. It does not
 - The four current v4 release documents in this candidate say formally published. The only remaining “release candidate” phrases in CHANGELOG belong to historical entries for earlier versions, not v4.0.0.
 - This is a local review candidate, not a replacement or published attachment. The original v4.0.0 Tag, GitHub Release, and ZIP remain unchanged. Distribution and any new version/tag still require a separate explicit decision.
 
+## Forward correction PR checkpoint — 2026-10-13
+
+- Draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28) is open against `main` at head `81912fe40753a25c1f3c2ec40a5efb1e75d666ca`. It carries the preserved document edits and this audit record; it does not alter runtime code or the published asset.
+- Exact-SHA Code Quality Run [38413677655](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38413677655) passed. PR quality check Run [38414205617](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414205617) also passed with the same `headSha`.
+- The local corrective ZIP payload compares to the committed source tree with 37 byte-identical files and 57 EOL-only differences; no content mismatch. The candidate remains unpublished, PR remains draft/unmerged, and the post-release artifact audit remains blocked pending an explicit distribution decision.
+
 ### Minimal forward-fix proposal
 
 Use an ordinary PR against `main` to retain the three already-edited documents and formal README source, run exact-SHA CI, and verify a 94-entry corrective package. If authorized later, distribute it as a clearly named supplemental/corrective artifact while leaving the existing Tag, Release, and ZIP unchanged. No new version/tag or asset replacement is authorized by this audit. The only next action is to decide whether to authorize that separate corrective distribution after the PR is reviewable.
