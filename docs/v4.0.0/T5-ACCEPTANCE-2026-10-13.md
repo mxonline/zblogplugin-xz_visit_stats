@@ -1,5 +1,13 @@
 # xz_visit_stats v4.0.0 T5 Windows acceptance
 
+## Formal v4.0.0 release — 2026-10-13 (authoritative release outcome)
+
+- Pull request [#26](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/26) was merged into `main`. The merge commit and release source SHA is `e3dcce5f34def6d70d860a9c4165968f257e1757`; its exact-head GitHub Actions Run [38356703851](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38356703851) completed successfully. PR-head Code Quality Run `38356571362` and Windows workspace run `38356571328` also passed on `c3b2bcf769ec1502aab91e885aec406d6aff0eca`.
+- Annotated tag `v4.0.0` resolves to `e3dcce5f34def6d70d860a9c4165968f257e1757`. GitHub Release [v4.0.0](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) was published on 2026-10-13 and contains the formal install asset `xz_visit_stats-v4.0.0.zip`.
+- The published ZIP has 94 allowlisted entries; GitHub reports SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`. The builder verified every archive path/source hash; a read-only comparison confirmed all 94 uncompressed file hashes match the previously installed candidate and the existing Windows runtime.
+- T5 acceptance matrix above remains authoritative for Windows install/upgrade, repeat migration, enable/disable, SQL/UI metrics, lifecycle, privacy/permissions, reports, responsive UI, syntax/tests, HTTP smoke, EXPLAIN and exact test-data cleanup. T2/T3/T4 history and backups remain preserved.
+- Release Dry Run: `可发布`. Release Gate: `PASS`. Formal release: `RELEASED`. No production website/database operation and no Z-Blog application-centre upload occurred.
+
 ## Final recheck — 2026-10-13 (supersedes earlier Release Gate result)
 
 The earlier `Release Gate: PASS` and 95-file package record below describe a superseded candidate. Code review reopened the existing T5 task; only the current evidence in this section is authoritative for the present release decision.

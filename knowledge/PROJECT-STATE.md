@@ -11,9 +11,9 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T5 — Windows local final acceptance and release preparation`
-- Phase status: `T5 final acceptance PASS — review fixes, Windows runtime, authenticated admin UI/filter/empty-state and 680/800/1100 px rechecks complete` (T4 remains complete; earlier T5 PASS/BLOCKED checkpoints remain historical)
-- Release Gate: `PASS` — local acceptance, data/privacy compatibility, version/docs, exact-SHA CI Run `38354704930`, and the 94-entry candidate ZIP are verified. Formal publishing steps remain separate from candidate preparation.
-- PR/Merge/Tag/Release: not yet performed; only after the documented gate passes and the formal release sequence is explicitly in scope. No production deployment/database write or App Centre upload has occurred.
+- Phase status: `T5 final acceptance and formal v4.0.0 release COMPLETE` (T4 remains complete; earlier T5 PASS/BLOCKED checkpoints remain historical)
+- Release Gate: `PASS` — local acceptance, data/privacy compatibility, version/docs, exact-main-SHA CI Run `38356703851`, and the published 94-entry ZIP are verified.
+- PR/Merge/Tag/Release: PR [#26](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/26) merged; annotated tag `v4.0.0` and [GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) created. Release source SHA `e3dcce5f34def6d70d860a9c4165968f257e1757`; ZIP SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`. No production deployment/database write or App Centre upload occurred.
 
 ## Verified T2 baseline
 
@@ -138,7 +138,9 @@ Legacy v3 `pages`, `ip`, `environment`, `campaign`, `errors` and `performance` c
 
 Explicit exclusions remain channel tracking, heatmaps, screen recording, visual event editor and 51.LA commercial quota logic.
 
-## T4 execution entrypoint
+## T4 historical execution entrypoint — superseded by T5
+
+The following T4-only route was current when T4 closed. T5 has since completed and v4.0.0 is formally released; the current phase and release state are recorded above and in the latest completion entry below.
 
 Read and execute:
 
@@ -167,10 +169,17 @@ Local Codex should reconcile to the real latest remote HEAD and execute the enti
 - GitHub CI cannot substitute for the local admin/runtime gate.
 - T4 completion does not authorize merge/tag/release; it advances to T5 only.
 
-## Next action
+## Historical T4 next action — superseded by T5 release completion
 
-T4 is complete and this execution stops here as requested. The current task must not enter T5 or create a merge, tag, or release. If continuing later, begin T5 only after a separate explicit request; do not repeat T4 Tasks 1–10.
+At the T4 checkpoint, the next step was to start T5 separately. That instruction was completed and is no longer the current next action; retain it only as historical T4 context.
 
 ## Update discipline
 
 Record only observed facts. Planned commands are not completion evidence. Add reusable knowledge/failure entries only when verified. Do not mark T4 complete until implementation, authorized admin UI/runtime checks, SQL/semantics checks and exact-SHA CI have all passed.
+
+## T5 formal release completion — 2026-10-13
+
+- T5 completed on the existing Windows test site and existing T5 task. Final acceptance evidence and the full matrix are in `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`; T2/T3/T4 data, history and backups remain preserved.
+- PR [#26](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/26) merged to `main` as `e3dcce5f34def6d70d860a9c4165968f257e1757`. GitHub Actions Run [38356703851](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38356703851) completed successfully on the exact merge SHA. PR-head Runs `38356571362` and `38356571328` passed on `c3b2bcf769ec1502aab91e885aec406d6aff0eca`.
+- Annotated tag `v4.0.0` and GitHub Release [v4.0.0](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) target the merge commit. The 94-entry formal ZIP is `xz_visit_stats-v4.0.0.zip`, SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`; GitHub's published asset digest matches.
+- Release Dry Run: `可发布`; Release Gate: `PASS`; formal release: `RELEASED`. No production website/database operation and no Z-Blog application-centre upload occurred.

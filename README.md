@@ -1,6 +1,6 @@
 # xz_visit_stats
 
-Z-BlogPHP 站长访问分析中心。当前正式发布版仍为 **v3.0.0**；**v4.0.0 Release Candidate** 尚未创建正式 Tag 或 Release。
+Z-BlogPHP 站长访问分析中心。当前正式版本为 **v4.0.0**，见 [GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0)。
 
 ## 功能
 
