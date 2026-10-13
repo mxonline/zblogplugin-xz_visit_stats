@@ -128,10 +128,20 @@ Historical proposal, superseded 2026-10-14: the user authorized a versioned v4.0
 - Local package checkpoint `dist/release-candidates/2026-10-14-final/xz_visit_stats-v4.0.1.zip`: SHA-256 `5448AC30755A7E00790B9B6F90EC2799BBB0D0A8F9067D34F628859B5DBA5078`, 95 entries. Explicit allowlist and every uncompressed file hash match; runtime dependencies and licenses are present; development/test/config/cache/backup/export paths are absent. Full file-hash evidence: `docs/v4.0.1/PACKAGE-MANIFEST-v4.0.1-final.md`.
 - This historical checkpoint was superseded after the v4.0.1 source commit and exact-head CI completed. The latest state-reconciliation checkpoint below governs current status.
 
-## v4.0.1 state reconciliation checkpoint — 2026-10-14
+## v4.0.1 pre-release state reconciliation checkpoint — 2026-10-14 (superseded below)
 
 - A read-only final review confirmed PR #28 source `1fb20e8ed4cfecdcd093ee36da3e145aab91c797`, a clean Git worktree, and three successful exact-head CI checks (Runs `38431839229`, `38431831871`, `38431838595`). It independently checked the 95-entry allowlist, source and archive payload hashes, runtime dependencies, and licenses. This did not repeat T2–T5.
 - The review found the top-level `knowledge/PROJECT-STATE.md` projection still named v4.0.0/T5 as current and the ignored local Runtime `DEV-20261013-001` recorded `worktree_dirty=true` despite clean Git status. The tracked project-state projection is corrected in this checkpoint; the local Runtime will be reconciled to the post-commit branch and exact HEAD.
 - Current package candidate remains the post-commit v4.0.1 build with 95 entries and all payload hashes matching the final manifest. The earlier build-container SHA difference is not a payload difference. The official ZIP will be built and verified again from the merged source before upload.
 - Current v4.0.1 status remains `NOT RELEASED`; Release Gate is `NOT READY` pending exact-SHA CI for this state reconciliation, final Release Dry Run, and Notion pre-merge write/readback. Existing v4.0.0 Tag, Release, and ZIP remain unchanged. No production site/database or Z-Blog App Centre was touched.
 - Next action: push the state-reconciliation checkpoint to existing PR #28, verify its exact-SHA checks, complete the existing Release Gate and Notion readback, then continue the already-authorized v4.0.1 release sequence.
+
+## v4.0.1 formal release and post-publication verification — 2026-10-14
+
+- This was a documentation/version-metadata correction through existing PR #28. No runtime plugin behavior or database schema changed; `db_version` remains `4.0.0`. The complete existing T5 Windows/IIS/PHP 8.3/MySQL 5.7 acceptance evidence was reused. T2–T5 installation or migration workflows were not rerun.
+- PR head `b97bad7bb349efa290e57c465e354f64c2a36c2f` passed exact-head Runs `38436985157`, `38436992888`, and `38436992856`; PR #28 merged to `main` at `a7aa016f8ae027132e5e733b269793bb9d02fb71`. Exact-main-SHA Run [38437848130](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38437848130) succeeded.
+- Annotated Tag `v4.0.1` points to `a7aa016f8ae027132e5e733b269793bb9d02fb71`. [GitHub Release v4.0.1](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.1) is published with `xz_visit_stats-v4.0.1.zip` (584,942 bytes), SHA-256 `A35289D12E76E2A9C3FBF51EC17CE8898663FA4DD444D659D8910929AA0A4EDB`.
+- The official ZIP was downloaded again and verified against GitHub's digest. Its 95 archive paths and every payload SHA-256 match the final package manifest. Runtime dependency and all license/notice files are present; development, test, configuration, cache, backup and local export files are absent.
+- v4.0.0 Tag, Release and official ZIP were not changed; original ZIP SHA-256 remains `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`.
+- All six existing FULL DEVELOPMENT FLOW GATE items passed. Formal release status: `PLUGIN_RELEASED`. No production website/database or Z-Blog App Centre operation occurred.
+- Next action: `NONE` — release and post-publication asset verification are complete.
