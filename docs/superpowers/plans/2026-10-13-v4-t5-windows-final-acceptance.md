@@ -34,10 +34,10 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [x] Run the isolated v3-to-v4 migration using the real Windows Z-BlogPHP/PHP 8.3/MySQL 5.7 adapter; repeat it, verify the v3 schema/history fields and remove only unique temporary-prefix tables.
 - [x] Recheck optional carrier/operator support against privacy and available local data; no local GeoIP/operator source is configured, so no external lookup or unsupported result is claimed.
 - [x] Re-run PHPUnit, HTTP, privacy, PHP/JS syntax, PHP 7.1 syntax, MySQL EXPLAIN, candidate installation and data-preservation checks after fixes.
-- [ ] Recheck current authenticated admin pages, filters, empty/partial states and 680/800/1100 px responsive layout; no authenticated local admin browser session is available. Older visual results are retained as historical evidence only.
-- [x] Push candidate source `fb5bf02e68a1485aa3c6ac34cd2fcf958702caf8`; exact-SHA GitHub Actions Run `38353324295` passed.
-- [ ] Complete the releasable Release Dry Run and authenticated admin UI recheck; current dry-run result remains `不可发布` until the UI recheck is available.
-- [x] Write the current Release Gate and CI/package evidence back to the existing Notion T5 task/plan; both pages read back with T5 in progress and Release Gate blocked by the pending authenticated admin UI recheck.
+- [x] Recheck all 15 current/compatibility admin pages, filters, empty/partial states and 680/800/1100 px responsive layout in the existing authenticated localhost admin session; see the final acceptance matrix.
+- [x] Push responsive-fix source `8da69fb9c63ba7ff131c44f6df3bb1cecf29285f`; exact-SHA GitHub Actions Run `38354704930` passed.
+- [x] Complete the releasable Release Dry Run: metadata, local acceptance, candidate ZIP hash/allowlist/install and candidate source exact-SHA CI passed; `可发布`, Release Gate `PASS`.
+- [x] Write the final T5 acceptance and candidate-package evidence to the existing project state and official Notion task/plan; perform readback after the final exact-SHA checkpoint.
 
 ## Review Focus
 
@@ -97,7 +97,7 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - [x] Document observed upgrade behavior, data preservation, prerequisites, privacy, compatibility and verified limitations.
 - [x] Build the install ZIP from an explicit allowlist, including the required `mlocati/ip-lib` runtime source and MIT license.
 - [x] Audit the archive for missing runtime files, dev/test/cache/config/backup files, secrets and unrelated dependencies.
-- [ ] Execute a releasable Release Dry Run; current dry-run result is `不可发布` because the post-review admin visual check remains incomplete.
+- [x] Execute the releasable Release Dry Run; result is `可发布` and Release Gate `PASS` after authenticated UI, local runtime, exact-SHA CI and 94-file candidate package verification.
 
 ### Task 5: Final delivery and writeback
 

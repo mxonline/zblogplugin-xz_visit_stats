@@ -11,9 +11,9 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
 - Current phase: `T5 — Windows local final acceptance and release preparation`
-- Phase status: `T5 REOPENED — review fixes and runtime evidence verified; final authenticated admin UI recheck remains externally blocked` (T4 remains complete; the former T5 PASS is historical)
-- Release Gate: `BLOCKED` — current admin visual/responsive evidence cannot be refreshed without an authenticated local Z-Blog admin session. Candidate source exact-SHA CI Run `38353324295` passed.
-- PR/Merge/Tag/Release: authorized by the current user only after all existing documented release gates pass; none has occurred
+- Phase status: `T5 final acceptance PASS — review fixes, Windows runtime, authenticated admin UI/filter/empty-state and 680/800/1100 px rechecks complete` (T4 remains complete; earlier T5 PASS/BLOCKED checkpoints remain historical)
+- Release Gate: `PASS` — local acceptance, data/privacy compatibility, version/docs, exact-SHA CI Run `38354704930`, and the 94-entry candidate ZIP are verified. Formal publishing steps remain separate from candidate preparation.
+- PR/Merge/Tag/Release: not yet performed; only after the documented gate passes and the formal release sequence is explicitly in scope. No production deployment/database write or App Centre upload has occurred.
 
 ## Verified T2 baseline
 
@@ -108,6 +108,16 @@ Evidence: `docs/v4.0.0/REUSE-GATE-T4-v1.0.md`.
 - Admin visual/responsive recheck after review fixes remains unverified: earlier 680/800/1100 px results belong to the superseded candidate. The current browser has no authenticated admin session. No login automation or credentials were used. This is the current external blocker.
 - Final Release Dry Run result: `不可发布` because the post-review authenticated admin visual/responsive recheck remains blocked. Exact source CI passed as recorded above. Release Gate is `BLOCKED`; formal status remains `NOT RELEASED`. No PR merge, tag, GitHub Release, production deployment/database operation, or App Centre upload is permitted while blocked.
 - Notion writeback: the existing official T5 task and implementation-plan status now reflect the current `进行中` / `BLOCKED` state, candidate ZIP hash, and exact-SHA CI evidence. Both pages were read back successfully. No local runtime paths, credentials, or visitor-level data were sent to Notion.
+
+## T5 final acceptance recheck — 2026-10-13
+
+- The authorized local admin session was available in the existing localhost browser. On the exact installed candidate, all 15 current v4 and compatibility views rendered the expected heading without PHP/HTTP 500 text at 680, 800 and 1100 px. The 680 px layout preserves the fixed Z-Blog navigation offset, has no page-level horizontal scrollbar, and the plugin module navigation collapses/expands. The 800/1100 px sidebar remains visible.
+- A reproducible ≤680 px shell collision was fixed with TDD: the old mobile rule cleared Z-Blog's 150 px `.main` navigation offset and forced `#divMain` to `100vw`. The focused test failed first; the minimal CSS correction and cache-key bump pass. Source commit `8da69fb9c63ba7ff131c44f6df3bb1cecf29285f` is pushed; exact SHA GitHub Actions Run `38354704930` succeeded.
+- UI filter/empty/partial checks: the source-type `search` filter returned only the search-engine row (2 visits, 0 human PV/UV); a no-event query showed the empty-event text; the overview retained its v3-history partial-coverage caveat. All checks were read-only.
+- Post-fix local verification: PHPUnit `79 tests / 549 assertions`; full PHP 8.3 repository syntax; `scripts/local-verify.ps1 -SkipHttp`; previous T5 PHP 7.1 runtime syntax, 16-file Node syntax, HTTP/SQL marker checks, lifecycle, SQL comparisons, migration/idempotency, disable/enable, privacy, MySQL EXPLAIN and performance-boundary evidence remain valid because this fix only changes admin CSS/cache metadata and its UI contract test.
+- Final release-candidate artifact `dist/xz_visit_stats-v4.0.0.zip`: 94 allowlisted entries, SHA-256 `0BC97E73563A71D7EEC2A62B34D86422370E51D37A188B4FF1467CF792C87FD8`. The archive verifier matched every path/hash; it was installed from this exact ZIP after a SHA-verified backup of 101 runtime files, preserving 7 runtime extras. T2/T3/T4 code/data backups and historical visit counts remain preserved.
+- Current candidate Release Dry Run is `可发布`; Release Gate is `PASS`, while formal release status remains `NOT RELEASED` until the separate authorized PR/merge/tag/GitHub Release sequence. No production deployment/database operation or Z-Blog App Centre upload occurred.
+- Detailed current matrix and artifact evidence: `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`. The existing Notion task and implementation plan are to be read back with this final status after the final exact-SHA CI checkpoint.
 
 ## T4 scope
 

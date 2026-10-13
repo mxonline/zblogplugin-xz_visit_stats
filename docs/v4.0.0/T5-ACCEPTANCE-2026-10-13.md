@@ -21,6 +21,22 @@ The earlier `Release Gate: PASS` and 95-file package record below describe a sup
 
 **Next action:** provide or open an authenticated session for the existing localhost Z-Blog admin UI so the remaining visual/filter recheck can run; then complete the exact-SHA CI and repeat the same Release Dry Run.
 
+## Final authenticated UI and candidate recheck — 2026-10-13 (supersedes the preceding BLOCKED state)
+
+| Acceptance area | Result | Evidence |
+| --- | --- | --- |
+| Admin views and responsive layout | PASS | With the existing authorized localhost admin session and the exact installed candidate, all 15 current and compatibility views had the expected heading and no PHP/HTTP 500 text at 680, 800 and 1100 px. At 680 px, the plugin menu collapses and expands, the fixed Z-Blog sidebar no longer covers plugin content, and the page has no horizontal overflow. At 800/1100 px, the plugin sidebar remains available. |
+| Filters, empty state and partial coverage | PASS | The `source_type=search` filter produced only the search-engine row: 2 visits, 0 human PV and UV. A no-event query returned the explicit empty-event messages. Overview labels v3-era visitor history as partially covered instead of fabricating v4 lifecycle data. Checks were read-only. |
+| Responsive regression fix | PASS | Source commit `8da69fb9c63ba7ff131c44f6df3bb1cecf29285f` removes the mobile override that cleared the Z-Blog 150 px navigation offset and forced `#divMain` to `100vw`; `admin.css` cache key is `4.0.0-t5-responsive`. The focused PHPUnit regression failed before the fix and passed after it. |
+| Final local automated checks | PASS | `scripts/local-verify.ps1 -SkipHttp`: PHP 8.3 syntax and PHPUnit `79 tests / 549 assertions` passed; `git diff --check` passed (Git only reported expected CRLF normalization). No JavaScript changed; the previous Node syntax check covered all 16 shipped JS files. The existing T5 HTTP, SQL/data, migration, lifecycle, privacy, PHP 7.1 syntax, EXPLAIN and performance-boundary evidence remains applicable. |
+| Exact-SHA CI | PASS | Candidate source commit `8da69fb9c63ba7ff131c44f6df3bb1cecf29285f`, GitHub Actions Run `38354704930`, completed success with an exactly matching `head_sha`. PHP syntax, UI terminology, PHPUnit, Semgrep and the existing report-only PHPStan job completed. |
+| Final release candidate ZIP | PASS | `dist/xz_visit_stats-v4.0.0.zip`, 94 allowlisted entries, SHA-256 `0BC97E73563A71D7EEC2A62B34D86422370E51D37A188B4FF1467CF792C87FD8`. Archive entries exactly match the explicit allowlist and source hashes. The exact ZIP was installed after a hash-verified 101-file runtime backup; 7 unrelated runtime extras were preserved. |
+| Historical data and safety | PASS | No database mutation was performed during the visual/filter recheck. Prior final Safe Mode audit remains 313 raw logs, 12 sessions, 25 pages, 2 events, 6 RUM, 0 export tasks and 0 IP rules; plugin enabled, Beacon disabled. Isolated migration/lifecycle test rows were cleaned by exact markers/IDs. T2/T3/T4 history and backups remain preserved. |
+
+**Release Dry Run:** `可发布`. Version metadata, README/VERSION/CHANGELOG/Release Notes, upgrade notes, Windows acceptance, exact-SHA CI, 94-entry ZIP manifest, runtime dependency/license and Notion release-record precheck pass. **Release Gate: `PASS`. Formal status: `NOT RELEASED`** until the separate formal PR/merge/tag/GitHub Release sequence. Production website/database and Z-Blog App Centre remain outside this acceptance.
+
+**Next action:** proceed with the existing formal PR/merge/tag/GitHub Release sequence only on the verified candidate and only after the exact final-checkpoint CI succeeds.
+
 ## Historical candidate record — superseded after review re-open
 
 ## Baseline and environment

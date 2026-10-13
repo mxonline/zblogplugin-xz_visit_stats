@@ -6,7 +6,7 @@
 
 - 版本：v4.0.0。
 - 状态：Release Candidate；未创建正式 Tag 或 GitHub Release。
-- T5 Windows 本机验收、精确 SHA CI 与 ZIP Dry Run 结果记录在 `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`。
+- T5 Windows 本机验收、精确 SHA CI 与 ZIP Dry Run 均通过；Release Gate 为 PASS，v4.0.0 仍未创建正式 Tag 或 GitHub Release。证据记录在 `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`。
 
 ### 变更范围
 
@@ -14,6 +14,7 @@
 - 增加会话与页面序列、基于生命周期的停留和跳出指标、事件参数白名单、IP/CIDR 过滤和受控导出。
 - 保留 v3 原始访问日志与现有汇总结构；历史 v3 行不会被伪造为有 v4 停留或跳出数据。
 - 随包保留 Alpine.js、Apache ECharts、mlocati/ip-lib 运行时组件所需许可证。
+- 修正 680 px 及以下后台布局覆盖 Z-Blog 固定导航的问题，并更新管理样式缓存键。
 
 ### 兼容与限制
 

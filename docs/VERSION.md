@@ -8,7 +8,7 @@
 
 v4.0.0 在保留 v3 原始访问日志和既有汇总结构的基础上，提供访问总览、实时访客、趋势、记录、来源、内容、访客、蜘蛛、事件与设置分析，并增加会话页面序列、停留/跳出指标、IP/CIDR 过滤和受控导出。Beacon 默认关闭。
 
-v4.0.0 Release Candidate 的发布 Gate 以 [T5 本机验收记录](v4.0.0/T5-ACCEPTANCE-2026-10-13.md)及项目状态文件中的最终 SHA、CI 和 ZIP 核验为准。
+T5 Windows 本机验收、680/800/1100 px 后台视图复测、精确 SHA CI 与 94 项安装包核验均已通过；Release Gate 为 PASS。v4.0.0 仍是候选版，尚无正式 Tag 或 GitHub Release。详细证据见 [T5 本机验收记录](v4.0.0/T5-ACCEPTANCE-2026-10-13.md)。
 
 兼容性基线：PHP 7.1 语法下限，实际验收 PHP 8.3.8 / Z-BlogPHP build 173540 / MySQL 5.7.38。
 
