@@ -25,4 +25,4 @@
 
 ## 安装包
 
-正式安装包：[`xz_visit_stats-v4.0.0.zip`](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/download/v4.0.0/xz_visit_stats-v4.0.0.zip)。SHA-256：`D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`。安装包有 94 个白名单文件，包含必需运行时依赖与许可证；未上传 Z-Blog 应用中心。
+正式安装包：[`xz_visit_stats-v4.0.0.zip`](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/download/v4.0.0/xz_visit_stats-v4.0.0.zip)。安装包有 94 个白名单文件，包含必需运行时依赖与许可证；资产 SHA-256 由 GitHub Release 提供；未上传 Z-Blog 应用中心。
