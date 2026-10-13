@@ -118,4 +118,12 @@ This section records a read-only continuation of the existing audit. It does not
 
 ### Minimal forward-fix proposal
 
-Use an ordinary PR against `main` to retain the three already-edited documents and formal README source, run exact-SHA CI, and verify a 94-entry corrective package. If authorized later, distribute it as a clearly named supplemental/corrective artifact while leaving the existing Tag, Release, and ZIP unchanged. No new version/tag or asset replacement is authorized by this audit. The only next action is to decide whether to authorize that separate corrective distribution after the PR is reviewable.
+Historical proposal, superseded 2026-10-14: the user authorized a versioned v4.0.1 corrective release through existing PR #28. The v4.0.0 Tag, Release, and ZIP remain immutable.
+
+## Authorized v4.0.1 corrective release — 2026-10-14 (in progress)
+
+- Authorization: publish v4.0.1 as a forward correction while retaining the v4.0.0 Tag, GitHub Release, and ZIP unchanged. The original ZIP SHA-256 remains `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`.
+- Reuse the existing T5 acceptance matrix and Windows/MySQL 5.7 evidence; no T2–T5 installation, migration, or production operation was repeated. Runtime code and DB schema are unchanged; schema `db_version` remains `4.0.0`.
+- Current local verification: PHP syntax and PHPUnit `79 tests / 549 assertions` passed via `scripts/local-verify.ps1 -SkipHttp`; Node syntax passed for all 16 shipped JavaScript files.
+- Local package checkpoint `dist/release-candidates/2026-10-14-final/xz_visit_stats-v4.0.1.zip`: SHA-256 `5448AC30755A7E00790B9B6F90EC2799BBB0D0A8F9067D34F628859B5DBA5078`, 95 entries. Explicit allowlist and every uncompressed file hash match; runtime dependencies and licenses are present; development/test/config/cache/backup/export paths are absent. Full file-hash evidence: `docs/v4.0.1/PACKAGE-MANIFEST-v4.0.1-final.md`.
+- At this checkpoint PR #28 remains OPEN/DRAFT at its prior audit head; the current v4.0.1 edits have not yet been pushed or covered by exact-SHA CI. Release Gate is `NOT READY`; the v4.0.1 package is local and unpublished. See the current project state for the only next action and subsequent CI/Release evidence.

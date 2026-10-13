@@ -4,7 +4,11 @@ param([string]$OutputPath = '')
 $ErrorActionPreference = 'Stop'
 Set-StrictMode -Version Latest
 $sourceRoot = (Resolve-Path -LiteralPath (Join-Path $PSScriptRoot '..')).Path
-if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path $sourceRoot 'dist\xz_visit_stats-v4.0.0.zip' }
+if ([string]::IsNullOrWhiteSpace($OutputPath)) { $OutputPath = Join-Path $sourceRoot 'dist\xz_visit_stats-v4.0.1.zip' }
+$pluginMetadata = [xml](Get-Content -LiteralPath (Join-Path $sourceRoot 'plugin.xml') -Raw)
+$pluginVersionNode = $pluginMetadata.SelectSingleNode('/plugin/version')
+$pluginVersion = if ($null -eq $pluginVersionNode) { '' } else { $pluginVersionNode.InnerText.Trim() }
+if ($pluginVersion -ne '4.0.1') { throw "Release builder expects plugin.xml version 4.0.1; found '$pluginVersion'." }
 $distRoot = (Join-Path $sourceRoot 'dist')
 if (-not (Test-Path -LiteralPath $distRoot)) { New-Item -ItemType Directory -Path $distRoot | Out-Null }
 $distRoot = (Resolve-Path -LiteralPath $distRoot).Path
@@ -15,7 +19,7 @@ if (-not $OutputPath.StartsWith($distRoot + [System.IO.Path]::DirectorySeparator
 
 $explicit = @(
     'plugin.xml', 'README.md', 'THIRD-PARTY-NOTICES.md', 'main.php', 'include.php', 'realtime_api.php', 'rum.php', 'event.php',
-    'docs/VERSION.md', 'docs/CHANGELOG.md', 'docs/RELEASE_NOTES_v4.0.0.md', 'docs/v4.0.0/UPGRADE-v3-to-v4.md',
+    'docs/VERSION.md', 'docs/CHANGELOG.md', 'docs/RELEASE_NOTES_v4.0.0.md', 'docs/RELEASE_NOTES_v4.0.1.md', 'docs/v4.0.0/UPGRADE-v3-to-v4.md',
     'data/exports/.htaccess', 'data/exports/index.php', 'data/exports/web.config',
     'vendor/mlocati/ip-lib/ip-lib.php', 'vendor/mlocati/ip-lib/LICENSE.txt'
 )
