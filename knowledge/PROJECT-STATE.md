@@ -7,14 +7,14 @@ This is the human/agent-readable checkpoint for the current major-version flow. 
 ## Current project
 
 - Project: `xz_visit_stats`
-- Target major version: `4.0.0`
+- Current release target: `4.0.1` (corrective documentation and version-metadata release; schema remains `4.0.0`)
 - Repository: `mxonline/zblogplugin-xz_visit_stats`
 - Development branch: `feature/visit-stats-4.0`
-- Current phase: `T5 — Windows local final acceptance and release preparation`
-- Phase status: `T5 final acceptance and formal v4.0.0 release COMPLETE` (T4 remains complete; earlier T5 PASS/BLOCKED checkpoints remain historical)
-- Release Gate: `PASS` — local acceptance, data/privacy compatibility, version/docs, exact-main-SHA CI Run `38356703851`, and the published 94-entry ZIP are verified.
-- PR/Merge/Tag/Release: PR [#26](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/26) merged; annotated tag `v4.0.0` and [GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) created. Release source SHA `e3dcce5f34def6d70d860a9c4165968f257e1757`; ZIP SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`. No production deployment/database write or App Centre upload occurred.
-- Separate post-release audit (2026-10-13): `RELEASED`; `ARTIFACT_CONTENT_VERIFIED=NO`; `POST_RELEASE_AUDIT=BLOCKED`. The published ZIP embeds candidate-state text in four release documents. The existing Tag, Release, and ZIP remain untouched; detailed byte/newline comparisons and a forward-fix proposal are recorded below and in `docs/v4.0.0/T5-ACCEPTANCE-2026-10-13.md`.
+- Current phase: `Authorized v4.0.1 corrective release through existing PR #28`
+- Phase status: `RELEASE_PREPARING`; T2–T5 remain complete and their verified evidence is reused, not rerun.
+- Release Gate: `NOT READY` for v4.0.1 until the corrected state checkpoint, Release Dry Run, and pre-merge Notion write/readback are complete. The v4.0.0 PASS below is historical and applies only to v4.0.0.
+- PR/Merge/Tag/Release: PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28) is OPEN/DRAFT at head `1fb20e8ed4cfecdcd093ee36da3e145aab91c797`; exact-head checks passed (Runs `38431839229`, `38431831871`, `38431838595`). No v4.0.1 merge, tag, or Release exists yet. The v4.0.0 source/tag remains `e3dcce5f34def6d70d860a9c4165968f257e1757`, and its published ZIP SHA-256 remains `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`. No production deployment/database write or App Centre upload occurred.
+- v4.0.0 post-release audit remains historically `RELEASED`; `ARTIFACT_CONTENT_VERIFIED=NO`; `POST_RELEASE_AUDIT=BLOCKED` for the four candidate-state passages in its package. The authorized v4.0.1 correction preserves the original Tag, Release, and ZIP; its final artifact verification remains pending until formal publication and download verification.
 
 ## Verified T2 baseline
 
@@ -199,13 +199,13 @@ Record only observed facts. Planned commands are not completion evidence. Add re
 - Traceable source correction: draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28) was created from commit `81912fe40753a25c1f3c2ec40a5efb1e75d666ca`; its exact-SHA Runs `38413677655` and `38414205617` passed. The evidence-only follow-up checkpoint `9c6f965ce3207fea7425c6643679bd96a3243dbd` then passed exact-SHA Runs `38414739386` and `38414730126`. At this checkpoint PR #28 is OPEN/DRAFT and unmerged; the release artifact gate remains blocked.
 - Historical next action, superseded 2026-10-14: the user authorized a separately versioned v4.0.1 corrective release through existing PR #28. The v4.0.0 Tag, Release, and ZIP remain immutable.
 
-## Authorized v4.0.1 corrective release — 2026-10-14 (in progress)
+## Authorized v4.0.1 corrective release — 2026-10-14 (current checkpoint)
 
 - Authorization: publish v4.0.1 as a forward correction; preserve v4.0.0 Tag `e3dcce5f34def6d70d860a9c4165968f257e1757`, published Release, and ZIP SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890` without modification.
-- Execution: continue the single Runtime `DEV-20261013-001` and existing draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28); do not repeat T2–T5. At entry, PR #28 head was `ca1825a4827dbda3d39a1fb77d3b2c75cb9f7d90` and exact-SHA Runs `38418453433` / `38418443747` passed on that prior audit checkpoint. Current v4.0.1 edits still require their own commit and exact-head CI.
+- Execution: continue the single Runtime `DEV-20261013-001` and existing draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28); do not repeat T2–T5. Current source checkpoint is `1fb20e8ed4cfecdcd093ee36da3e145aab91c797`; its three exact-head checks passed (Runs `38431839229`, `38431831871`, `38431838595`). A state-reconciliation follow-up is in progress because this file's top-level projection and the ignored Runtime dirty flag did not match live Git.
 - Scope: plugin metadata and release documentation/package naming only. Runtime PHP/JS, DB schema, and `db_version` are unchanged; the existing v4.0.0 Windows T5 evidence is reused.
 - Local verification on 2026-10-14: `scripts/local-verify.ps1 -SkipHttp` passed PHP syntax and PHPUnit `79 tests / 549 assertions`; Node `--check` passed for all 16 shipped JavaScript files. No T2–T5 installation/migration workflow was repeated.
 - Local v4.0.1 package checkpoint: `dist/release-candidates/2026-10-14-final/xz_visit_stats-v4.0.1.zip`, SHA-256 `5448AC30755A7E00790B9B6F90EC2799BBB0D0A8F9067D34F628859B5DBA5078`, 95 files. The independently reconstructed 95-entry allowlist exactly matches the archive; each file SHA-256 matches its source. Required runtime dependency and license/notice files are present; development, tests, configuration, cache, backups, and local exports are excluded. The per-file audit is `docs/v4.0.1/PACKAGE-MANIFEST-v4.0.1-final.md`.
 - Plugin metadata is version `4.0.1`, published/modified date `2026-10-14`; the packaged documentation identifies v4.0.0 as formally released with its original asset digest and v4.0.1 as a metadata/documentation correction. Database schema version remains `4.0.0`.
-- Release status: v4.0.1 is not yet published. The existing v4.0.0 release remains published and unchanged. Release Gate stays `NOT READY` until the final PR source has exact-SHA CI, the Release Dry Run and six existing gates pass, and the pre-merge Notion writeback is read back. No production site/database or Z-Blog App Centre was touched.
-- Next action: finish the evidence checkpoint, commit and push the v4.0.1 correction on PR #28, verify CI against the resulting exact SHA, then complete the existing Release Gate before merge/tag/release.
+- Release status: v4.0.1 is not yet published. The existing v4.0.0 release remains published and unchanged. Release Gate remains `NOT READY` until the corrected state checkpoint receives exact-SHA CI, the Release Dry Run passes, and the existing Notion release record is written and read back. No production site/database or Z-Blog App Centre was touched.
+- Next action: finish the state-reconciliation follow-up commit on PR #28, verify exact-SHA CI, then complete the existing Release Gate before merge/tag/release.
