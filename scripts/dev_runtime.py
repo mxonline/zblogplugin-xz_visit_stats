@@ -132,6 +132,7 @@ def new_state(
         "notion": {"project_ref": None, "prd_ref": None, "writeback_ref": None},
         "created_at": created_at,
         "updated_at": updated_at,
+        "worktree_dirty": False,
     }
 
 
@@ -253,6 +254,7 @@ def accept_git_checkpoint(
 
     changed = branch != state.get("branch") or head_sha != state.get("head_sha")
     updated = next_state(state, updated_at=updated_at, branch=branch, head_sha=head_sha)
+    updated["worktree_dirty"] = False
     if changed:
         updated["ci"] = {"status": "PENDING", "sha": None, "run_id": None, "evidence": None}
         updated["gates"]["github_ci"] = {"status": "PENDING", "evidence": []}
@@ -540,11 +542,32 @@ def evaluate_completion(state: dict[str, Any], evidence_index: dict[str, Any]) -
     final = "COMPLETE" if decision["action"] == "COMPLETE" else "INCOMPLETE"
     release = "NOT RELEASED"
     if final == "COMPLETE" and state["gates"]["release_gate"]["status"] == "PASS":
-        successful_types = {item.get("type") for item in evidence_index.get("items", []) if item.get("result") == "PASS"}
-        if {"git_tag", "github_release", "release_zip"}.issubset(successful_types):
+        target_version = state.get("target_version", "")
+        successful_release_types = {
+            item.get("type")
+            for item in evidence_index.get("items", [])
+            if item.get("result") == "PASS" and _release_evidence_matches_target(item, target_version)
+        }
+        if {"git_tag", "github_release", "release_zip"}.issubset(successful_release_types):
             release = "RELEASED"
     reasons = [] if final == "COMPLETE" else decision.get("reasons", [decision.get("action")])
     return {"final": final, "release": release, "reasons": reasons}
+
+
+def _release_evidence_matches_target(item: dict[str, Any], target_version: str) -> bool:
+    """Ignore successful release evidence belonging to an earlier target version."""
+    if not target_version:
+        return False
+    ref = str(item.get("ref", "")).rstrip("/")
+    version = f"v{target_version}"
+    evidence_type = item.get("type")
+    if evidence_type == "git_tag":
+        return ref.endswith(f"refs/tags/{version}") or ref.endswith(f"/tags/{version}")
+    if evidence_type == "github_release":
+        return ref.endswith(f"/releases/tag/{version}")
+    if evidence_type == "release_zip":
+        return f"/download/{version}/" in ref and f"xz_visit_stats-{version}.zip" in ref
+    return False
 
 
 def _next_seq(bundle: dict[str, Any]) -> int:

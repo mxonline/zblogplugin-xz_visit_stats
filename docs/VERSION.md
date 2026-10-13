@@ -2,13 +2,15 @@
 
 ## 当前版本
 
-当前正式版本：**v4.0.0**。Tag：`v4.0.0`；[GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0)。
+当前插件版本：**v4.0.1**；Tag 与发布状态见 [GitHub Release v4.0.1](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.1)。
+
+v4.0.1 修正版本元数据、安装包名称和发布文档，不更改 v4 统计运行逻辑或数据库结构。已安装 v4.0.0 的站点更新插件文件即可，无需数据库迁移；配置中的 `db_version` 保持 `4.0.0`。v3 → v4 数据迁移说明仍适用。
 
 产品定位：**站长访问分析中心**。
 
-v4.0.0 在保留 v3 原始访问日志和既有汇总结构的基础上，提供访问总览、实时访客、趋势、记录、来源、内容、访客、蜘蛛、事件与设置分析，并增加会话页面序列、停留/跳出指标、IP/CIDR 过滤和受控导出。Beacon 默认关闭。
+v4.0.1 延续 v4.0.0 的站长访问分析能力：在保留 v3 原始访问日志和既有汇总结构的基础上，提供访问总览、实时访客、趋势、记录、来源、内容、访客、蜘蛛、事件与设置分析，并增加会话页面序列、停留/跳出指标、IP/CIDR 过滤和受控导出。Beacon 默认关闭。
 
-T5 Windows 本机验收、680/800/1100 px 后台视图复测、精确 SHA CI 与 94 项安装包核验均已通过；Release Gate 为 PASS。正式发布提交为 `e3dcce5f34def6d70d860a9c4165968f257e1757`，精确 SHA GitHub Actions Run `38356703851` 成功。GitHub Release 附件 `xz_visit_stats-v4.0.0.zip` 的 SHA-256 为 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`。详细证据见 [T5 本机验收记录](v4.0.0/T5-ACCEPTANCE-2026-10-13.md)。
+v4.0.0 的 T5 Windows 本机验收、680/800/1100 px 后台视图复测、精确 SHA CI 与 94 项安装包核验均已通过。其 Tag 指向 `e3dcce5f34def6d70d860a9c4165968f257e1757`，精确 SHA GitHub Actions Run `38356703851` 成功；原附件 `xz_visit_stats-v4.0.0.zip` 的 SHA-256 为 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`，仍保留在 [v4.0.0 GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0)。详细验收见 [T5 本机验收记录](v4.0.0/T5-ACCEPTANCE-2026-10-13.md)。
 
 兼容性基线：PHP 7.1 语法下限，实际验收 PHP 8.3.8 / Z-BlogPHP build 173540 / MySQL 5.7.38。
 
@@ -32,6 +34,7 @@ T5 Windows 本机验收、680/800/1100 px 后台视图复测、精确 SHA CI 与
 
 | 版本 | 主题 | 状态 |
 | --- | --- | --- |
+| v4.0.1 | 版本元数据、发布文档与安装包一致性修正 | 发布记录：GitHub Release `v4.0.1` |
 | v4.0.0 | 访问分析中心、会话/事件分析、受控导出与隐私过滤 | 正式发布；GitHub Release `v4.0.0` |
 | v3.0.0 | 访问统计产品化、实时分析、来源与访客环境增强 | 正式发布 |
 | v2.0.1 | 插件产品描述与版本元数据修正 | 正式发布 |

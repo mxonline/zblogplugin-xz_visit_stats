@@ -90,3 +90,48 @@ The earlier `Release Gate: PASS` and 95-file package record below describe a sup
 ## Release boundary
 
 This is release preparation only. No merge, tag, GitHub Release, production deployment, database restore, or Z-Blog App Centre upload has been performed or is authorized by this task.
+
+## Post-release artifact content audit — 2026-10-13
+
+This section records a read-only continuation of the existing audit. It does not rerun T2–T5 or alter the published Tag, Release, or ZIP.
+
+- **Formal release:** `RELEASED`. GitHub reports published, non-draft Release `v4.0.0`; annotated Tag peels to `e3dcce5f34def6d70d860a9c4165968f257e1757`. `main` is `1485098cac35766a69f2ad014ffed66b33588f50`; exact-SHA Actions Run `38357750526` is `success` with matching `headSha`.
+- **Official asset:** downloaded and SHA-256 verified as `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890` (GitHub API digest `sha256:d217c4b5d11c358e5e70c5f16fd73fae6547cd6aded5a76b1f99d77577b9f890`); 94 extracted files.
+- **Allowlist/runtime check:** reconstructed builder allowlist has 94 entries, with zero missing, extra, or forbidden entries. Required runtime dependency and license files are present. No substantive runtime-code or dependency difference exists between the official ZIP and the Tag.
+- **Official ZIP vs Tag:** 37 files byte-identical; 57 text files differ only by CRLF/LF line endings; zero semantic/content differences. EOL-only files: `assets/rum.js`, `assets/v4_admin.js`, `assets/v4_events.js`, `assets/v4_sessions.js`, `data/exports/.htaccess`, `data/exports/index.php`, `data/exports/web.config`, `docs/RELEASE_NOTES_v4.0.0.md`, `docs/v4.0.0/UPGRADE-v3-to-v4.md`, `event.php`, `inc/collector.php`, `inc/events.php`, `inc/ip_filter.php`, `inc/page_lifecycle.php`, `inc/session.php`, `inc/upgrade/migrate.php`, `inc/upgrade/runner.php`, `inc/upgrade/version.php`, `inc/v4_admin_actions.php`, `inc/v4_content_query.php`, `inc/v4_events_query.php`, `inc/v4_export.php`, `inc/v4_metrics.php`, `inc/v4_report_filters.php`, `inc/v4_reports.php`, `inc/v4_sessions_query.php`, `inc/v4_spider_query.php`, `inc/v4_visitors_query.php`, `include.php`, `main.php`, `README.md`, `rum.php`, `third-party-licenses/Apache-2.0.txt`, `third-party-licenses/Apache-ECharts-NOTICE.txt`, `third-party-licenses/BSD-3-Clause-d3.txt`, `third-party-licenses/MIT-Alpine.js.txt`, `third-party-licenses/MIT-Vue-Reactivity.txt`, `THIRD-PARTY-NOTICES.md`, `vendor/mlocati/ip-lib/ip-lib.php`, `vendor/mlocati/ip-lib/LICENSE.txt`, `vendor/mlocati/ip-lib/src/Address/AddressInterface.php`, `vendor/mlocati/ip-lib/src/Address/AssignedRange.php`, `vendor/mlocati/ip-lib/src/Address/IPv4.php`, `vendor/mlocati/ip-lib/src/Address/IPv6.php`, `vendor/mlocati/ip-lib/src/Address/Type.php`, `vendor/mlocati/ip-lib/src/Factory.php`, `vendor/mlocati/ip-lib/src/ParseStringFlag.php`, `vendor/mlocati/ip-lib/src/Range/AbstractRange.php`, `vendor/mlocati/ip-lib/src/Range/Pattern.php`, `vendor/mlocati/ip-lib/src/Range/RangeInterface.php`, `vendor/mlocati/ip-lib/src/Range/Single.php`, `vendor/mlocati/ip-lib/src/Range/Subnet.php`, `vendor/mlocati/ip-lib/src/Range/Type.php`, `vendor/mlocati/ip-lib/src/Service/BinaryMath.php`, `vendor/mlocati/ip-lib/src/Service/NumberInChunks.php`, `vendor/mlocati/ip-lib/src/Service/RangesFromBoundaryCalculator.php`, `vendor/mlocati/ip-lib/src/Service/UnsignedIntegerMath.php`.
+- **Official ZIP vs `main`:** 35 files byte-identical, 55 line-ending-only, and four actual text differences: `README.md`, `docs/VERSION.md`, `docs/CHANGELOG.md`, `docs/RELEASE_NOTES_v4.0.0.md`. Each says v4.0.0 is a candidate / not formally released in the published ZIP; `main` says formally released.
+- **Official ZIP vs local dist:** all 94 extracted path/payload pairs are byte-identical. Local dist container SHA-256 is `0BC97E73563A71D7EEC2A62B34D86422370E51D37A188B4FF1467CF792C87FD8`; the different container digest is not a payload mismatch.
+- **Git baseline:** at audit start, `feature/visit-stats-4.0` HEAD was `3044cb2c262486dc38133d773ef6e6d3b44daeea`; the only existing modifications were `docs/CHANGELOG.md`, `docs/RELEASE_NOTES_v4.0.0.md`, and `docs/VERSION.md`. All three were preserved. This audit added only the project-state and acceptance evidence sections; no commit or push was made.
+- **Outcome:** `RELEASED`; `ARTIFACT_CONTENT_VERIFIED=NO`; `POST_RELEASE_AUDIT=BLOCKED`. The formal GitHub release remains valid, but the package's four release documents contradict that state.
+
+## Corrective package candidate — 2026-10-13
+
+- Built a separate, unpublished candidate using the already-preserved formal-status documentation changes: `dist/postrelease-correction-20261013/xz_visit_stats-v4.0.0-corrective-candidate-20261013.zip`, SHA-256 `A5D4E17549F9B0DE16BC0E8C36825740133CDD6D573B6C93D423E7C1AD20EE0E`, 94 entries. The package builder verified the exact allowlist and every included source-file hash.
+- The four current v4 release documents in this candidate say formally published. The only remaining “release candidate” phrases in CHANGELOG belong to historical entries for earlier versions, not v4.0.0.
+- This is a local review candidate, not a replacement or published attachment. The original v4.0.0 Tag, GitHub Release, and ZIP remain unchanged. Distribution and any new version/tag still require a separate explicit decision.
+
+## Forward correction PR checkpoint — 2026-10-13
+
+- Draft PR [#28](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/28) was opened against `main` with source commit `81912fe40753a25c1f3c2ec40a5efb1e75d666ca`; exact-SHA Runs [38413677655](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38413677655) and [38414205617](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414205617) passed.
+- An evidence-only follow-up commit `9c6f965ce3207fea7425c6643679bd96a3243dbd` updated the PR checkpoint; exact-SHA Runs [38414739386](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414739386) and [38414730126](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38414730126) passed. At this checkpoint, PR #28 is OPEN/DRAFT and unmerged; it does not alter runtime code or the published asset.
+- The local corrective ZIP payload compares to the committed source tree with 37 byte-identical files and 57 EOL-only differences; no content mismatch. The candidate remains unpublished, PR remains draft/unmerged, and the post-release artifact audit remains blocked pending an explicit distribution decision.
+
+### Minimal forward-fix proposal
+
+Historical proposal, superseded 2026-10-14: the user authorized a versioned v4.0.1 corrective release through existing PR #28. The v4.0.0 Tag, Release, and ZIP remain immutable.
+
+## Authorized v4.0.1 corrective release — 2026-10-14 (in progress)
+
+- Authorization: publish v4.0.1 as a forward correction while retaining the v4.0.0 Tag, GitHub Release, and ZIP unchanged. The original ZIP SHA-256 remains `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`.
+- Reuse the existing T5 acceptance matrix and Windows/MySQL 5.7 evidence; no T2–T5 installation, migration, or production operation was repeated. Runtime code and DB schema are unchanged; schema `db_version` remains `4.0.0`.
+- Current local verification: PHP syntax and PHPUnit `79 tests / 549 assertions` passed via `scripts/local-verify.ps1 -SkipHttp`; Node syntax passed for all 16 shipped JavaScript files.
+- Local package checkpoint `dist/release-candidates/2026-10-14-final/xz_visit_stats-v4.0.1.zip`: SHA-256 `5448AC30755A7E00790B9B6F90EC2799BBB0D0A8F9067D34F628859B5DBA5078`, 95 entries. Explicit allowlist and every uncompressed file hash match; runtime dependencies and licenses are present; development/test/config/cache/backup/export paths are absent. Full file-hash evidence: `docs/v4.0.1/PACKAGE-MANIFEST-v4.0.1-final.md`.
+- This historical checkpoint was superseded after the v4.0.1 source commit and exact-head CI completed. The latest state-reconciliation checkpoint below governs current status.
+
+## v4.0.1 state reconciliation checkpoint — 2026-10-14
+
+- A read-only final review confirmed PR #28 source `1fb20e8ed4cfecdcd093ee36da3e145aab91c797`, a clean Git worktree, and three successful exact-head CI checks (Runs `38431839229`, `38431831871`, `38431838595`). It independently checked the 95-entry allowlist, source and archive payload hashes, runtime dependencies, and licenses. This did not repeat T2–T5.
+- The review found the top-level `knowledge/PROJECT-STATE.md` projection still named v4.0.0/T5 as current and the ignored local Runtime `DEV-20261013-001` recorded `worktree_dirty=true` despite clean Git status. The tracked project-state projection is corrected in this checkpoint; the local Runtime will be reconciled to the post-commit branch and exact HEAD.
+- Current package candidate remains the post-commit v4.0.1 build with 95 entries and all payload hashes matching the final manifest. The earlier build-container SHA difference is not a payload difference. The official ZIP will be built and verified again from the merged source before upload.
+- Current v4.0.1 status remains `NOT RELEASED`; Release Gate is `NOT READY` pending exact-SHA CI for this state reconciliation, final Release Dry Run, and Notion pre-merge write/readback. Existing v4.0.0 Tag, Release, and ZIP remain unchanged. No production site/database or Z-Blog App Centre was touched.
+- Next action: push the state-reconciliation checkpoint to existing PR #28, verify its exact-SHA checks, complete the existing Release Gate and Notion readback, then continue the already-authorized v4.0.1 release sequence.

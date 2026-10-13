@@ -115,3 +115,13 @@ The first T5 package and its successful CI remain historical evidence. Independe
 - PR [#26](https://github.com/mxonline/zblogplugin-xz_visit_stats/pull/26) merged to `main` as `e3dcce5f34def6d70d860a9c4165968f257e1757`; exact-main-SHA Run [38356703851](https://github.com/mxonline/zblogplugin-xz_visit_stats/actions/runs/38356703851) passed. PR-head runs `38356571362` and `38356571328` passed on `c3b2bcf769ec1502aab91e885aec406d6aff0eca`.
 - Tag `v4.0.0` points to the merge commit; GitHub Release [v4.0.0](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0) is published with a 94-file allowlisted ZIP, SHA-256 `D217C4B5D11C358E5E70C5F16FD73FAE6547CD6ADED5A76B1F99D77577B9F890`.
 - Release Gate `PASS`; no production website/database operation or Z-Blog application-centre upload occurred. The existing T5 task and implementation plan are the only task/plan records.
+
+## Authorized v4.0.1 forward correction and release
+
+This continues PR #28 and the existing `DEV-20261013-001` runtime. It does not repeat T2–T5, create another task/Gate, alter production, or modify the published v4.0.0 tag/release/ZIP.
+
+- [x] Correct current version metadata and user docs to v4.0.1; retain an explicit factual v4.0.0 release record and its original ZIP digest.
+- [x] Build the v4.0.1 ZIP from the updated explicit allowlist; verify every entry and SHA-256, required runtime dependencies/licenses, and excluded development/config/cache/backup files. Distinguish EOL-only differences from payload changes.
+- [ ] Reuse T5 runtime evidence; run the relevant local static/PHPUnit regressions, Release Dry Run, exact-head CI, and all six existing flow gates.
+- [ ] Merge PR #28, verify CI on the merge SHA, create `v4.0.1` tag and GitHub Release, then upload the exact verified ZIP without changing v4.0.0 assets.
+- [ ] Download the published asset again, verify its GitHub and local SHA-256 plus extracted manifest, update the existing project state and Notion release record, and read them back before marking `PLUGIN_RELEASED`.

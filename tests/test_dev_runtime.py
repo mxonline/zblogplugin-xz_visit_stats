@@ -195,6 +195,18 @@ class DevRuntimeContractTests(unittest.TestCase):
         self.assertEqual(drift["action"], "RECONCILE_GIT")
         self.assertTrue(drift["conflicts"])
 
+    def test_git_checkpoint_persists_clean_worktree_fact(self):
+        state = self.new_state()
+        state["worktree_dirty"] = True
+        checkpoint = dev_runtime.accept_git_checkpoint(
+            state,
+            branch=state["branch"],
+            head_sha=state["head_sha"],
+            dirty=False,
+            updated_at="2026-09-09T00:03:30Z",
+        )
+        self.assertFalse(checkpoint["worktree_dirty"])
+
     def test_complete_allows_release_not_ready_but_requires_notion_writeback(self):
         state = self.new_state()
         evidence = dev_runtime.new_evidence_index(state)
@@ -254,9 +266,54 @@ class DevRuntimeContractTests(unittest.TestCase):
             state = self.gate(state, gate, status, evidence_id)
 
         self.assertEqual(dev_runtime.evaluate_completion(state, evidence)["release"], "NOT RELEASED")
+        release_refs = {
+            "tag": "git:refs/tags/v3.0.1",
+            "release": "https://example.invalid/releases/tag/v3.0.1",
+            "zip": "https://example.invalid/releases/download/v3.0.1/xz_visit_stats-v3.0.1.zip",
+        }
         for evidence_id, evidence_type in (("tag", "git_tag"), ("release", "github_release"), ("zip", "release_zip")):
-            evidence = self.register(evidence, evidence_id, evidence_type)
+            evidence = self.register(evidence, evidence_id, evidence_type, ref=release_refs[evidence_id])
         self.assertEqual(dev_runtime.evaluate_completion(state, evidence)["release"], "RELEASED")
+
+    def test_old_version_release_evidence_does_not_release_current_target(self):
+        state = self.new_state(current_version="4.0.0", target_version="4.0.1")
+        evidence = dev_runtime.new_evidence_index(state)
+        gate_specs = [
+            ("notion_context", "notion", "notion_context", "PASS"),
+            ("codex_development", "codex", "codex_development", "PASS"),
+            ("local_runtime", "runtime", "local_runtime", "PASS"),
+            ("github_ci", "ci", "github_ci", "PASS"),
+            ("release_gate", "release-gate", "release_gate", "PASS"),
+            ("notion_writeback", "writeback", "notion_writeback", "PASS"),
+        ]
+        for gate, evidence_id, evidence_type, status in gate_specs:
+            evidence = self.register(
+                evidence,
+                evidence_id,
+                evidence_type,
+                ref=f"https://example.invalid/{evidence_id}",
+                sha=state["head_sha"] if gate == "github_ci" else None,
+                run_id=201 if gate == "github_ci" else None,
+            )
+            if gate == "github_ci":
+                state = dev_runtime.set_ci(
+                    state,
+                    status="PASS",
+                    sha=state["head_sha"],
+                    run_id=201,
+                    evidence_ref="evidence:ci",
+                    updated_at="2026-09-09T00:07:00Z",
+                )
+            state = self.gate(state, gate, status, evidence_id)
+
+        for evidence_id, evidence_type, ref in (
+            ("old-tag", "git_tag", "git:refs/tags/v4.0.0"),
+            ("old-release", "github_release", "https://example.invalid/releases/tag/v4.0.0"),
+            ("old-zip", "release_zip", "https://example.invalid/releases/download/v4.0.0/xz_visit_stats-v4.0.0.zip"),
+        ):
+            evidence = self.register(evidence, evidence_id, evidence_type, ref=ref)
+
+        self.assertEqual(dev_runtime.evaluate_completion(state, evidence)["release"], "NOT RELEASED")
 
 
 if __name__ == "__main__":

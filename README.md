@@ -1,6 +1,8 @@
 # xz_visit_stats
 
-Z-BlogPHP 站长访问分析中心。当前正式版本为 **v4.0.0**，见 [GitHub Release](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.0)。
+Z-BlogPHP 站长访问分析中心。当前插件版本为 **v4.0.1**，版本记录与下载地址见 [GitHub Release v4.0.1](https://github.com/mxonline/zblogplugin-xz_visit_stats/releases/tag/v4.0.1)。
+
+v4.0.1 是 v4.0.0 的文档与版本元数据修正版，不更改统计运行逻辑或数据库结构。v4.0.0 的 Tag、GitHub Release 和原安装包保持不变。
 
 ## 功能
 
@@ -19,7 +21,7 @@ Z-BlogPHP 站长访问分析中心。当前正式版本为 **v4.0.0**，见 [Git
 
 ## 安装与升级
 
-1. 备份插件目录和数据库，再解压 `xz_visit_stats-v4.0.0.zip` 到 `zb_users/plugin/`，目录名保持 `xz_visit_stats`。
+1. 备份插件目录和数据库，再解压 `xz_visit_stats-v4.0.1.zip` 到 `zb_users/plugin/`，目录名保持 `xz_visit_stats`。
 2. 在 Z-BlogPHP 插件管理中启用“访问统计”。安装/升级过程会验证并补齐 v4 结构，迁移可重复运行。
 3. 打开“访问分析”，检查总览、访问记录、来源、访客、蜘蛛、事件和设置页面。
 4. v3 升级细节见 [v3 → v4 升级说明](docs/v4.0.0/UPGRADE-v3-to-v4.md)。
@@ -30,6 +32,7 @@ Z-BlogPHP 站长访问分析中心。当前正式版本为 **v4.0.0**，见 [Git
 
 - [版本信息](docs/VERSION.md)
 - [变更记录](docs/CHANGELOG.md)
+- [v4.0.1 发布说明](docs/RELEASE_NOTES_v4.0.1.md)
 - [v4.0.0 发布说明](docs/RELEASE_NOTES_v4.0.0.md)
 - [v3 → v4 升级说明](docs/v4.0.0/UPGRADE-v3-to-v4.md)
 - [第三方组件与许可证](THIRD-PARTY-NOTICES.md)
