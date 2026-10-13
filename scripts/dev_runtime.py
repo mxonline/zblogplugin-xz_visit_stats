@@ -132,6 +132,7 @@ def new_state(
         "notion": {"project_ref": None, "prd_ref": None, "writeback_ref": None},
         "created_at": created_at,
         "updated_at": updated_at,
+        "worktree_dirty": False,
     }
 
 
@@ -253,6 +254,7 @@ def accept_git_checkpoint(
 
     changed = branch != state.get("branch") or head_sha != state.get("head_sha")
     updated = next_state(state, updated_at=updated_at, branch=branch, head_sha=head_sha)
+    updated["worktree_dirty"] = False
     if changed:
         updated["ci"] = {"status": "PENDING", "sha": None, "run_id": None, "evidence": None}
         updated["gates"]["github_ci"] = {"status": "PENDING", "evidence": []}

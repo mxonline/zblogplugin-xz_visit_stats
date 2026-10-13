@@ -195,6 +195,18 @@ class DevRuntimeContractTests(unittest.TestCase):
         self.assertEqual(drift["action"], "RECONCILE_GIT")
         self.assertTrue(drift["conflicts"])
 
+    def test_git_checkpoint_persists_clean_worktree_fact(self):
+        state = self.new_state()
+        state["worktree_dirty"] = True
+        checkpoint = dev_runtime.accept_git_checkpoint(
+            state,
+            branch=state["branch"],
+            head_sha=state["head_sha"],
+            dirty=False,
+            updated_at="2026-09-09T00:03:30Z",
+        )
+        self.assertFalse(checkpoint["worktree_dirty"])
+
     def test_complete_allows_release_not_ready_but_requires_notion_writeback(self):
         state = self.new_state()
         evidence = dev_runtime.new_evidence_index(state)
